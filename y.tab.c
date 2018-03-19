@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "try3.y" /* yacc.c:339  */
+#line 1 "try4.y" /* yacc.c:339  */
 
 #include<stdio.h>
 int yylex(void);
@@ -1190,25 +1190,25 @@ yyreduce:
   switch (yyn)
     {
         case 3:
-#line 11 "try3.y" /* yacc.c:1646  */
+#line 11 "try4.y" /* yacc.c:1646  */
     {printf("%d\n",(yyvsp[-1]));}
 #line 1196 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 14 "try3.y" /* yacc.c:1646  */
+#line 14 "try4.y" /* yacc.c:1646  */
     {(yyval) = (yyvsp[0]);}
 #line 1202 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 15 "try3.y" /* yacc.c:1646  */
+#line 15 "try4.y" /* yacc.c:1646  */
     {(yyval) = (yyvsp[-2]) + (yyvsp[0]); }
 #line 1208 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 16 "try3.y" /* yacc.c:1646  */
+#line 16 "try4.y" /* yacc.c:1646  */
     {(yyval) = (yyvsp[-2]) - (yyvsp[0]); }
 #line 1214 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1442,7 +1442,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 20 "try3.y" /* yacc.c:1906  */
+#line 20 "try4.y" /* yacc.c:1906  */
 
 void yyerror(char*s)
 {
