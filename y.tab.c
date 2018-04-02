@@ -369,7 +369,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   21
+#define YYLAST   20
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  12
@@ -450,10 +450,10 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -9
+#define YYPACT_NINF -8
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-9)))
+  (!!((Yystate) == (-8)))
 
 #define YYTABLE_NINF -1
 
@@ -464,9 +464,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -9,     0,    -9,    -9,     1,    13,    -2,    -9,    -7,     5,
-      -9,     1,     1,     1,     1,     1,    -9,    -2,    -2,    -9,
-      -9,    -9
+      -8,     0,    -8,    -8,    -2,     9,    -3,    -8,    -7,     1,
+      -8,    -2,    -2,    -2,    -2,    -2,    -8,    -3,    -3,    -8,
+      -8,    -8
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -482,7 +482,7 @@ static const yytype_uint8 yydefact[] =
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -9,    -9,    -9,    -3,     7,    -8
+      -8,    -8,     7,     5,     6,    -6
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -496,23 +496,23 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       2,     9,    15,     3,     3,    13,    14,    21,    17,    18,
-       4,     4,    13,    14,     0,     0,    16,    10,    11,    12,
-      19,    20
+       2,     3,    15,     3,    13,    14,    11,    12,     4,    21,
+       4,     9,    16,    10,    11,    12,    17,    18,     0,    19,
+      20
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     4,     9,     3,     3,     7,     8,    15,    11,    12,
-      10,    10,     7,     8,    -1,    -1,    11,     4,     5,     6,
-      13,    14
+       0,     3,     9,     3,     7,     8,     5,     6,    10,    15,
+      10,     4,    11,     4,     5,     6,    11,    12,    -1,    13,
+      14
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    13,     0,     3,    10,    14,    15,    16,    17,    15,
+       0,    13,     0,     3,    10,    14,    15,    16,    17,    14,
        4,     5,     6,     7,     8,     9,    11,    15,    15,    16,
       16,    17
 };

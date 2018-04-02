@@ -11,7 +11,7 @@
 
 [ \t]
 
-.       yyerror("invliad input");
+.     ;//  yyerror("invliad input");
 
 %%
 
