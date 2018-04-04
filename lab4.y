@@ -1,4 +1,5 @@
 %{
+    #define YYSTYPE double
     #include<stdio.h>
     #include<stdlib.h>
     #include<math.h>
@@ -6,12 +7,11 @@
     void yyerror(char*);
 %}
 
-%token INTEGER
 %token DOUBLE
 %%
 
 expres:
-    expres expre '\n' {printf("%d\n",$2);}
+    expres expre '\n' {printf("%lf\n",$2);}
     |
     ;
 
@@ -35,8 +35,7 @@ exp:
     ;
 
 ex:
-    INTEGER {$$ = $1; }
-    |DOUBLE {$$ = $1; }
+    DOUBLE {$$ = $1; }
     | '(' expre ')' {$$ = $2; }
 
 %%
