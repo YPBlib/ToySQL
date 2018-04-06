@@ -12,10 +12,12 @@
 
 expres:
     expres expre '\n' {printf("%lf\n",$2);}
+    |expres single_neg '\n' {printf("%lf\n",$2);} 
     |
     ;
 
-
+single_neg:
+'-' DOUBLE {$$= -$2; };
 
 expre:
     expr {$$ = $1; }
@@ -37,6 +39,8 @@ exp:
 ex:
     DOUBLE {$$ = $1; }
     | '(' expre ')' {$$ = $2; }
+    | '(' '-' DOUBLE ')' {$$ = -$3; }
+    ;
 
 %%
 

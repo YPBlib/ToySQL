@@ -1,6 +1,7 @@
 %{
     #include<stdio.h>
     #include<stdlib.h>
+    #define YYSTYPE double
     void yyerror(char*);
     #include"y.tab.h"
 %}
