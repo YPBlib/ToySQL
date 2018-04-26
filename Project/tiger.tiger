@@ -1,4 +1,6 @@
-# 照着虎书附录写一些合法的tiger语以此熟悉语法
+# 照着虎书附录写一些合法的tiger语句以熟悉语法
+转义不方便写，用中文的书名号《》表示kleene 闭包
+一对``中间的内容表示terminal
 
 ## A1 Lexical
 
@@ -15,7 +17,7 @@ A4545sd45f_4ds
 
 
 ### 注释
-可嵌套 这一点与C语言不同。。大概就是匹配最长的/*和*/吧
+可嵌套 这一点与C语言不同。大概就是匹配最长的/*和*/吧
 /**/
 
 /* 23456dfghj */
@@ -27,3 +29,33 @@ A4545sd45f_4ds
 
 
 */ 			:: /* [.\n]* */
+
+## A2 Declarations
+
+原生type: int string. 包括原生type的所有type-id 均可以被重定义
+Records
+Arrays
+Record distinction
+Mutually recursive types
+Field name reusability
+
+decs -> 《dec》
+
+dec -> tydec 
+dec -> vardec
+dec -> fundec
+
+### data type dec
+
+tydec -> `type` type-id = ty
+
+ty -> type-id
+ty -> { tyfields }
+ty -> `array of` type-id
+
+tyfields -> id : id 《, id:type-id》
+
+
+
+
+
