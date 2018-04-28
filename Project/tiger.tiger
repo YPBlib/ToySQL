@@ -1,6 +1,6 @@
 # 照着虎书附录写一些合法的tiger语句以熟悉语法
 转义不方便写，用中文的书名号《》表示kleene 闭包
-一对``中间的内容表示terminal
+中文双引号“”内的内容表示terminal symbol
 
 ## A1 Lexical
 
@@ -36,7 +36,7 @@ A4545sd45f_4ds
 Records
 Arrays
 Record distinction
-Mutually recursive types
+Mutually recursive types 须通过tyfields实现
 Field name reusability
 
 decs -> 《dec》
@@ -47,13 +47,64 @@ dec -> fundec
 
 ### data type dec
 
-tydec -> `type` type-id = ty
+tydec -> “type” type-id = ty
 
 ty -> type-id
 ty -> { tyfields }
-ty -> `array of` type-id
+ty -> “array of” type-id
 
-tyfields -> id : id 《, id:type-id》
+tyfields -> id:type-id 《, id:type-id》
+tyfields -> “”
+
+### var dec
+
+vardec -> “var” id:=exp
+vardec -> “var” id:type-id:=exp
+
+### func dec
+
+fundec -> “function” id (tyfields)=exp
+fundec -> “function” id (tyfields):type-id:=exp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
