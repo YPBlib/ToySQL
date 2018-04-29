@@ -66,18 +66,23 @@ vardec -> “var” id:type-id:=exp
 fundec -> “function” id (tyfields)=exp
 fundec -> “function” id (tyfields):type-id:=exp
 
+### scope rules
 
+#### local variables
+“let” vardec “in” exp “end”
 
+#### parameters
 
+... ...
 
+### name spaces
+A type a can be in scope at the same time as a variable a or a function a, but variables and functions of the same name cannot both be in scope simultaneously (one will hide the other).
 
+## A3 variables and expressions
 
-
-
-
-
-
-
+lvalue -> id
+lvalue -> lvalue.id
+lvalue -> lvalue 【exp】
 
 
 
