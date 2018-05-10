@@ -7,7 +7,7 @@
 
 
 ## 11.2 Numeric Types
-## 11.3 Dateand Time Types
+## 11.3 Date and Time Types
 ## 11.4 String Types
 ## 11.5 Spatial Data Types
 ## 11.6 The JSON Data Type
