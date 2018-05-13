@@ -11,18 +11,32 @@
 非关键字的 id  模仿C
 
 numeric 类:
-整数
+整数 bit tinyint smallint mediumint int bigint integer(=int)
+bool: true(1) false(0)
+
+修饰符: unsigned zerofill width(M)
+cast as
 浮点
+decimal dec numeric fixed 
 
+float
 
+double double precision
+
+日期时间类：
+date datetime timestamp time year
+
+String 类:
+
+char varchar binary varbinary blob tinyblob mediumblob longblob text tinytext longtext 
+
+enum set  
+
+修饰符: character set, collate, national, width(M)
 
 其它符号:
 
 ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~
-
-
-
-
 
 
 create database
