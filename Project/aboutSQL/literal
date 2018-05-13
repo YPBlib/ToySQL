@@ -1,18 +1,19 @@
 9.1 Literal Values
 
 9.1.1 String Literals
--- 拒绝各种复杂的collate
+-- 拒绝collate
 'some normal chars'
 "some normal chars"
--- 字符串粘连 绝了
+-- 字符串粘连 绝了 粘起来的两个字符串中间空白字符(空格tab换行)个数不限
 'I' 'like' 'SQL'
 "I" "like" "sql"
 
--- 注意粘连的字符串中间须有空格
+-- 注意粘连的字符串中间不能没有空格
 'he''llo' => he'llo
 
 
 9.1.2 Numeric Literals
+[+-]?(0|[1-9][0-9]*)(.[0-9]*)?(e[+-]?(0|[1-9][0-9]*))?
 13
 -12
 +9.10
@@ -23,6 +24,7 @@
 -- 拒绝
 
 9.1.4 Hexadecimal Literals
+[xX]'[0-9a-fA-F]+'|0x[0-9a-fA-F]+
 X'01AF'
 X'01af'
 x'01AF'
@@ -31,7 +33,7 @@ x'01af'
 0x01af
 
 9.1.5 Bit-Value Literals
--- 几个栗子
+[bB]'[01]+'|0b[01]+
 b'1001'
 B'1001'
 0b1001

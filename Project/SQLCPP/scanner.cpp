@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#define LastCharSize 6
+
 using namespace llvm;
 
 
@@ -72,6 +74,8 @@ escape_r=44,
 escape_t=45,
 escape_v=46,
 backquote_mark=47,
+begin_comment=48,
+end_comment=49,
 tok_ACCESSIBLE = -1,
 tok_ACCOUNT = -2,
 tok_ACTION = -3,
@@ -703,8 +707,15 @@ tok_ZEROFILL = -628
 
 };
 
+// to store current token-value
+static std::string string_literal; // ' ""
+static int int_literal;    // 先判断是否是 int
+static double double_literal; // 后判断是否是 double
+static std::string reserve_word;    // reserved_word 中, 有一些是字面量, 有一些是运算符
+static int symbol_mark;
 static std::string IdentifierStr;
-static double NumVal;
+
+
 enum status
 {
 blank,
@@ -716,17 +727,66 @@ reserved,
 symbol
 };
 
+union value
+{
+  std::string s;
+  int i;
+  double d;
+};
 
+struct token
+{
+  int token_kind;
+  union value token_value;
+};
+
+static int scanner_status=blank;
+
+static void scroll_LastChar(int* last)
+{
+  for(int i=LastCharSize-1;i>0;++i)
+  {
+    last[i]=last[i-1];
+  }
+  last[0]=getchar();
+}
 
 static int gettok() 
 {
-  static int LastChar = ' ';
+  if(scanner_status!=blank)
+  {
+    fprintf(stderr,"scanner_status is not blank，but you simply call gettok() \n");
+  }
+  static int LastChar[6]={' ',' ',' ',' ',' ',' '};
+  
 
   // Skip any whitespace.
-  while (isspace(LastChar))
-    LastChar = getchar();
+  while (isspace(LastChar[0]))
+  {
+    scroll_LastChar(LastChar);
+  }
+  // # style comment
+if (LastChar[0] == '#')
+{   
+    do
+      scroll_LastChar(LastChar);
+    while (LastChar[0] != EOF && LastChar[0] != '\n' && LastChar[0] != '\r');
+}
+  if(LastChar[0] == '-')
+  {
+    scroll_LastChar(LastChar);
+    if(LastChar[0]=='-')
+    {
+      do
+      scroll_LastChar(LastChar);
+    while (LastChar[0] != EOF && LastChar[0] != '\n' && LastChar[0] != '\r');
+    }
+    else
+    {
 
-  if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+    }
+  }
+  if (isalpha(LastChar)) { // identifier: [a-zA-Z_][a-zA-Z0-9_]*
     IdentifierStr = LastChar;
     while (isalnum((LastChar = getchar())))
       IdentifierStr += LastChar;
@@ -749,11 +809,7 @@ static int gettok()
     return tok_number;
   }
 
-  if (LastChar == '#') {
-    // Comment until end of line.
-    do
-      LastChar = getchar();
-    while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
+  
 
     if (LastChar != EOF)
       return gettok();
