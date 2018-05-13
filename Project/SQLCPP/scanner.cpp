@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#define LastCharSize 6
+#define LookAheadLen 6
 
 using namespace llvm;
 
@@ -719,8 +719,8 @@ static std::string IdentifierStr;
 enum status
 {
 blank,
-string,
 comment,
+string,
 literal,
 id,
 reserved,
@@ -742,13 +742,17 @@ struct token
 
 static int scanner_status=blank;
 
-static void scroll_LastChar(int* last)
+static void scroll_Char(int* ahead)
 {
-  for(int i=LastCharSize-1;i>0;++i)
+  // 处理字符流已经耗尽，出现EOF的corner case
+  /*
+      do something;
+  */
+  for(int i=0;i<LookAheadLen-1;++i)
   {
-    last[i]=last[i-1];
+    ahead[i]=ahead[i+1];
   }
-  last[0]=getchar();
+  ahead[LookAheadLen-1]=getchar();
 }
 
 static int gettok() 
@@ -757,35 +761,50 @@ static int gettok()
   {
     fprintf(stderr,"scanner_status is not blank，but you simply call gettok() \n");
   }
-  static int LastChar[6]={' ',' ',' ',' ',' ',' '};
+  static int LookAhead[LookAheadLen]={' ',' ',' ',' ',' ',' '};
   
 
   // Skip any whitespace.
-  while (isspace(LastChar[0]))
+  while (isspace(LookAhead[0]))
   {
-    scroll_LastChar(LastChar);
+    scroll_Char(LookAhead);
   }
   // # style comment
-if (LastChar[0] == '#')
-{   
+  if (LookAhead[0] == '#')
+  {   
+    scanner_status=comment;
     do
-      scroll_LastChar(LastChar);
-    while (LastChar[0] != EOF && LastChar[0] != '\n' && LastChar[0] != '\r');
-}
-  if(LastChar[0] == '-')
-  {
-    scroll_LastChar(LastChar);
-    if(LastChar[0]=='-')
-    {
-      do
-      scroll_LastChar(LastChar);
-    while (LastChar[0] != EOF && LastChar[0] != '\n' && LastChar[0] != '\r');
-    }
-    else
-    {
-
-    }
+      scroll_Char(LookAhead);
+    while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+    scanner_status=blank;
   }
+
+  if(LookAhead[0] == '-'&& LookAhead[1] == '-')
+  {
+    scanner_status=comment;
+    do
+      scroll_Char(LookAhead);
+    while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+    scanner_status=blank;
+  }
+
+  // 注意 /*/ 不是合法的注释
+  if(LookAhead[0] == '/'&& LookAhead[1] == '*')
+  {
+    scanner_status=comment;
+    scroll_Char(LookAhead);
+    do
+      scroll_Char(LookAhead);
+    while (!(LookAhead[0] == '*' && LookAhead[1] == '/'));
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scanner_status=blank;
+  }
+
+  // 字符串字面量 肥肠值得注意 \的转义
+  // 注意 \的转义，对于静态字符串有效，对于交互输入无效
+  if(LookAhead[0]=='"'||LookAhead[0]=='\'')
+
   if (isalpha(LastChar)) { // identifier: [a-zA-Z_][a-zA-Z0-9_]*
     IdentifierStr = LastChar;
     while (isalnum((LastChar = getchar())))
@@ -811,8 +830,7 @@ if (LastChar[0] == '#')
 
   
 
-    if (LastChar != EOF)
-      return gettok();
+    
   }
 
   // Check for end of file.  Don't eat the EOF.
