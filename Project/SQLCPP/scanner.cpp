@@ -658,26 +658,21 @@ tok_ZEROFILL = -628
 
 static std::string IdentifierStr;
 static double NumVal;
-enum 
-static int gettok()
+enum status
 {
-    static int LastChar = ' ';
-
-    while(isspace(LastChar))
-		LastChar = getchar();
-	
-    if(isalpha(LastChar))
-	{
-	    IdentifierStr = LastChar;
-	    while(isalnum(LastChar = getchar()))
-		IdentifierStr += LastChar;
-
-	    if
-	}
+blank,
+string,
+comment,
+literal,
+id,
+reserved,
+symbol
 };
 
 
-static int gettok() {
+
+static int gettok() 
+{
   static int LastChar = ' ';
 
   // Skip any whitespace.
