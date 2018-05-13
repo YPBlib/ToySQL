@@ -1,0 +1,45 @@
+9.1 Literal Values
+
+9.1.1 String Literals
+-- 拒绝各种复杂的collate
+'some normal chars'
+"some normal chars"
+-- 字符串粘连 绝了
+'I' 'like' 'SQL'
+"I" "like" "sql"
+
+-- 注意粘连的字符串中间须有空格
+'he''llo' => he'llo
+
+
+9.1.2 Numeric Literals
+13
+-12
++9.10
+1.2e2
+-1.3e-3
+
+9.1.3 Date and Time Literals
+-- 拒绝
+
+9.1.4 Hexadecimal Literals
+X'01AF'
+X'01af'
+x'01AF'
+x'01af'
+0x01AF
+0x01af
+
+9.1.5 Bit-Value Literals
+-- 几个栗子
+b'1001'
+B'1001'
+0b1001
+
+9.1.6 Boolean Literals
+true false 就是 1 0 的别名
+
+9.1.7 NULL Values
+NULL
+-- 拒绝 \N 转义
+

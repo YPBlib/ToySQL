@@ -24,3 +24,17 @@ vector<char> v119{'\w'};
 vector<char> v120{'\x'};
 vector<char> v121{'\y'};
 vector<char> v122{'\z'};
+
+-- 来自 MySQL 5.7 文档
+
+\0 	An ASCII NUL (X'00') character
+\' 	A single quote (') character
+\" 	A double quote (") character
+\b 	A backspace character
+\n 	A newline (linefeed) character
+\r 	A carriage return character
+\t 	A tab character
+\Z 	ASCII 26 (Control+Z); see note following the table
+\\ 	A backslash (\) character
+\% 	A % character; see note following the table
+\_ 	A _ character; see note following the table
