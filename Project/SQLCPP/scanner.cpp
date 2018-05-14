@@ -711,10 +711,13 @@ tok_ZEROFILL = -628
 std::string string_literal; // ' ""
 int int_literal;    // 先判断是否是 int
 double double_literal; // 后判断是否是 double
-std::string reserve_word;    // reserved_word 中, 有一些是字面量, 有一些是运算符
 int symbol_mark;
 std::string IdentifierStr;
 
+inline bool isidchar(int c)
+{
+  return (c>='0' && c<='9')||(c>='a' && c<='z')||(c>='A' && c<='Z')||(c=='_');
+}
 
 enum status
 {
@@ -724,7 +727,6 @@ literal_string,
 literal_int,
 literal_double,
 id,
-reserved,
 symbol
 };
 
@@ -1382,30 +1384,18 @@ static int gettok()
     return t;
   }
 
-  if (isalpha(LastChar)) { // identifier: [a-zA-Z_][a-zA-Z0-9_]*
-    IdentifierStr = LastChar;
-    while (isalnum((LastChar = getchar())))
-      IdentifierStr += LastChar;
-
-    if (IdentifierStr == "def")
-      return tok_def;
-    if (IdentifierStr == "extern")
-      return tok_extern;
-    return tok_identifier;
+  // 保留字与变量名
+  Identifier.clear();
+  do
+  {
+    Identifier+=LookAhead[0];
+    scroll_Char(LookAhead);
   }
-
-  if (isdigit(LastChar) || LastChar == '.') { // Number: [0-9.]+
-    std::string NumStr;
-    do {
-      NumStr += LastChar;
-      LastChar = getchar();
-    } while (isdigit(LastChar) || LastChar == '.');
-
-    NumVal = strtod(NumStr.c_str(), nullptr);
-    return tok_number;
-  }
-
-  
+  while(isidchar(LookAhead[0]));
+  //if(M)
+  auto t=token();
+  t.token_kind=
+  //
 
     
   }
