@@ -708,20 +708,21 @@ tok_ZEROFILL = -628
 };
 
 // to store current token-value
-static std::string string_literal; // ' ""
-static int int_literal;    // 先判断是否是 int
-static double double_literal; // 后判断是否是 double
-static std::string reserve_word;    // reserved_word 中, 有一些是字面量, 有一些是运算符
-static int symbol_mark;
-static std::string IdentifierStr;
+std::string string_literal; // ' ""
+int int_literal;    // 先判断是否是 int
+double double_literal; // 后判断是否是 double
+std::string reserve_word;    // reserved_word 中, 有一些是字面量, 有一些是运算符
+int symbol_mark;
+std::string IdentifierStr;
 
 
 enum status
 {
 blank,
 comment,
-string,
-literal,
+literal_string,
+literal_int,
+literal_double,
 id,
 reserved,
 symbol
@@ -803,7 +804,583 @@ static int gettok()
 
   // 字符串字面量 肥肠值得注意 \的转义
   // 注意 \的转义，对于静态字符串有效，对于交互输入无效
+  // 字符串粘连还没做，后续填坑
   if(LookAhead[0]=='"'||LookAhead[0]=='\'')
+  {
+    scanner_status=string;
+    auto match_char=LookAhead[0];
+    scroll_Char(LookAhead);
+    string_literal.clear();
+    while(1)
+    {
+      if(LookAhead[0]!=match_char && LookAhead[0] != '\\')
+      {
+        string_literal+=static_cast<char>(LookAhead[0]);
+        scroll_Char(LookAhead);
+        continue;
+      }
+
+      if(LookAhead[0]=='\\')
+      {
+        if(LookAhead[1]=='0')
+        {
+          string_literal+='\0';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='\'')
+        {
+          string_literal+='\'';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='\"')
+        {
+          string_literal+='\"';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='b')
+        {
+          string_literal+='\b';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='n')
+        {
+          string_literal+='\n';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='r')
+        {
+          string_literal+='\r';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='t')
+        {
+          string_literal+='\t';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='Z')
+        {
+          string_literal+=static_cast<char>(26);
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='\\')
+        {
+          string_literal+='\\';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='%')
+        {
+          string_literal+='%';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='_')
+        {
+          string_literal+='_';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        if(LookAhead[1]=='\n')
+        {
+          string_literal+='\n';
+          scroll_Char(LookAhead);
+          scroll_Char(LookAhead);
+          continue;
+        }
+        throw; // "非法的转义序列， 本SQL方言仅支持R("\0 \' \" \b \n \r \t \Z \\ \% \_ \\n")"
+      }
+
+      if(LookAhead[0]==match_char)
+      {
+        auto t = token();
+        t.token_kind=litersl_string;
+        t.token_value=string_literal;
+        scroll_Char(LookAhead);
+        scanner_status=blank;
+        return t;
+      }
+
+      // can't get here
+      throw "字符串少一半引号？";
+
+    }
+    
+
+  }
+
+  // true or false 字面量
+  if(tolower(LookAhead[0])=='t' && tolower(LookAhead[1])=='r' && \
+  tolower(LookAhead[2])=='u' && tolower(LookAhead[3])=='e')
+  {
+    scanner_status=literal_int;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=1;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(tolower(LookAhead[0])=='f' && tolower(LookAhead[1])=='a' && \
+  tolower(LookAhead[2])=='l' && tolower(LookAhead[3])=='s' && tolower(LookAhead[4])=='e')
+  {
+    scanner_status=literal_int;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=0;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  // 数值字面量等会再写
+
+  // 运算符
+  // 务必先判断长的运算符比如<=>
+  // 后判断短的运算符比如<=
+  if(LookAhead[0]=='<' && LookAhead[1]=='=' && LookAhead[2]=='>')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=lteqgt_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='<' && LookAhead[1]=='<')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=left_shift_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='>' && LookAhead[1]=='>')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=right_shift_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='>' && LookAhead[1]=='=')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=gteq_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='<' && LookAhead[1]=='=')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=lteq_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='<' && LookAhead[1]=='>')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=ltgt_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='!' && LookAhead[1]=='=')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=noteq_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='&' && LookAhead[1]=='&')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=andand_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='|' && LookAhead[1]=='|')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=oror_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]==':' && LookAhead[1]=='=')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=assign_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+   if(LookAhead[0]=='!')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=not_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='-')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=minus_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='~')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=tilde_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='^')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=hat_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='*')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=mult_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='/')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=div_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='%')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=mod_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='+')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=plus_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='&')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=and_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='|')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=or_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='=')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=eq_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='>')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=gt_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='<')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=lt_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='#')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=number_sign_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='@')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=at_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='$')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=dollar_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]==',')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=comma_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='(')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=left_bracket_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]==')')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=right_bracket_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='[')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=left_square_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]==']')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=right_square_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='{')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=left_curly_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='}')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=right_curly_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='.')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=dot_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]==';')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=semicolon_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='?')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=qusetion_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
+
+  if(LookAhead[0]=='`')
+  {
+    scanner_status=symbol_mark;
+    auto t=token();
+    t.token_kind=scanner_status;
+    t.token_value=backquote_mark;
+    scanner_status=blank;
+    scroll_Char(LookAhead);
+    return t;
+  }
 
   if (isalpha(LastChar)) { // identifier: [a-zA-Z_][a-zA-Z0-9_]*
     IdentifierStr = LastChar;
