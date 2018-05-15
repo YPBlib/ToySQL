@@ -730,17 +730,41 @@ id,
 symbol
 };
 
-union value
+class value
 {
-  std::string s;
-  int i;
-  double d;
+public:
+	//value(const value& a):s(a.s),i(a.i),d(a.d){}
+	virtual ~value(){}
+};
+
+
+class int_value :public value
+{
+	int i;
+public:
+	int_value(int i):i(i){}
+};
+
+class double_value :public value
+{
+	double d;
+public:
+	double_value(double d):d(d){}
+};
+
+class string_value :public value
+{
+	std::string s;
+public:
+	string_value(std::string s):s(s){}
 };
 
 struct token
 {
-  int token_kind;
-  union value token_value;
+	int token_kind;
+	value token_value;
+
+	token(const token& a):token_kind(a.token_kind),token_value(a.token_value){}
 };
 
 static int scanner_status=blank;
