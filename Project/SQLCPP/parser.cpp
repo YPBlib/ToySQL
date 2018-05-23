@@ -19,7 +19,7 @@
 #include <vector>
 
 
-////////
+// 
 class value
 {
 public:
