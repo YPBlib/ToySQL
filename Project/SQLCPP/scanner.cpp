@@ -24,11 +24,12 @@ using namespace llvm;
 
 // to store current token-value
 std::string string_literal; // ' ""
-int int_literal;    // 先判断是否是 int
-double double_literal; // 后判断是否是 double
+int int_literal;
+double double_literal;
 int symbol_mark;
 std::string IdentifierStr;
-static int scanner_status = blank;
+
+
 
 class value
 {
@@ -36,7 +37,6 @@ public:
 	//value(const value& a):s(a.s),i(a.i),d(a.d){}
 	virtual ~value(){}
 };
-
 
 class int_value :public value
 {
@@ -115,13 +115,12 @@ void scroll_Char(int* ahead)
 
 token gettok() 
 {
-  if(scanner_status!=blank)
+	static int scanner_status = blank;
+
+	if(scanner_status!=blank)
   {
     fprintf(stderr,"scanner_status is not blank，but you simply call gettok() \n");
   }
-  
-  
-  
 
   // Skip any whitespace.
   while (isspace(LookAhead[0]))
@@ -137,7 +136,7 @@ token gettok()
     while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
     scanner_status=blank;
   }
-
+  // -- style comment
   if(LookAhead[0] == '-'&& LookAhead[1] == '-')
   {
     scanner_status=comment;
@@ -146,7 +145,7 @@ token gettok()
     while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
     scanner_status=blank;
   }
-
+  // /* */ style comment
   // 注意 /*/ 不是合法的注释
   if(LookAhead[0] == '/'&& LookAhead[1] == '*')
   {
@@ -159,6 +158,7 @@ token gettok()
     scroll_Char(LookAhead);
     scanner_status=blank;
   }
+
 
   // 字符串字面量 肥肠值得注意 \的转义
   // 注意 \的转义，对于静态字符串有效，对于交互输入无效

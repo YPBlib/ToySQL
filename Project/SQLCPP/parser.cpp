@@ -21,7 +21,7 @@
 using namespace llvm;
 
 //===----------------------------------------------------------------------===//
-// Lexer
+// scanner_begin
 //===----------------------------------------------------------------------===//
 
 // The lexer returns tokens [0-255] if it is an unknown character, otherwise one
@@ -41,8 +41,9 @@ enum Token {
 static std::string IdentifierStr; // Filled in if tok_identifier
 static double NumVal;             // Filled in if tok_number
 
-								  /// gettok - Return the next token from standard input.
-static int gettok() {
+/// gettok - Return the next token from standard input.
+static int gettok()
+{
 	static int LastChar = ' ';
 
 	// Skip any whitespace.
@@ -93,13 +94,18 @@ static int gettok() {
 }
 
 //===----------------------------------------------------------------------===//
+// scanner_end
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
 // Abstract Syntax Tree (aka Parse Tree)
 //===----------------------------------------------------------------------===//
 
 namespace {
 
 	/// ExprAST - Base class for all expression nodes.
-	class ExprAST {
+	class ExprAST 
+	{
 	public:
 		virtual ~ExprAST() = default;
 
@@ -107,7 +113,8 @@ namespace {
 	};
 
 	/// NumberExprAST - Expression class for numeric literals like "1.0".
-	class NumberExprAST : public ExprAST {
+	class NumberExprAST : public ExprAST 
+	{
 		double Val;
 
 	public:
@@ -117,7 +124,8 @@ namespace {
 	};
 
 	/// VariableExprAST - Expression class for referencing a variable, like "a".
-	class VariableExprAST : public ExprAST {
+	class VariableExprAST : public ExprAST 
+	{
 		std::string Name;
 
 	public:
@@ -127,7 +135,8 @@ namespace {
 	};
 
 	/// BinaryExprAST - Expression class for a binary operator.
-	class BinaryExprAST : public ExprAST {
+	class BinaryExprAST : public ExprAST 
+	{
 		char Op;
 		std::unique_ptr<ExprAST> LHS, RHS;
 
@@ -140,13 +149,13 @@ namespace {
 	};
 
 	/// CallExprAST - Expression class for function calls.
-	class CallExprAST : public ExprAST {
+	class CallExprAST : public ExprAST 
+	{
 		std::string Callee;
 		std::vector<std::unique_ptr<ExprAST>> Args;
 
 	public:
-		CallExprAST(const std::string &Callee,
-			std::vector<std::unique_ptr<ExprAST>> Args)
+		CallExprAST(const std::string &Callee,std::vector<std::unique_ptr<ExprAST>> Args)
 			: Callee(Callee), Args(std::move(Args)) {}
 
 		Value *codegen() override;
@@ -155,7 +164,8 @@ namespace {
 	/// PrototypeAST - This class represents the "prototype" for a function,
 	/// which captures its name, and its argument names (thus implicitly the number
 	/// of arguments the function takes).
-	class PrototypeAST {
+	class PrototypeAST 
+	{
 		std::string Name;
 		std::vector<std::string> Args;
 
@@ -168,13 +178,13 @@ namespace {
 	};
 
 	/// FunctionAST - This class represents a function definition itself.
-	class FunctionAST {
+	class FunctionAST 
+	{
 		std::unique_ptr<PrototypeAST> Proto;
 		std::unique_ptr<ExprAST> Body;
 
 	public:
-		FunctionAST(std::unique_ptr<PrototypeAST> Proto,
-			std::unique_ptr<ExprAST> Body)
+		FunctionAST(std::unique_ptr<PrototypeAST> Proto,std::unique_ptr<ExprAST> Body)
 			: Proto(std::move(Proto)), Body(std::move(Body)) {}
 
 		Function *codegen();
@@ -183,21 +193,25 @@ namespace {
 } // end anonymous namespace
 
   //===----------------------------------------------------------------------===//
-  // Parser
+  // parser_begin
   //===----------------------------------------------------------------------===//
 
   /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current
   /// token the parser is looking at.  getNextToken reads another token from the
   /// lexer and updates CurTok with its results.
 static int CurTok;
-static int getNextToken() { return CurTok = gettok(); }
+static int getNextToken()
+{
+	return CurTok = gettok();
+}
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
 /// defined.
 static std::map<char, int> BinopPrecedence;
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
-static int GetTokPrecedence() {
+static int GetTokPrecedence()
+{
 	if (!isascii(CurTok))
 		return -1;
 
