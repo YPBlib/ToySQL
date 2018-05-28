@@ -1,4 +1,5 @@
 -- 不知道为啥这里没有cast, 难道 cast 不是保留字吗
+-- 因为 cast 是函数，确实不是保留字
 
 ACCESSIBLE
 ACCOUNT
