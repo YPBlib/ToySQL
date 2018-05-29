@@ -118,13 +118,13 @@ namespace {
 		virtual Value *codegen() = 0;
 	};
 
-	/// NumberExprAST - Expression class for numeric literals like "1.0".
-	class NumberExprAST : public ExprAST 
+	/// DoubleLiteralAST - Expression class for numeric literals like "1.0".
+	class DoubleLiteralAST : public ExprAST 
 	{
 		double Val;
 
 	public:
-		NumberExprAST(double Val) : Val(Val) {}
+		DoubleLiteralAST(double Val) : Val(Val) {}
 
 		Value *codegen() override;
 	};
@@ -243,7 +243,7 @@ static std::unique_ptr<ExprAST> ParseExpression();
 /// numberexpr ::= number
 static std::unique_ptr<ExprAST> ParseNumberExpr()
 {
-	auto Result = llvm::make_unique<NumberExprAST>(NumVal);
+	auto Result = llvm::make_unique<DoubleLiteralAST>(NumVal);
 	getNextToken(); // consume the number
 	return std::move(Result);
 }
@@ -448,7 +448,7 @@ Value *LogErrorV(const char *Str)
 	return nullptr;
 }
 
-Value *NumberExprAST::codegen()
+Value *DoubleLiteralAST::codegen()
 {
 	return ConstantFP::get(TheContext, APFloat(Val));
 }

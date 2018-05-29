@@ -35,13 +35,37 @@ namespace parser_nsp
 		virtual Value *codegen() = 0;
 	};
 
-	/// NumberExprAST - Expression class for numeric literals like "1.0".
-	class NumberExprAST : public ExprAST
+	class ExprOrExprAST:public ExprAST {};
+
+	class ExprOrormarkExprAST :public ExprAST {};
+
+	class ExprXorExprAST :public ExprAST {};
+	
+	class ExprAndExprAST :public ExprAST {};
+	
+	class ExprAndandmarkExprAST :public ExprAST {};
+	
+	class NotExprAST :public ExprAST {};
+	
+	class NotmarkExprAST :public ExprAST {};
+	
+	class BooleanPrimaryAST :public ExprAST{};
+
+	class PredicateAST:public BooleanPrimaryAST{};
+
+	class BitExprAST:public PredicateAST{};
+
+	class SimpleExprAST:public BitExprAST{};
+
+	class LiteralAST:public SimpleExprAST{};
+
+	/// DoubleLiteralAST - Expression class for numeric literals like "1.0".
+	class DoubleLiteralAST : public LiteralAST
 	{
 		double Val;
 
 	public:
-		NumberExprAST(double Val) : Val(Val) {}
+		DoubleLiteralAST(double Val) : Val(Val) {}
 
 		Value *codegen() override;
 	};
@@ -113,12 +137,12 @@ namespace parser_nsp
 		Function *codegen();
 	};
 
-} // end anonymous namespace
+}
 
   /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current
   /// token the parser is looking at.  getNextToken reads another token from the
   /// lexer and updates CurTok with its results.
-static scan_nsp::token CurTok;
+static scan_nsp::token* CurTok;
 static scan_nsp::token getNextToken()
 {
 	return CurTok = scan_nsp::gettok();
@@ -126,7 +150,7 @@ static scan_nsp::token getNextToken()
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
 /// defined.
-static std::map<char, int> BinopPrecedence;
+//static std::map<char, int> BinopPrecedence;
 
 /*
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
@@ -161,7 +185,7 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseExpression();
 /// numberexpr ::= number
 static std::unique_ptr<parser_nsp::ExprAST> ParseNumberExpr()
 {
-	auto Result = llvm::make_unique<parser_nsp::NumberExprAST>(NumVal);
+	auto Result = llvm::make_unique<parser_nsp::DoubleLiteralAST>(NumVal);
 	getNextToken(); // consume the number
 	return std::move(Result);
 }
@@ -174,7 +198,7 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseParenExpr()
 	if (!V)
 		return nullptr;
 
-	if (CurTok != ')')
+	if (CurTok->token_value != scan_nsp::reserved_value( right_bracket_mark) )
 		return LogError("expected ')'");
 	getNextToken(); // eat ).
 	return V;
