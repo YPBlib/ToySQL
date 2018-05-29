@@ -145,7 +145,7 @@ namespace parser_nsp
 static scan_nsp::token* CurTok;
 static scan_nsp::token getNextToken()
 {
-	return CurTok = scan_nsp::gettok();
+	return *CurTok = std::move(scan_nsp::gettok());
 }
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
@@ -183,9 +183,9 @@ std::unique_ptr<parser_nsp::PrototypeAST> LogErrorP(const char *Str)
 static std::unique_ptr<parser_nsp::ExprAST> ParseExpression();
 
 /// numberexpr ::= number
-static std::unique_ptr<parser_nsp::ExprAST> ParseNumberExpr()
+static std::unique_ptr<parser_nsp::ExprAST> ParseDouble()
 {
-	auto Result = llvm::make_unique<parser_nsp::DoubleLiteralAST>(NumVal);
+	auto Result = llvm::make_unique<parser_nsp::DoubleLiteralAST>(scan_nsp::double_literal);
 	getNextToken(); // consume the number
 	return std::move(Result);
 }
@@ -209,7 +209,7 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseParenExpr()
 ///   ::= identifier '(' expression* ')'
 static std::unique_ptr<parser_nsp::ExprAST> ParseIdentifierExpr()
 {
-	std::string IdName = IdentifierStr;
+	std::string IdName = scan_nsp::IdentifierStr;
 
 	getNextToken(); // eat identifier.
 
