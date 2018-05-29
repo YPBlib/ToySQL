@@ -1417,67 +1417,9 @@ void init_scanner()
 	reserved_map.insert(map<string, int>::value_type("ZEROFILL", -628));
 }
 
-class value
-{
-public:
-	//value(const value& a):s(a.s),i(a.i),d(a.d){}
-	virtual ~value() {}
-};
 
-class int_value :public value
-{
-	int i;
-public:
-	int_value(int i) :i(i) {}
-};
 
-class double_value :public value
-{
-	double d;
-public:
-	double_value(double d) :d(d) {}
-};
 
-class string_value :public value
-{
-	std::string s;
-public:
-	string_value(std::string s) :s(s) {}
-};
-
-class reserved_value :public value
-{
-	int t;
-public:
-	reserved_value(int t) :t(t) {}
-};
-
-class id_value :public value
-{
-	std::string s;
-public:
-	id_value(std::string s) :s(s) {}
-};
-
-class eof_value :public value
-{
-	const int v = 0;
-};
-
-class token
-{
-public:
-	int token_kind;
-	value token_value;
-
-	token() = default;
-	token(const token& a) :token_kind(a.token_kind), token_value(a.token_value) {}
-	token& operator=(const token& b)
-	{
-		token_kind = b.token_kind;
-		token_value = b.token_value;
-	}
-};
 
 bool isidchar(int c)
 {
@@ -1515,699 +1457,701 @@ namespace scan_nsp
 		explicit string_error(const std::string& s):
 			scan_error(s){}
 	};
-}
 
-token gettok()
-{
-	if (scanner_status != blank)
+	token gettok()
 	{
-		fprintf(stderr, "scanner_status is not blank，but you simply call gettok() \n");
-	}
-
-	// handle EOF case
-	if (LookAhead[0] == EOF)
-	{
-		token t;
-		t.token_kind = eof;
-		t.token_value = eof_value();
-		return t;
-	}
-
-	// Skip any whitespace.
-	while (isspace(LookAhead[0]))
-	{
-		scroll_Char(LookAhead);
-	}
-	// # style comment
-	if (LookAhead[0] == '#')
-	{
-		scanner_status = comment;
-		do
-			scroll_Char(LookAhead);
-		while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
-		scanner_status = blank;
-	}
-
-	//-- style comment
-	if (LookAhead[0] == '-'&& LookAhead[1] == '-')
-	{
-		scanner_status = comment;
-		do
-			scroll_Char(LookAhead);
-		while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
-		scanner_status = blank;
-	}
-
-	// /* */ style comment 注意 /*/ 不是合法的注释
-	if (LookAhead[0] == '/'&& LookAhead[1] == '*')
-	{
-		scanner_status = comment;
-		scroll_Char(LookAhead); scroll_Char(LookAhead);
-		while (!(LookAhead[0] == '*' && LookAhead[1] == '/'))
+		if (scanner_status != blank)
 		{
-			scroll_Char(LookAhead);
-			if (LookAhead[0] == EOF)
-				throw scan_nsp::comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
+			fprintf(stderr, "scanner_status is not blank，but you simply call gettok() \n");
 		}
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scanner_status = blank;
-	}
 
-	// 字符串字面量 肥肠值得注意 \的转义
-	// 相连的两个'' 或 "" 可合并为1个
-	// 相连的两个字符串的粘连动作交给 parser 处理
-	if (LookAhead[0] == '"' || LookAhead[0] == '\'')
-	{
-		scanner_status = literal_string;
-		auto match_char = LookAhead[0];
-		scroll_Char(LookAhead);
-		string_literal.clear();
-		while (1)
+		// handle EOF case
+		if (LookAhead[0] == EOF)
 		{
-			if (LookAhead[0] != match_char && LookAhead[0] != '\\')
-			{
-				string_literal += static_cast<char>(LookAhead[0]);
-				scroll_Char(LookAhead);
-				continue;
-			}
+			token t;
+			t.token_kind = eof;
+			t.token_value = eof_value();
+			return t;
+		}
 
-			if (LookAhead[0] == '\\')
-			{
-				if (LookAhead[1] == '0')
-				{
-					string_literal += '\0';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == '\'')
-				{
-					string_literal += '\'';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == '"')
-				{
-					string_literal += '"';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == 'b')
-				{
-					string_literal += '\b';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == 'n')
-				{
-					string_literal += '\n';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == 'r')
-				{
-					string_literal += '\r';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				if (LookAhead[1] == 't')
-				{
-					string_literal += '\t';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-				
-				if (LookAhead[1] == '\\')
-				{
-					string_literal += '\\';
-					scroll_Char(LookAhead);
-					scroll_Char(LookAhead);
-					continue;
-				}
-							
-				continue;
-			}
+		// Skip any whitespace.
+		while (isspace(LookAhead[0]))
+		{
+			scroll_Char(LookAhead);
+		}
+		// # style comment
+		if (LookAhead[0] == '#')
+		{
+			scanner_status = comment;
+			do
+				scroll_Char(LookAhead);
+			while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+			scanner_status = blank;
+		}
 
-			if (LookAhead[0] == match_char&&LookAhead[1] == match_char)
-			{
-				string_literal += (match_char == '"' ? '"' : '\'');
+		//-- style comment
+		if (LookAhead[0] == '-'&& LookAhead[1] == '-')
+		{
+			scanner_status = comment;
+			do
 				scroll_Char(LookAhead);
-				scroll_Char(LookAhead);
-				continue;
-			}
+			while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+			scanner_status = blank;
+		}
 
-			if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
+		// /* */ style comment 注意 /*/ 不是合法的注释
+		if (LookAhead[0] == '/'&& LookAhead[1] == '*')
+		{
+			scanner_status = comment;
+			scroll_Char(LookAhead); scroll_Char(LookAhead);
+			while (!(LookAhead[0] == '*' && LookAhead[1] == '/'))
 			{
-				auto t = token();
-				t.token_kind = literal_string;
-				t.token_value = string_value(string_literal);
 				scroll_Char(LookAhead);
+				if (LookAhead[0] == EOF)
+					throw scan_nsp::comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
+			}
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scanner_status = blank;
+		}
+
+		// 字符串字面量 肥肠值得注意 \的转义
+		// 相连的两个'' 或 "" 可合并为1个
+		// 相连的两个字符串的粘连动作交给 parser 处理
+		if (LookAhead[0] == '"' || LookAhead[0] == '\'')
+		{
+			scanner_status = literal_string;
+			auto match_char = LookAhead[0];
+			scroll_Char(LookAhead);
+			string_literal.clear();
+			while (1)
+			{
+				if (LookAhead[0] != match_char && LookAhead[0] != '\\')
+				{
+					string_literal += static_cast<char>(LookAhead[0]);
+					scroll_Char(LookAhead);
+					continue;
+				}
+
+				if (LookAhead[0] == '\\')
+				{
+					if (LookAhead[1] == '0')
+					{
+						string_literal += '\0';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == '\'')
+					{
+						string_literal += '\'';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == '"')
+					{
+						string_literal += '"';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == 'b')
+					{
+						string_literal += '\b';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == 'n')
+					{
+						string_literal += '\n';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == 'r')
+					{
+						string_literal += '\r';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+					if (LookAhead[1] == 't')
+					{
+						string_literal += '\t';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+
+					if (LookAhead[1] == '\\')
+					{
+						string_literal += '\\';
+						scroll_Char(LookAhead);
+						scroll_Char(LookAhead);
+						continue;
+					}
+
+					continue;
+				}
+
+				if (LookAhead[0] == match_char&&LookAhead[1] == match_char)
+				{
+					string_literal += (match_char == '"' ? '"' : '\'');
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
+					continue;
+				}
+
+				if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
+				{
+					auto t = token();
+					t.token_kind = literal_string;
+					t.token_value = string_value(string_literal);
+					scroll_Char(LookAhead);
+					scanner_status = blank;
+					return t;
+				}
+
+				if (LookAhead[0] == EOF)
+					throw scan_nsp::string_error((string{ "" }+(match_char == '"' ? '"' : '\'')) + " in string literal dismatches");
+			}
+		}
+
+		// 特殊照顾一下 true  false 这两个看起来像关键字的字面量
+		if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
+			tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
+		{
+			scanner_status = literal_int;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = int_value(1);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (tolower(LookAhead[0]) == 'f' && tolower(LookAhead[1]) == 'a' && \
+			tolower(LookAhead[2]) == 'l' && tolower(LookAhead[3]) == 's' && tolower(LookAhead[4]) == 'e')
+		{
+			scanner_status = literal_int;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = int_value(0);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		// 只处理[0-9]和小数点. 正负号留给parser处理。
+		// 只处理10进制，不处理 0x 0b 等字面量
+		// 011视作十进制11而不是8进制
+		// 数值字面量的几种模式
+		// int就是 [0-9]+
+		// 出现小数点. 或指数e 均为double
+		// 以下为一些测试
+		// 0256 2048
+		// 0.36
+		// .345
+		// 5e6
+		// .2e-2
+		//23.6
+		//3.25e5
+		//.3e4
+		//65e-8
+		//3.
+		//0
+		//23.36e-9
+		//6.e9
+
+
+		if (isdigit(LookAhead[0]) || (LookAhead[0] == '.'&& isdigit(LookAhead[1])))
+		{
+			scanner_status = literal_int;
+			string numeric_str;
+			regex numeric_regex(R"zjulabregex((([0-9]*\.[0-9]+)|[0-9]+\.?)(e[+-]?[0-9]+)?)zjulabregex");
+			numeric_str += static_cast<char>(LookAhead[0]);
+			scroll_Char(LookAhead);
+			while (regex_match(numeric_str + static_cast<char>(LookAhead[0]), numeric_regex))
+			{
+				numeric_str += static_cast<char>(LookAhead[0]);
+				scroll_Char(LookAhead);
+			}
+			if ((numeric_str.find('e') == std::string::npos) && (numeric_str.find('.') == std::string::npos));
+			else scanner_status = literal_double;
+
+			if (scanner_status == literal_int)
+			{
+				token t;
+				t.token_kind = int_literal;
+				t.token_value = int_value(atoi(numeric_str.c_str()));
 				scanner_status = blank;
 				return t;
 			}
-
-			if (LookAhead[0] == EOF)
-				throw scan_nsp::string_error(( string{""}+(match_char=='"'?'"':'\''))+" in string literal dismatches");
+			else
+			{
+				token t;
+				t.token_kind = double_literal;
+				t.token_value = double_value(atof(numeric_str.c_str()));
+				scanner_status = blank;
+				return t;
+			}
 		}
-	}
 
-	// 特殊照顾一下 true  false 这两个看起来像关键字的字面量
-	if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
-		tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
-	{
-		scanner_status = literal_int;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = int_value(1);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (tolower(LookAhead[0]) == 'f' && tolower(LookAhead[1]) == 'a' && \
-		tolower(LookAhead[2]) == 'l' && tolower(LookAhead[3]) == 's' && tolower(LookAhead[4]) == 'e')
-	{
-		scanner_status = literal_int;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = int_value(0);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	// 只处理[0-9]和小数点. 正负号留给parser处理。
-	// 只处理10进制，不处理 0x 0b 等字面量
-	// 011视作十进制11而不是8进制
-	// 数值字面量的几种模式
-	// int就是 [0-9]+
-	// 出现小数点. 或指数e 均为double
-	// 以下为一些测试
-	// 0256 2048
-	// 0.36
-	// .345
-	// 5e6
-	// .2e-2
-	//23.6
-	//3.25e5
-	//.3e4
-	//65e-8
-	//3.
-	//0
-	//23.36e-9
-	//6.e9
-	
-
-	if (isdigit(LookAhead[0])||(LookAhead[0] == '.'&& isdigit(LookAhead[1])))
-	{
-		scanner_status = literal_int;
-		string numeric_str;
-		regex numeric_regex(R"zjulabregex((([0-9]*\.[0-9]+)|[0-9]+\.?)(e[+-]?[0-9]+)?)zjulabregex");
-		numeric_str += static_cast<char>(LookAhead[0]);
-		scroll_Char(LookAhead);
-		while (regex_match(numeric_str + static_cast<char>(LookAhead[0]), numeric_regex))
+		// 运算符
+		// 务必先判断长的运算符比如<=>
+		// 后判断短的运算符比如<=
+		if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
 		{
-			numeric_str += static_cast<char>(LookAhead[0]);
-			scroll_Char(LookAhead);
-		}
-		if ((numeric_str.find('e') == std::string::npos) && (numeric_str.find('.') == std::string::npos));
-		else scanner_status = literal_double;
-
-		if (scanner_status == literal_int)
-		{
-			token t;
-			t.token_kind = int_literal;
-			t.token_value = int_value(atoi(numeric_str.c_str()));
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(lteqgt_mark);
 			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
 			return t;
+		}
+
+		if (LookAhead[0] == '<' && LookAhead[1] == '<')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(left_shift_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '>' && LookAhead[1] == '>')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(right_shift_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '>' && LookAhead[1] == '=')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(gteq_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '<' && LookAhead[1] == '=')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(lteq_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '<' && LookAhead[1] == '>')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(ltgt_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '!' && LookAhead[1] == '=')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(noteq_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '&' && LookAhead[1] == '&')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(andand_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '|' && LookAhead[1] == '|')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(oror_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == ':' && LookAhead[1] == '=')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(assign_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '!')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(not_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '-')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(minus_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '~')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(tilde_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '^')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(hat_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '*')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(mult_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '/')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(div_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '%')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(mod_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '+')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(plus_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '&')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(and_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '|')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(or_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '=')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(eq_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '>')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(gt_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '<')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(lt_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '#')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(number_sign_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '@')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(at_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '$')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(dollar_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == ',')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(comma_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '(')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(left_bracket_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == ')')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(right_bracket_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '[')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(left_square_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == ']')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(right_square_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '{')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(left_curly_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '}')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(right_curly_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '.')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(dot_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == ';')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(semicolon_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '?')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(qusetion_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		if (LookAhead[0] == '`')
+		{
+			scanner_status = symbol_mark;
+			auto t = token();
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(backquote_mark);
+			scanner_status = blank;
+			scroll_Char(LookAhead);
+			return t;
+		}
+
+		// 保留字与变量名
+		IdentifierStr.clear();
+		do
+		{
+			IdentifierStr += LookAhead[0];
+			scroll_Char(LookAhead);
+		} while (isidchar(LookAhead[0]));
+		auto t = token();
+		if (find(reserved_dict.cbegin(), reserved_dict.cend(), IdentifierStr) != reserved_dict.cend())
+		{
+			scanner_status = symbol_mark;
+			t.token_kind = scanner_status;
+			t.token_value = reserved_value(reserved_map[IdentifierStr]);
 		}
 		else
 		{
-			token t;
-			t.token_kind = double_literal;
-			t.token_value = double_value(atof(numeric_str.c_str()));
-			scanner_status = blank;
-			return t;
+			scanner_status = id;
+			t.token_kind = scanner_status;
+			t.token_value = id_value(IdentifierStr);
 		}
-	}
-	
-	// 运算符
-	// 务必先判断长的运算符比如<=>
-	// 后判断短的运算符比如<=
-	if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(lteqgt_mark);
+
 		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
 		return t;
 	}
-
-	if (LookAhead[0] == '<' && LookAhead[1] == '<')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(left_shift_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '>' && LookAhead[1] == '>')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(right_shift_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '>' && LookAhead[1] == '=')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(gteq_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '<' && LookAhead[1] == '=')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(lteq_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '<' && LookAhead[1] == '>')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(ltgt_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '!' && LookAhead[1] == '=')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(noteq_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '&' && LookAhead[1] == '&')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(andand_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '|' && LookAhead[1] == '|')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(oror_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == ':' && LookAhead[1] == '=')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(assign_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '!')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(not_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '-')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(minus_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '~')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(tilde_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '^')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(hat_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '*')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(mult_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '/')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(div_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '%')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(mod_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '+')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(plus_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '&')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(and_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '|')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(or_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '=')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(eq_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '>')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(gt_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '<')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(lt_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '#')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(number_sign_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '@')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(at_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '$')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(dollar_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == ',')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(comma_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '(')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(left_bracket_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == ')')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(right_bracket_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '[')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(left_square_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == ']')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(right_square_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '{')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(left_curly_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '}')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(right_curly_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '.')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(dot_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == ';')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(semicolon_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '?')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(qusetion_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	if (LookAhead[0] == '`')
-	{
-		scanner_status = symbol_mark;
-		auto t = token();
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(backquote_mark);
-		scanner_status = blank;
-		scroll_Char(LookAhead);
-		return t;
-	}
-
-	// 保留字与变量名
-	IdentifierStr.clear();
-	do
-	{
-		IdentifierStr += LookAhead[0];
-		scroll_Char(LookAhead);
-	} while (isidchar(LookAhead[0]));
-	auto t = token();
-	if (find(reserved_dict.cbegin(), reserved_dict.cend(), IdentifierStr) != reserved_dict.cend())
-	{
-		scanner_status = symbol_mark;
-		t.token_kind = scanner_status;
-		t.token_value = reserved_value(reserved_map[IdentifierStr]);
-	}
-	else
-	{
-		scanner_status = id;
-		t.token_kind = scanner_status;
-		t.token_value = id_value(IdentifierStr);
-	}
-
-	scanner_status = blank;
-	return t;
 }
+
+
 
