@@ -1,0 +1,19 @@
+https://dev.mysql.com/doc/refman/5.7/en/insert-select.html
+
+INSERT INTO tbl_name [(col_name [, col_name] ...)]
+    {VALUES | VALUE} (value_list) [, (value_list)] ...
+
+
+INSERT INTO tbl_name
+    [(col_name [, col_name] ...)]
+    SELECT ...
+
+
+value:
+    {expr | DEFAULT}
+
+assignment:
+    col_name = value
+
+assignment_list:
+    assignment [, assignment] ...

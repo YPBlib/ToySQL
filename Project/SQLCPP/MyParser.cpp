@@ -37,9 +37,19 @@ namespace parser_nsp
 
 	class CreateTableAST:public CreateAST{};
 
+	class CreateIndexAST :public CreateAST {};
+
 	class DropAST :public StatementAST {};
 
+	class DropTableAST:public DropAST{};
+
+	class DropIndexAST :public DropAST {};
+
 	class InsertAST :public StatementAST {};
+
+	class ValueInsert:public InsertAST{};
+
+	class SelectInsert:public InsertAST{};
 
 	class DeleteAST :public StatementAST {};
 
