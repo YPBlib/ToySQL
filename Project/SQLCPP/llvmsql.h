@@ -714,8 +714,7 @@ namespace scan_nsp
 	class value
 	{
 	public:
-		//value(const value& a):s(a.s),i(a.i),d(a.d){}
-		virtual ~value() {}
+		virtual ~value() = default;
 	};
 
 	class int_value :public value

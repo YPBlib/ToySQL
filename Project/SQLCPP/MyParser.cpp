@@ -26,7 +26,25 @@ using namespace llvm;
 namespace parser_nsp
 {
 
-	/// ExprAST - Base class for all expression nodes.
+	class StatementAST
+	{
+	public:
+		virtual ~StatementAST()= default;
+		virtual Value *codegen() = 0;
+	};
+
+	class CreateAST:public StatementAST{};
+
+	class CreateTableAST:public CreateAST{};
+
+	class DropAST :public StatementAST {};
+
+	class InsertAST :public StatementAST {};
+
+	class DeleteAST :public StatementAST {};
+
+	class SelectAST:public StatementAST{};
+	
 	class ExprAST
 	{
 	public:
@@ -219,10 +237,10 @@ namespace parser_nsp
   /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current
   /// token the parser is looking at.  getNextToken reads another token from the
   /// lexer and updates CurTok with its results.
-static scan_nsp::token* CurTok;
-static scan_nsp::token getNextToken()
+static scan_nsp::token& CurTok;
+static scan_nsp::token& getNextToken()
 {
-	return *CurTok = std::move(scan_nsp::gettok());
+	return CurTok = std::move(scan_nsp::gettok());
 }
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
@@ -326,7 +344,7 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseIdentifierExpr()
 ///   ::= parenexpr
 static std::unique_ptr<parser_nsp::ExprAST> ParsePrimary()
 {
-	switch (CurTok)
+	switch (CurTok.token_kind)
 	{
 	default:
 		return LogError("unknown token when expecting an expression");
@@ -394,10 +412,10 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseExpression()
 ///   ::= id '(' id* ')'
 static std::unique_ptr<parser_nsp::PrototypeAST> ParsePrototype()
 {
-	if (CurTok != tok_identifier)
+	if (CurTok != scan_nsp::tok_identifier)
 		return LogErrorP("Expected function name in prototype");
 
-	std::string FnName = IdentifierStr;
+	std::string FnName = scan_nsp::IdentifierStr;
 	getNextToken();
 
 	if (CurTok != '(')
