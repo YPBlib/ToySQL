@@ -51,13 +51,90 @@ namespace parser_nsp
 	
 	class BooleanPrimaryAST :public ExprAST{};
 
+	class BPIsAST :public BooleanPrimaryAST {};
+
+	class BPCoPredicateAST :public BooleanPrimaryAST {};
+
+	class BPCoSubqueryAST :public BooleanPrimaryAST {};
+
 	class PredicateAST:public BooleanPrimaryAST{};
 
-	class BitExprAST:public PredicateAST{};
+	class PredicateAST :public BooleanPrimaryAST {};
+
+	class BEInSubqueryAST :public PredicateAST {};
+
+	class BEInExprseqAST :public PredicateAST {};
+
+	class BEBetweenAndAST :public PredicateAST {};
+
+	class BERegexpAST :public PredicateAST {};
+
+	class BitExprAST :public PredicateAST {};
+
+	class BEOrmarkBE :public BitExprAST {};
+
+	class BEAndmarkBE :public BitExprAST {};
+
+	class BELshiftmarkBE :public BitExprAST {};
+
+	class BERshiftmarkBE :public BitExprAST {};
+
+	class BEPlusmarkBE :public BitExprAST {};
+
+	class BEMinusmarkBE :public BitExprAST {};
+
+	class BEMultmarkBE :public BitExprAST {};
+
+	class BEDivmarkBE :public BitExprAST {};
+
+	class BEDivBE :public BitExprAST {};
+
+	class BEModBE :public BitExprAST {};
+
+	class BEModmarkBE :public BitExprAST {};
+
+	class BEHatmarkBE :public BitExprAST {};
+
+	class BEPlusmarkIE :public BitExprAST {};
+
+	class BEMinusmarkIE :public BitExprAST {};
 
 	class SimpleExprAST:public BitExprAST{};
 
 	class LiteralAST:public SimpleExprAST{};
+
+	class IdAST :public SimpleExprAST {};
+
+	class CallAST :public SimpleExprAST {};
+
+	class ParamAST :public SimpleExprAST {};
+
+	class VarAST :public SimpleExprAST {};
+
+	class SEOrormarkSEAST :public SimpleExprAST {};
+
+	class PlusmarkSEAST :public SimpleExprAST {};
+
+	class MinusmarkSEAST :public SimpleExprAST {};
+
+	class TildemarkSEAST :public SimpleExprAST {};
+
+	class NotmarkSEAST :public SimpleExprAST {};
+
+	class BinarySEAST :public SimpleExprAST {};
+
+	class BracketExprseqAST :public SimpleExprAST {};
+
+	class SubqueryAST :public SimpleExprAST {};
+
+	class ExistsSubqueryAST :public SimpleExprAST {};
+
+	class MatchExprAST :public SimpleExprAST {};
+
+	class CaseExprAST :public SimpleExprAST {};
+
+	class IntervalExprAST :public SimpleExprAST {};
+
 
 	/// DoubleLiteralAST - Expression class for numeric literals like "1.0".
 	class DoubleLiteralAST : public LiteralAST
