@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include"llvmsql.h"
+
 
 using namespace llvm;
 
@@ -661,7 +661,7 @@ int main()
 	BinopPrecedence['+'] = 20;
 	BinopPrecedence['-'] = 20;
 	BinopPrecedence['*'] = 40; // highest.
-	init_scanner();
+	
 							   // Prime the first token.
 	fprintf(stderr, "ready> ");
 	getNextToken();

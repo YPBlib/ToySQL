@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 #include<exception>
-#include"llvmsql.h"
+
 
 
 using namespace llvm;
@@ -158,16 +158,12 @@ namespace parser_nsp
 			into_flag(into_flag), into_var(into_var) {}
 	};
 
-	
-
 	class ExistsSubqueryAST :public SimpleExprAST
 	{
 		std::unique_ptr<SubqueryAST> subquery;
 	public:
 		ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 	};
-
-	
 
 	class BEOrmarkBE :public BitExprAST
 	{
@@ -277,10 +273,6 @@ namespace parser_nsp
 			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 	};
 
-	
-
-	
-
 	class BEInSubqueryAST :public PredicateAST
 	{
 		bool flag;
@@ -322,8 +314,6 @@ namespace parser_nsp
 			flag(flag), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 	};
 	
-	
-
 	class ExprOrExprAST :public ExprAST
 	{
 		std::unique_ptr<ExprAST> lhs;
@@ -383,8 +373,6 @@ namespace parser_nsp
 		NotmarkExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
 	};
 
-	
-
 	class BPNULLAST :public BooleanPrimaryAST
 	{
 		bool flag;
@@ -414,12 +402,6 @@ namespace parser_nsp
 		BPCoSubqueryAST(bool falg, int op, std::unique_ptr<BitExprAST> bp, std::unique_ptr<SubqueryAST> subquery) :
 			flag(flag), op(op), bp(std::move(bp)), subquery(std::move(subquery)) {}
 	};
-
-	
-
-	
-
-	
 	
 	class StatementAST
 	{
@@ -436,12 +418,11 @@ namespace parser_nsp
 		datatype(int i,double d,const std::string& s):i(i),d(d),s(s){}
 		~datatype() = default;
 	};
-
+	
 	class CreateAST:public StatementAST{};
 
 	class CreateTableAST :public CreateAST{};
 	class create_def;
-	
 	
 	class col_def
 	{
@@ -549,243 +530,5 @@ namespace parser_nsp
 		std::unique_ptr<SubqueryAST> subquery;
 	};
 	
-	
-
 }
-
-  /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current
-  /// token the parser is looking at.  getNextToken reads another token from the
-  /// lexer and updates CurTok with its results.
-/*
-static scan_nsp::token& CurTok;
-static scan_nsp::token& getNextToken()
-{
-	return CurTok = std::move(scan_nsp::gettok());
-}
-*/
-/// BinopPrecedence - This holds the precedence for each binary operator that is
-/// defined.
-//  static std::map<char, int> BinopPrecedence;
-
-/*
-/// GetTokPrecedence - Get the precedence of the pending binary operator token.
-static int GetTokPrecedence()
-{
-	if (!isascii(CurTok))
-		return -1;
-
-	// Make sure it's a declared binop.
-	int TokPrec = BinopPrecedence[CurTok];
-	if (TokPrec <= 0)
-		return -1;
-	return TokPrec;
-}
-*/
-/**
-/// LogError* - These are little helper functions for error handling.
-std::unique_ptr<parser_nsp::ExprAST> LogError(const char *Str)
-{
-	fprintf(stderr, "Error: %s\n", Str);
-	return nullptr;
-}
-
-std::unique_ptr<parser_nsp::PrototypeAST> LogErrorP(const char *Str)
-{
-	LogError(Str);
-	return nullptr;
-}
-
-static std::unique_ptr<parser_nsp::ExprAST> ParseExpression();
-
-/// numberexpr ::= number
-static std::unique_ptr<parser_nsp::ExprAST> ParseDouble()
-{
-	auto Result = llvm::make_unique<parser_nsp::DoubleLiteralAST>(scan_nsp::double_literal);
-	getNextToken(); // consume the number
-	return std::move(Result);
-}
-
-/// parenexpr ::= '(' expression ')'
-static std::unique_ptr<parser_nsp::ExprAST> ParseParenExpr()
-{
-	getNextToken(); // eat (.
-	auto V = ParseExpression();
-	if (!V)
-		return nullptr;
-
-	if (CurTok->token_value != scan_nsp::reserved_value( right_bracket_mark) )
-		return LogError("expected ')'");
-	getNextToken(); // eat ).
-	return V;
-}
-
-/// identifierexpr
-///   ::= identifier
-///   ::= identifier '(' expression* ')'
-static std::unique_ptr<parser_nsp::ExprAST> ParseIdentifierExpr()
-{
-	std::string IdName = scan_nsp::IdentifierStr;
-
-	getNextToken(); // eat identifier.
-
-	if (CurTok != '(') // Simple variable ref.
-		return llvm::make_unique<parser_nsp::VariableExprAST>(IdName);
-
-	// Call.
-	getNextToken(); // eat (
-	std::vector<std::unique_ptr<parser_nsp::ExprAST>> Args;
-	if (CurTok != ')')
-	{
-		while (true)
-		{
-			if (auto Arg = ParseExpression())
-				Args.push_back(std::move(Arg));
-			else
-				return nullptr;
-
-			if (CurTok == ')')
-				break;
-
-			if (CurTok != ',')
-				return LogError("Expected ')' or ',' in argument list");
-			getNextToken();
-		}
-	}
-
-	// Eat the ')'.
-	getNextToken();
-
-	return llvm::make_unique<parser_nsp::CallAST>(IdName, std::move(Args));
-}
-
-/// primary
-///   ::= identifierexpr
-///   ::= numberexpr
-///   ::= parenexpr
-static std::unique_ptr<parser_nsp::ExprAST> ParsePrimary()
-{
-	switch (CurTok.token_kind)
-	{
-	default:
-		return LogError("unknown token when expecting an expression");
-	case tok_identifier:
-		return ParseIdentifierExpr();
-	case tok_number:
-		return ParseNumberExpr();
-	case '(':
-		return ParseParenExpr();
-	}
-}
-
-/// binoprhs
-///   ::= ('+' primary)*
-static std::unique_ptr<parser_nsp::ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<parser_nsp::ExprAST> LHS)
-{
-	// If this is a binop, find its precedence.
-	while (true)
-	{
-		int TokPrec = GetTokPrecedence();
-
-		// If this is a binop that binds at least as tightly as the current binop,
-		// consume it, otherwise we are done.
-		if (TokPrec < ExprPrec)
-			return LHS;
-
-		// Okay, we know this is a binop.
-		int BinOp = CurTok;
-		getNextToken(); // eat binop
-
-						// Parse the primary expression after the binary operator.
-		auto RHS = ParsePrimary();
-		if (!RHS)
-			return nullptr;
-
-		// If BinOp binds less tightly with RHS than the operator after RHS, let
-		// the pending operator take RHS as its LHS.
-		int NextPrec = GetTokPrecedence();
-		if (TokPrec < NextPrec)
-		{
-			RHS = ParseBinOpRHS(TokPrec + 1, std::move(RHS));
-			if (!RHS)
-				return nullptr;
-		}
-
-		// Merge LHS/RHS.
-		LHS =
-			llvm::make_unique<parser_nsp::BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
-	}
-}
-
-/// expression
-///   ::= primary binoprhs
-///
-static std::unique_ptr<parser_nsp::ExprAST> ParseExpression()
-{
-	auto LHS = ParsePrimary();
-	if (!LHS)
-		return nullptr;
-
-	return ParseBinOpRHS(0, std::move(LHS));
-}
-
-/// prototype
-///   ::= id '(' id* ')'
-static std::unique_ptr<parser_nsp::PrototypeAST> ParsePrototype()
-{
-	if (CurTok != scan_nsp::tok_identifier)
-		return LogErrorP("Expected function name in prototype");
-
-	std::string FnName = scan_nsp::IdentifierStr;
-	getNextToken();
-
-	if (CurTok != '(')
-		return LogErrorP("Expected '(' in prototype");
-
-	std::vector<std::string> ArgNames;
-	while (getNextToken() == tok_identifier)
-		ArgNames.push_back(IdentifierStr);
-	if (CurTok != ')')
-		return LogErrorP("Expected ')' in prototype");
-
-	// success.
-	getNextToken(); // eat ')'.
-
-	return llvm::make_unique<parser_nsp::PrototypeAST>(FnName, std::move(ArgNames));
-}
-
-/// definition ::= 'def' prototype expression
-static std::unique_ptr<parser_nsp::FunctionAST> ParseDefinition()
-{
-	getNextToken(); // eat def.
-	auto Proto = ParsePrototype();
-	if (!Proto)
-		return nullptr;
-
-	if (auto E = ParseExpression())
-		return llvm::make_unique<parser_nsp::FunctionAST>(std::move(Proto), std::move(E));
-	return nullptr;
-}
-
-/// toplevelexpr ::= expression
-static std::unique_ptr<parser_nsp::FunctionAST> ParseTopLevelExpr()
-{
-	if (auto E = ParseExpression())
-	{
-		// Make an anonymous proto.
-		auto Proto = llvm::make_unique<parser_nsp::PrototypeAST>("__anon_expr",
-			std::vector<std::string>());
-		return llvm::make_unique<parser_nsp::FunctionAST>(std::move(Proto), std::move(E));
-	}
-	return nullptr;
-}
-
-/// external ::= 'extern' prototype
-static std::unique_ptr<parser_nsp::PrototypeAST> ParseExtern()
-{
-	getNextToken(); // eat extern.
-	return ParsePrototype();
-}
-
-
-*/
 
