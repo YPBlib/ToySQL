@@ -234,8 +234,6 @@ namespace parser_nsp
 
 	class CallAST :public SimpleExprAST {};
 
-	class ParamAST :public SimpleExprAST {};
-
 	class VarAST :public SimpleExprAST {};
 
 	class SEOrormarkSEAST :public SimpleExprAST {};
@@ -248,19 +246,16 @@ namespace parser_nsp
 
 	class NotmarkSEAST :public SimpleExprAST {};
 
-	class BinarySEAST :public SimpleExprAST {};
-
 	class BracketExprseqAST :public SimpleExprAST {};
 
-	class SubqueryAST :public SimpleExprAST {};
+	class SubqueryAST :public SimpleExprAST
+	{
+		std::unique_ptr<SelectAST> selectstm;
+		SubqueryAST(std::unique_ptr<SelectAST> selectstm):selectstm(std::move(selectstm)){}
+	};
 
 	class ExistsSubqueryAST :public SimpleExprAST {};
 
-	class MatchExprAST :public SimpleExprAST {};
-
-	class CaseExprAST :public SimpleExprAST {};
-
-	class IntervalExprAST :public SimpleExprAST {};
 
 
 	/// DoubleLiteralAST - Expression class for numeric literals like "1.0".

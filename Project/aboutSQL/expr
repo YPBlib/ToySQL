@@ -1,3 +1,8 @@
+//===----------------------------------------------------------------------===//
+// expr begin
+// https://dev.mysql.com/doc/refman/5.7/en/expressions.html
+//===----------------------------------------------------------------------===//
+
 expr:
     expr OR expr
   | expr || expr
@@ -110,23 +115,18 @@ simple_expr:
     literal
   | identifier
   | function_call
-  | simple_expr COLLATE collation_name
-  | param_marker
   | variable
   | simple_expr || simple_expr
   | + simple_expr
   | - simple_expr
   | ~ simple_expr
   | ! simple_expr
-  | BINARY simple_expr
   | (expr [, expr] ...)
-  | ROW (expr, expr [, expr] ...)
   | (subquery)
   | EXISTS (subquery)
-  | {identifier expr}
-  | match_expr
-  | case_expr
-  | interval_expr
+
   
   
-  
+//===----------------------------------------------------------------------===//
+// expr end
+//===----------------------------------------------------------------------===//
