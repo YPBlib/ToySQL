@@ -1,17 +1,15 @@
 //===----------------------------------------------------------------------===//
-// insert end
-// https://dev.mysql.com/doc/refman/5.7/en/insert-select.html
+// delete begin
+// https://dev.mysql.com/doc/refman/5.7/en/delete.html
 //===----------------------------------------------------------------------===//
 
-INSERT INTO tbl_name [(col_name [, col_name] ...)]
-    VALUES (value_list) [, (value_list)] ...
 
-
-value:
-    {expr | DEFAULT}
-
+DELETE FROM tbl_name
+    [WHERE where_condition]
+    [ORDER BY ...]
+    [LIMIT row_count]
 
 
 //===----------------------------------------------------------------------===//
-// insert end
+// delete end
 //===----------------------------------------------------------------------===//

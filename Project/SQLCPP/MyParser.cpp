@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include<exception>
 #include"llvmsql.h"
 
 
@@ -30,7 +31,7 @@ namespace parser_nsp
 	{
 	public:
 		virtual ~StatementAST()= default;
-		virtual Value *codegen() = 0;
+		
 	};
 
 	class CreateAST:public StatementAST{};
@@ -41,17 +42,44 @@ namespace parser_nsp
 
 	class DropAST :public StatementAST {};
 
-	class DropTableAST:public DropAST{};
+	class DropTableAST :public DropAST
+	{
+		std::vector<std::string> table_list;
 
-	class DropIndexAST :public DropAST {};
+	public:
+		DropTableAST(std::vector<std::string> table_list): table_list(std::move(table_list)){}
+	};
 
-	class InsertAST :public StatementAST {};
+	class DropIndexAST :public DropAST
+	{
+		std::string index_name;
+		std::string table_name;
+	public:
+		DropIndexAST(const std::string& index_name,const std::string& table_name):
+			index_name(std::move(index_name)),table_name(std::move(table_name)){}
+	};
 
-	class ValueInsert:public InsertAST{};
+	class InsertAST :public StatementAST
+	{
+		std::string table_name;
+		std::vector<std::string> col_name;
+		std::vector<std::unique_ptr<ExprAST>> value_list;
 
-	class SelectInsert:public InsertAST{};
+	public:
+		InsertAST(const std::string& table_name, std::vector<std::string>col_name, std::vector<std::unique_ptr<ExprAST>>) :
+			table_name(table_name), col_name(col_name), value_list(value_list){}
+	};
+	
+	class DeleteAST :public StatementAST
+	{
+		std::string table_name;
+		std::unique_ptr< ExprAST> where_condition;
 
-	class DeleteAST :public StatementAST {};
+	public:
+
+		DeleteAST(const std::string& table_name,std::unique_ptr<ExprAST>where_condition):
+			table_name(table_name),where_condition(std::move(where_condition) ){}
+	};
 
 	class SelectAST:public StatementAST{};
 	
@@ -60,7 +88,6 @@ namespace parser_nsp
 	public:
 		virtual ~ExprAST() = default;
 
-		virtual Value *codegen() = 0;
 	};
 
 	class ExprOrExprAST:public ExprAST {};
@@ -86,8 +113,6 @@ namespace parser_nsp
 	class BPCoSubqueryAST :public BooleanPrimaryAST {};
 
 	class PredicateAST:public BooleanPrimaryAST{};
-
-	class PredicateAST :public BooleanPrimaryAST {};
 
 	class BEInSubqueryAST :public PredicateAST {};
 
@@ -172,7 +197,6 @@ namespace parser_nsp
 	public:
 		DoubleLiteralAST(double Val) : Val(Val) {}
 
-		Value *codegen() override;
 	};
 
 	/// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -183,7 +207,6 @@ namespace parser_nsp
 	public:
 		VariableExprAST(const std::string &Name) : Name(Name) {}
 
-		Value *codegen() override;
 	};
 
 	/// BinaryExprAST - Expression class for a binary operator.
@@ -197,7 +220,6 @@ namespace parser_nsp
 			std::unique_ptr<ExprAST> RHS)
 			: Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 
-		Value *codegen() override;
 	};
 
 	/// CallExprAST - Expression class for function calls.
@@ -210,7 +232,6 @@ namespace parser_nsp
 		CallExprAST(const std::string &Callee, std::vector<std::unique_ptr<ExprAST>> Args)
 			: Callee(Callee), Args(std::move(Args)) {}
 
-		Value *codegen() override;
 	};
 
 	/// PrototypeAST - This class represents the "prototype" for a function,
@@ -225,7 +246,6 @@ namespace parser_nsp
 		PrototypeAST(const std::string &Name, std::vector<std::string> Args)
 			: Name(Name), Args(std::move(Args)) {}
 
-		Function *codegen();
 		const std::string &getName() const { return Name; }
 	};
 
@@ -239,7 +259,6 @@ namespace parser_nsp
 		FunctionAST(std::unique_ptr<PrototypeAST> Proto, std::unique_ptr<ExprAST> Body)
 			: Proto(std::move(Proto)), Body(std::move(Body)) {}
 
-		Function *codegen();
 	};
 
 }
