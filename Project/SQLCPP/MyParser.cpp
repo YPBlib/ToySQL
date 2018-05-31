@@ -34,11 +34,75 @@ namespace parser_nsp
 		
 	};
 
+	union datatype
+	{
+		int i;
+		double d;
+		std::string s;
+	public:
+		datatype() = default;
+	};
+
 	class CreateAST:public StatementAST{};
 
-	class CreateTableAST:public CreateAST{};
+	class CreateTableAST :public CreateAST{};
 
-	class CreateIndexAST :public CreateAST {};
+	class CreateTableSimpleAST :public CreateTableAST
+	{
+		std::vector<std::unique_ptr<create_def>> create_defs;
+	};
+
+	class create_def
+	{
+		std::string col_name;
+		std::unique_ptr<col_def> col_defs;
+		bool primary;
+		bool unique;
+	public:
+		create_def(bool primary,bool unique,const std::string& col_name,std::unique_ptr<col_def> col_defs):
+			primary(primary),unique(unique),col_name(col_name),col_defs(std::move(col_defs)){}
+	};
+
+	class col_def
+	{
+		int dtype;
+		std::unique_ptr<datatype> defaultvalue;
+		bool nullable = true;
+		bool unique = false;
+		bool primary = false;
+	public:
+		col_def(int dtype, std::unique_ptr<parser_nsp::datatype> defaultvalue, bool nullable, bool unique, bool primary) :
+			dtype(dtype), defaultvalue(std::move(defaultvalue)),
+			nullable(nullable), unique(unique), primary(primary){}
+		
+	};
+
+	class CreateTableSelectAST :public CreateTableAST
+	{
+		std::string table_name;
+	public:
+		CreateTableSelectAST(const std::string& table_name):
+			table_name(table_name){}
+	};
+
+	class CreateTableLikeAST :public CreateTableAST
+	{
+		std::string table_name;
+		std::string old_name;
+	public:
+		CreateTableLikeAST(const std::string& table_name, const std::string& old_name):
+			table_name(table_name), old_name(old_name) {}
+	};
+
+	class CreateIndexAST :public CreateAST
+	{
+		std::string index_name;
+		std::string table_name;
+		std::string col_name;
+	public:
+		CreateIndexAST(const std::string& index_name, const std::string& table_name,const std::string& col_name):
+			index_name(index_name),table_name(table_name),col_name(col_name){}
+	};
 
 	class DropAST :public StatementAST {};
 
@@ -81,7 +145,17 @@ namespace parser_nsp
 			table_name(table_name),where_condition(std::move(where_condition) ){}
 	};
 
-	class SelectAST:public StatementAST{};
+	class SelectAST :public StatementAST
+	{
+		bool distinct = false;
+		std::vector<std::string> table_names;
+		std::unique_ptr<ExprAST> where_cond;
+		std::unique_ptr<ExprAST> having;
+		std::unique_ptr<ExprAST> stm;
+		std::string var;
+	public:
+		SelectAST(std::
+	};
 	
 	class ExprAST
 	{

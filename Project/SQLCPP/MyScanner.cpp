@@ -88,6 +88,8 @@ std::vector<std::string> reserved_dict
 
 std::map<std::string, int> reserved_map;
 
+
+
 void init_scanner()
 {
 	reserved_map.insert(std::map<std::string, int>::value_type("ACCESSIBLE", -1));

@@ -1,7 +1,18 @@
 //===----------------------------------------------------------------------===//
 // select end
 // https://dev.mysql.com/doc/refman/5.7/en/select.html
-//===----------------------------------------------------------------------===//SELECT    [ALL | DISTINCT | DISTINCTROW ]    select_expr [, select_expr ...]    [   FROM table_references		[WHERE where_condition [GROUP BY {col_name | expr | position} [ASC | DESC], ... [WITH ROLLUP] ] ]		[HAVING where_condition [ORDER BY {col_name | expr | position} [ASC | DESC], ...]]		[INTO var_name [, var_name]]    ]
+//===----------------------------------------------------------------------===//
+
+SELECT
+    [ DISTINCT ]
+    select_expr [, select_expr ...]
+    [   FROM table_references
+		[WHERE where_condition [GROUP BY {col_name | expr | position} [ASC | DESC], ... [WITH ROLLUP] ] ]
+		[HAVING where_condition [ORDER BY {col_name | expr | position} [ASC | DESC], ...]]
+		[INTO var_name [, var_name]]
+    ]
+
+
 //===----------------------------------------------------------------------===//
 // select end
 //===----------------------------------------------------------------------===//
