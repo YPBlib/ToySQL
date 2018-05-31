@@ -31,7 +31,6 @@ namespace parser_nsp
 	{
 	public:
 		virtual ~StatementAST()= default;
-		
 	};
 
 	union datatype
@@ -147,187 +146,352 @@ namespace parser_nsp
 
 	class SelectAST :public StatementAST
 	{
-		bool distinct = false;
-		std::vector<std::string> table_names;
-		std::unique_ptr<ExprAST> where_cond;
-		std::unique_ptr<ExprAST> having;
-		std::unique_ptr<ExprAST> stm;
-		std::string var;
-	public:
-		SelectAST(std::
+		std::unique_ptr<SubqueryAST> subquery;
 	};
 	
 	class ExprAST
 	{
 	public:
 		virtual ~ExprAST() = default;
-
 	};
 
-	class ExprOrExprAST:public ExprAST {};
+	class ExprOrExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> lhs;
+		std::unique_ptr<ExprAST> rhs;
+	public:
+		ExprOrExprAST(std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs) :
+			lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+	};
 
-	class ExprOrormarkExprAST :public ExprAST {};
+	class ExprOrormarkExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> lhs;
+		std::unique_ptr<ExprAST> rhs;
+	public:
+		ExprOrormarkExprAST(std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs) :
+			lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+	};
 
-	class ExprXorExprAST :public ExprAST {};
+	class ExprXorExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> lhs;
+		std::unique_ptr<ExprAST> rhs;
+	public:
+		ExprXorExprAST(std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs) :
+			lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+	};
 	
-	class ExprAndExprAST :public ExprAST {};
+	class ExprAndExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> lhs;
+		std::unique_ptr<ExprAST> rhs;
+	public:
+		ExprAndExprAST(std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs) :
+			lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+	};
 	
-	class ExprAndandmarkExprAST :public ExprAST {};
+	class ExprAndandmarkExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> lhs;
+		std::unique_ptr<ExprAST> rhs;
+	public:
+		ExprAndandmarkExprAST(std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs):
+			lhs(std::move(lhs)),rhs(std::move(rhs)){}
+	};
 	
-	class NotExprAST :public ExprAST {};
+	class NotExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> expr;
+	public:
+		NotExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
+	};
 	
-	class NotmarkExprAST :public ExprAST {};
+	class NotmarkExprAST :public ExprAST
+	{
+		std::unique_ptr<ExprAST> expr;
+	public:
+		NotmarkExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
+	};
 	
 	class BooleanPrimaryAST :public ExprAST{};
 
-	class BPIsAST :public BooleanPrimaryAST {};
+	class BPNULLAST :public BooleanPrimaryAST
+	{
+		bool flag;
+		std::unique_ptr<BitExprAST> bp;
+	public:
+		BPNULLAST(bool flag,std::unique_ptr<BitExprAST> bp):
+			flag(flag),bp(std::move(bp)){}
+	};
 
-	class BPCoPredicateAST :public BooleanPrimaryAST {};
+	class BPCoPredicateAST :public BooleanPrimaryAST
+	{
+		bool flag;
+		std::unique_ptr<BitExprAST> bp;
+		std::unique_ptr<PredicateAST> predicate;
+	public:
+		BPCoPredicateAST(bool flag,std::unique_ptr<BitExprAST> bp,std::unique_ptr<PredicateAST> predicate):
+			flag(flag),bp(std::move(bp)),predicate(std::move(predicate)){}
+	};
 
-	class BPCoSubqueryAST :public BooleanPrimaryAST {};
+	class BPCoSubqueryAST :public BooleanPrimaryAST
+	{
+		bool flag;
+		int op;
+		std::unique_ptr<BitExprAST> bp;
+		std::unique_ptr<SubqueryAST> subquery;
+	public:
+		BPCoSubqueryAST(bool falg,int op,std::unique_ptr<BitExprAST> bp,std::unique_ptr<SubqueryAST> subquery):
+			flag(flag),op(op),bp(std::move(bp)),subquery(std::move(subquery)){}
+	};
 
 	class PredicateAST:public BooleanPrimaryAST{};
 
-	class BEInSubqueryAST :public PredicateAST {};
+	class BEInSubqueryAST :public PredicateAST
+	{
+		bool flag;
+		std::unique_ptr<BitExprAST> be;
+		std::unique_ptr<SubqueryAST> subquery;
+	public:
+		BEInSubqueryAST(bool flag,std::unique_ptr<BitExprAST> be,std::unique_ptr<SubqueryAST> subquery):
+			flag(flag),be(std::move(be)),subquery(std::move(subquery)){}
+	};
 
-	class BEInExprseqAST :public PredicateAST {};
+	class BEInExprseqAST :public PredicateAST
+	{
+		bool flag; 
+		std::unique_ptr<BitExprAST> be;
+		std::vector<ExprAST> exprs;
+	public:
+		BEInExprseqAST(bool flag,std::unique_ptr<BitExprAST> be,std::vector<ExprAST> exprs):
+			flag(flag), be(std::move(be)),exprs(std::move(exprs)){}
+	};
 
-	class BEBetweenAndAST :public PredicateAST {};
+	class BEBetweenAndAST :public PredicateAST
+	{
+		bool flag;
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+		std::unique_ptr<PredicateAST> P;
+	public:
+		BEBetweenAndAST(bool flag, std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS, std::unique_ptr<PredicateAST> P) :
+			flag(flag), LHS(std::move(LHS)), RHS(std::move(RHS)) P(std::move(P)){}
+	};
 
-	class BERegexpAST :public PredicateAST {};
+	class BERegexpAST :public PredicateAST
+	{
+		bool flag;
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BERegexpAST(bool flag,std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			flag(flag), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
 	class BitExprAST :public PredicateAST {};
 
-	class BEOrmarkBE :public BitExprAST {};
+	class BEOrmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEOrmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEAndmarkBE :public BitExprAST {};
+	class BEAndmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEAndmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BELshiftmarkBE :public BitExprAST {};
+	class BELshiftmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BELshiftmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BERshiftmarkBE :public BitExprAST {};
+	class BERshiftmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BERshiftmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEPlusmarkBE :public BitExprAST {};
+	class BEPlusmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEPlusmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEMinusmarkBE :public BitExprAST {};
+	class BEMinusmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEMinusmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEMultmarkBE :public BitExprAST {};
+	class BEMultmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEMultmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEDivmarkBE :public BitExprAST {};
+	class BEDivmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEDivmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEDivBE :public BitExprAST {};
+	class BEDivBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEDivBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEModBE :public BitExprAST {};
+	class BEModBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEModBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEModmarkBE :public BitExprAST {};
+	class BEModmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEModmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
-	class BEHatmarkBE :public BitExprAST {};
-
-	class BEPlusmarkIE :public BitExprAST {};
-
-	class BEMinusmarkIE :public BitExprAST {};
+	class BEHatmarkBE :public BitExprAST
+	{
+		std::unique_ptr<BitExprAST> LHS;
+		std::unique_ptr<BitExprAST> RHS;
+	public:
+		BEHatmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
+			LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	};
 
 	class SimpleExprAST:public BitExprAST{};
 
-	class LiteralAST:public SimpleExprAST{};
+	class LiteralAST :public SimpleExprAST{};
 
-	class IdAST :public SimpleExprAST {};
+	class IntLiteralAST :public LiteralAST
+	{
+		int value;
+	public:
+		IntLiteralAST(int value):value(value){}
+	};
 
-	class CallAST :public SimpleExprAST {};
+	class DoubleLiteralAST : public LiteralAST
+	{
+		double value;
+	public:
+		DoubleLiteralAST(double value) : value(value) {}
+	};
 
-	class VarAST :public SimpleExprAST {};
+	class StringLiteralAST :public LiteralAST
+	{
+		std::string value;
+	public:
+		StringLiteralAST(const std::string& value):value(value){}
+	};
 
-	class SEOrormarkSEAST :public SimpleExprAST {};
+	class IdAST :public SimpleExprAST
+	{
+		std::string var_name;
+		IdAST(const std::string& var_name) :var_name(var_name) {}
+	};
+	
+	class CallAST :public SimpleExprAST
+	{
+		std::string callee;
+		std::vector<std::unique_ptr<ExprAST>> args;
+	public:
+		CallAST(const std::string &callee, std::vector<std::unique_ptr<ExprAST>> args)
+			: callee(callee), args(std::move(args)) {}
+	};
 
-	class PlusmarkSEAST :public SimpleExprAST {};
+	class VarAST :public SimpleExprAST
+	{
+		std::string var_name;
+		VarAST(const std::string& var_name):var_name(var_name){}
+	};
 
-	class MinusmarkSEAST :public SimpleExprAST {};
+	class SEOrormarkSEAST :public SimpleExprAST
+	{
+		std::unique_ptr<SimpleExprAST> LHS;
+		std::unique_ptr<SimpleExprAST> RHS;
+		SEOrormarkSEAST(std::unique_ptr<SimpleExprAST> LHS, std::unique_ptr<SimpleExprAST> RHS) :
+			LHS(std::move(LHS)),RHS(std::move(RHS)){}
+	};
 
-	class TildemarkSEAST :public SimpleExprAST {};
+	class PlusmarkSEAST :public SimpleExprAST
+	{
+		std::unique_ptr<SimpleExprAST> se;
+		PlusmarkSEAST(std::unique_ptr<SimpleExprAST> se) :se(std::move(se)) {}
+	};
 
-	class NotmarkSEAST :public SimpleExprAST {};
+	class MinusmarkSEAST :public SimpleExprAST
+	{
+		std::unique_ptr<SimpleExprAST> se;
+		MinusmarkSEAST(std::unique_ptr<SimpleExprAST> se) :se(std::move(se)) {}
+	};
 
-	class BracketExprseqAST :public SimpleExprAST {};
+	class TildemarkSEAST :public SimpleExprAST
+	{
+		std::unique_ptr<SimpleExprAST> se;
+		TildemarkSEAST(std::unique_ptr<SimpleExprAST> se) :se(std::move(se)) {}
+	};
+
+	class NotmarkSEAST :public SimpleExprAST
+	{
+		std::unique_ptr<SimpleExprAST> se;
+		NotmarkSEAST(std::unique_ptr<SimpleExprAST> se):se(std::move(se)){}
+	};
+
+	class BracketExprseqAST :public SimpleExprAST
+	{
+		std::vector<std::unique_ptr<SimpleExprAST>> exprs;
+		BracketExprseqAST(std::vector<std::unique_ptr<SimpleExprAST>> exprs):exprs(std::move(exprs)){}
+	};
 
 	class SubqueryAST :public SimpleExprAST
 	{
-		std::unique_ptr<SelectAST> selectstm;
-		SubqueryAST(std::unique_ptr<SelectAST> selectstm):selectstm(std::move(selectstm)){}
+		;
 	};
 
-	class ExistsSubqueryAST :public SimpleExprAST {};
-
-
-
-	/// DoubleLiteralAST - Expression class for numeric literals like "1.0".
-	class DoubleLiteralAST : public LiteralAST
+	class ExistsSubqueryAST :public SimpleExprAST
 	{
-		double Val;
-
-	public:
-		DoubleLiteralAST(double Val) : Val(Val) {}
-
-	};
-
-	/// VariableExprAST - Expression class for referencing a variable, like "a".
-	class VariableExprAST : public ExprAST
-	{
-		std::string Name;
-
-	public:
-		VariableExprAST(const std::string &Name) : Name(Name) {}
-
-	};
-
-	/// BinaryExprAST - Expression class for a binary operator.
-	class BinaryExprAST : public ExprAST
-	{
-		char Op;
-		std::unique_ptr<ExprAST> LHS, RHS;
-
-	public:
-		BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
-			std::unique_ptr<ExprAST> RHS)
-			: Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
-
-	};
-
-	/// CallExprAST - Expression class for function calls.
-	class CallExprAST : public ExprAST
-	{
-		std::string Callee;
-		std::vector<std::unique_ptr<ExprAST>> Args;
-
-	public:
-		CallExprAST(const std::string &Callee, std::vector<std::unique_ptr<ExprAST>> Args)
-			: Callee(Callee), Args(std::move(Args)) {}
-
-	};
-
-	/// PrototypeAST - This class represents the "prototype" for a function,
-	/// which captures its name, and its argument names (thus implicitly the number
-	/// of arguments the function takes).
-	class PrototypeAST
-	{
-		std::string Name;
-		std::vector<std::string> Args;
-
-	public:
-		PrototypeAST(const std::string &Name, std::vector<std::string> Args)
-			: Name(Name), Args(std::move(Args)) {}
-
-		const std::string &getName() const { return Name; }
-	};
-
-	/// FunctionAST - This class represents a function definition itself.
-	class FunctionAST
-	{
-		std::unique_ptr<PrototypeAST> Proto;
-		std::unique_ptr<ExprAST> Body;
-
-	public:
-		FunctionAST(std::unique_ptr<PrototypeAST> Proto, std::unique_ptr<ExprAST> Body)
-			: Proto(std::move(Proto)), Body(std::move(Body)) {}
-
+		std::unique_ptr<SubqueryAST> subquery;
+		ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 	};
 
 }
@@ -343,7 +507,7 @@ static scan_nsp::token& getNextToken()
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
 /// defined.
-//static std::map<char, int> BinopPrecedence;
+//  static std::map<char, int> BinopPrecedence;
 
 /*
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
@@ -359,7 +523,7 @@ static int GetTokPrecedence()
 	return TokPrec;
 }
 */
-
+/**
 /// LogError* - These are little helper functions for error handling.
 std::unique_ptr<parser_nsp::ExprAST> LogError(const char *Str)
 {
@@ -433,7 +597,7 @@ static std::unique_ptr<parser_nsp::ExprAST> ParseIdentifierExpr()
 	// Eat the ')'.
 	getNextToken();
 
-	return llvm::make_unique<parser_nsp::CallExprAST>(IdName, std::move(Args));
+	return llvm::make_unique<parser_nsp::CallAST>(IdName, std::move(Args));
 }
 
 /// primary
@@ -563,3 +727,6 @@ static std::unique_ptr<parser_nsp::PrototypeAST> ParseExtern()
 	getNextToken(); // eat extern.
 	return ParsePrototype();
 }
+
+
+*/

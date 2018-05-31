@@ -40,28 +40,22 @@ bit_expr:
   | bit_expr MOD bit_expr
   | bit_expr % bit_expr
   | bit_expr ^ bit_expr
-  | bit_expr + interval_expr
-  | bit_expr - interval_expr
   | simple_expr
 
 simple_expr:
     literal
   | identifier
   | function_call
-  | param_marker
   | variable
   | simple_expr || simple_expr
   | + simple_expr
   | - simple_expr
   | ~ simple_expr
   | ! simple_expr
-  | BINARY simple_expr
   | (expr [, expr] ...)
   | (subquery)
   | EXISTS (subquery)
-  | match_expr
   | case_expr
-  | interval_expr
 
 表达式的产生式
 
@@ -107,8 +101,6 @@ bit_expr:
   | bit_expr MOD bit_expr
   | bit_expr % bit_expr
   | bit_expr ^ bit_expr
-  | bit_expr + interval_expr
-  | bit_expr - interval_expr
   | simple_expr
 
 simple_expr:
