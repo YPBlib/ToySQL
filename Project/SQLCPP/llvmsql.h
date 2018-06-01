@@ -3,7 +3,11 @@
 #ifndef llvmsql_h
 #define llvmsql_h
 
-
+std::string string_literal; // ' ""
+int int_literal;    // 先判断是否是 int
+double double_literal; // 后判断是否是 double
+int symbol_mark;
+std::string IdentifierStr;
 
 enum reserved_token_value
 {
@@ -698,6 +702,88 @@ enum status
 	eof
 };
 
+class value;
+
+class int_value;
+
+class double_value;
+
+class string_value;
+
+class reserved_value;
+
+class id_value;
+
+class eof_value;
+
+class token;
+
+class value
+{
+public:
+	virtual ~value() = default;
+};
+
+class int_value :public value
+{
+	int i;
+public:
+	int_value(int i) :i(i) {}
+};
+
+class double_value :public value
+{
+	double d;
+public:
+	double_value(double d) :d(d) {}
+};
+
+class string_value :public value
+{
+	std::string s;
+public:
+	string_value(std::string s) :s(s) {}
+};
+
+class reserved_value :public value
+{
+	int t;
+public:
+	reserved_value(int t) :t(t) {}
+};
+
+class id_value :public value
+{
+	std::string s;
+public:
+	id_value(std::string s) :s(s) {}
+};
+
+class eof_value :public value
+{
+	const int v = 0;
+};
+
+class token
+{
+public:
+	int token_kind;
+	value token_value;
+
+	token() = default;
+	token(const token& a) :token_kind(a.token_kind), token_value(a.token_value) {}
+	token& operator=(const token& b)
+	{
+		token_kind = b.token_kind;
+		token_value = b.token_value;
+	}
+};
+
+token gettok();
+
+class create_def;
+
+token getNextToken();
 
 
 

@@ -13,80 +13,10 @@
 #define LookAheadLen 6
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
 
-namespace scan_nsp
-{
-	std::string string_literal; // ' ""
-	int int_literal;    // 先判断是否是 int
-	double double_literal; // 后判断是否是 double
-	int symbol_mark;
-	std::string IdentifierStr;
 
 
-	class value
-	{
-	public:
-		virtual ~value() = default;
-	};
 
-	class int_value :public value
-	{
-		int i;
-	public:
-		int_value(int i) :i(i) {}
-	};
 
-	class double_value :public value
-	{
-		double d;
-	public:
-		double_value(double d) :d(d) {}
-	};
-
-	class string_value :public value
-	{
-		std::string s;
-	public:
-		string_value(std::string s) :s(s) {}
-	};
-
-	class reserved_value :public value
-	{
-		int t;
-	public:
-		reserved_value(int t) :t(t) {}
-	};
-
-	class id_value :public value
-	{
-		std::string s;
-	public:
-		id_value(std::string s) :s(s) {}
-	};
-
-	class eof_value :public value
-	{
-		const int v = 0;
-	};
-
-	class token
-	{
-	public:
-		int token_kind;
-		value token_value;
-
-		token() = default;
-		token(const token& a) :token_kind(a.token_kind), token_value(a.token_value) {}
-		token& operator=(const token& b)
-		{
-			token_kind = b.token_kind;
-			token_value = b.token_value;
-		}
-	};
-
-	token gettok();
-}
-
-using namespace scan_nsp;
 
 // ignore blank
 // ignore comment
@@ -159,8 +89,6 @@ std::vector<std::string> reserved_dict
 "X509","XA","XID","XML","XOR","YEAR","YEAR_MONTH","ZEROFILL" };
 
 std::map<std::string, int> reserved_map;
-
-
 
 void init_scanner()
 {
@@ -794,10 +722,6 @@ void init_scanner()
 	reserved_map.insert(std::map<std::string, int>::value_type("ZEROFILL", -628));
 }
 
-
-
-
-
 bool isidchar(int c)
 {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
@@ -813,8 +737,6 @@ void scroll_Char(int* ahead)
 		ahead[LookAheadLen - 1] = getchar();
 }
 
-namespace scan_nsp
-{
 	class scan_error :public std::runtime_error
 	{
 	public:
@@ -1537,7 +1459,4 @@ namespace scan_nsp
 		scanner_status = blank;
 		return t;
 	}
-}
-
-
 
