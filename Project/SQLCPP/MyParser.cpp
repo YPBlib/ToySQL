@@ -122,6 +122,95 @@ public:
 	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 };
 
+class TableRefsAST
+{
+	std::vector<std::unique_ptr<TableRefAST>> refs;
+public:
+	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
+};
+
+class TableRefAST {};
+
+class TableFactorAST :public TableRefAST {};
+
+class TableNameAST final :public TableFactorAST
+{
+	std::string name;
+public:
+	TableNameAST(const std::string& name) :name(name) {}
+};
+
+class TableQueryAST final :public TableFactorAST
+{
+	std::string alias;
+	std::unique_ptr<SubqueryAST> subq;
+public:
+	TableQueryAST(const std::string& alias, std::unique_ptr<SubqueryAST> subq) :
+		alias(alias), subq(std::move(subq)) {}
+
+};
+
+class ParenTableRefAST final :public TableFactorAST
+{
+	std::unique_ptr<TableRefsAST> refs;
+public:
+	ParenTableRefAST(std::unique_ptr<TableRefsAST> refs) :
+		refs(std::move(refs)) {}
+};
+
+class JoinCondAST {};
+class OnJoinCondAST final :public JoinCondAST {};
+class UsingJoinCondAST final :public JoinCondAST {};
+class JoinTableAST :public TableRefAST {};
+
+class TRIJAST final :public JoinTableAST
+{
+	std::unique_ptr<TableRefAST> ref;
+	std::unique_ptr<TableFactorAST> factor;
+	std::unique_ptr<JoinCondAST> cond;
+public:
+	bool innerflag = false;
+	bool crossflag = false;
+	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
+		ref(std::move(ref)), factor(std::move(factor)), cond(nullptr) {}
+	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor, std::unique_ptr<JoinCondAST> cond) :
+		ref(std::move(ref)), factor(std::move(factor)), cond(std::move(cond)) {}
+};
+
+class TRSJAST final :public JoinTableAST
+{
+	std::unique_ptr<TableRefAST> ref;
+	std::unique_ptr<TableFactorAST> factor;
+public:
+	TRSJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
+		ref(std::move(ref)), factor(std::move(factor)) {}
+};
+
+class TRLROJAST final :public JoinTableAST
+{
+	std::unique_ptr<TableRefAST> lhs;
+	std::unique_ptr<TableRefAST> rhs;
+	std::unique_ptr<JoinCondAST> cond;
+public:
+	bool leftflag = false;
+	bool rightflag = false;
+	bool outerflag = false;
+	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond) :
+		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)) {}
+};
+
+class TRNLROJAST final :public JoinTableAST
+{
+	std::unique_ptr<TableRefAST> ref;
+	std::unique_ptr<TableFactorAST> factor;
+public:
+	bool leftflag = false;
+	bool rightflag = false;
+	bool outerflag = false;
+	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
+		ref(std::move(ref)), factor(std::move(factor)) {}
+};
+
 class SEOrormarkSEAST :public SimpleExprAST
 {
 	std::unique_ptr<SimpleExprAST> LHS;
