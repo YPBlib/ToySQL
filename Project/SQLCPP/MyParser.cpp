@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include<exception>
 #include <map>
 #include <memory>
 #include <string>
@@ -32,8 +33,11 @@ public:
 class BooleanPrimaryAST :public ExprAST {};
 class PredicateAST :public BooleanPrimaryAST {};
 class BitExprAST :public PredicateAST {};
-class SimpleExprAST :public BitExprAST {};
+class UnitSEAST:public BitExprAST{};
+class SimpleExprAST :public UnitSEAST {};
 class LiteralAST :public SimpleExprAST {};
+class ParenExprAST:public SimpleExprAST{};
+
 
 class table_col
 {
@@ -82,10 +86,40 @@ public:
 		: callee(callee), args(std::move(args)) {}
 };
 
-class VarAST :public SimpleExprAST
+class SubqueryAST :public SimpleExprAST
 {
-	std::string var_name;
-	VarAST(const std::string& var_name) :var_name(var_name) {}
+	bool distinct_flag = false;
+	bool where_flag = false;
+	std::unique_ptr<ExprAST> wherecond;
+	bool having_flag = false;
+	std::unique_ptr<ExprAST> havingcond;
+	bool group_flag = false;
+	std::vector<table_col> groupby_col_name;
+	bool order_flag = false;
+	std::vector<table_col> orderby_col_name;
+	bool into_flag = false;
+	std::string into_var;
+	std::vector<std::unique_ptr<ExprAST>> exprs;
+	std::vector<std::string> table_name;
+public:
+	SubqueryAST(bool distinct_flag, bool where_flag, std::unique_ptr<ExprAST> wherecond,
+		bool having_flag, std::unique_ptr<ExprAST> havingcond,
+		bool group_flag, std::vector<table_col> groupby_col_name,
+		bool order_flag, std::vector<table_col> orderby_col_name,
+		bool into_flag, const std::string& into_var,
+		std::vector<std::unique_ptr<ExprAST>> exprs, std::vector<std::string> table_name) :
+		distinct_flag(distinct_flag), where_flag(where_flag), wherecond(std::move(wherecond)),
+		having_flag(having_flag), havingcond(std::move(havingcond)),
+		group_flag(group_flag), groupby_col_name(std::move(groupby_col_name)),
+		order_flag(order_flag), orderby_col_name(std::move(orderby_col_name)),
+		into_flag(into_flag), into_var(into_var) {}
+};
+
+class ExistsSubqueryAST :public SimpleExprAST
+{
+	std::unique_ptr<SubqueryAST> subquery;
+public:
+	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 };
 
 class SEOrormarkSEAST :public SimpleExprAST
@@ -124,42 +158,6 @@ class BracketExprseqAST :public SimpleExprAST
 {
 	std::vector<std::unique_ptr<SimpleExprAST>> exprs;
 	BracketExprseqAST(std::vector<std::unique_ptr<SimpleExprAST>> exprs) :exprs(std::move(exprs)) {}
-};
-
-class SubqueryAST :public SimpleExprAST
-{
-	bool distinct_flag = false;
-	bool where_flag = false;
-	std::unique_ptr<ExprAST> wherecond;
-	bool having_flag = false;
-	std::unique_ptr<ExprAST> havingcond;
-	bool group_flag = false;
-	std::vector<table_col> groupby_col_name;
-	bool order_flag = false;
-	std::vector<table_col> orderby_col_name;
-	bool into_flag = false;
-	std::string into_var;
-	std::vector<std::unique_ptr<ExprAST>> exprs;
-	std::vector<std::string> table_name;
-public:
-	SubqueryAST(bool distinct_flag, bool where_flag, std::unique_ptr<ExprAST> wherecond,
-		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool group_flag, std::vector<table_col> groupby_col_name,
-		bool order_flag, std::vector<table_col> orderby_col_name,
-		bool into_flag, const std::string& into_var,
-		std::vector<std::unique_ptr<ExprAST>> exprs, std::vector<std::string> table_name) :
-		distinct_flag(distinct_flag), where_flag(where_flag), wherecond(std::move(wherecond)),
-		having_flag(having_flag), havingcond(std::move(havingcond)),
-		group_flag(group_flag), groupby_col_name(std::move(groupby_col_name)),
-		order_flag(order_flag), orderby_col_name(std::move(orderby_col_name)),
-		into_flag(into_flag), into_var(into_var) {}
-};
-
-class ExistsSubqueryAST :public SimpleExprAST
-{
-	std::unique_ptr<SubqueryAST> subquery;
-public:
-	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 };
 
 class BEOrmarkBE :public BitExprAST
@@ -231,24 +229,6 @@ class BEDivmarkBE :public BitExprAST
 	std::unique_ptr<BitExprAST> RHS;
 public:
 	BEDivmarkBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
-		LHS(std::move(LHS)), RHS(std::move(RHS)) {}
-};
-
-class BEDivBE :public BitExprAST
-{
-	std::unique_ptr<BitExprAST> LHS;
-	std::unique_ptr<BitExprAST> RHS;
-public:
-	BEDivBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
-		LHS(std::move(LHS)), RHS(std::move(RHS)) {}
-};
-
-class BEModBE :public BitExprAST
-{
-	std::unique_ptr<BitExprAST> LHS;
-	std::unique_ptr<BitExprAST> RHS;
-public:
-	BEModBE(std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
 		LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 };
 
@@ -504,7 +484,6 @@ class InsertAST :public StatementAST
 	std::string table_name;
 	std::vector<std::string> col_name;
 	std::vector<std::unique_ptr<ExprAST>> value_list;
-
 public:
 	InsertAST(const std::string& table_name, std::vector<std::string>col_name, std::vector<std::unique_ptr<ExprAST>> value_list) :
 		table_name(table_name), col_name(std::move(col_name)), value_list(std::move(value_list)){}
@@ -514,9 +493,7 @@ class DeleteAST :public StatementAST
 {
 	std::string table_name;
 	std::unique_ptr< ExprAST> where_condition;
-
 public:
-
 	DeleteAST(const std::string& table_name,std::unique_ptr<ExprAST>where_condition):
 		table_name(table_name),where_condition(std::move(where_condition) ){}
 };
@@ -526,55 +503,102 @@ class SelectAST :public StatementAST
 	std::unique_ptr<SubqueryAST> subquery;
 };
 
-	
-
-
 token curtoken[LL_LRLen];
+
+void token_init()
+{
+	token t;
+	t.token_kind = blank;
+	t.token_value = blank_value(' ');
+	for (int i = 0; i < LL_LRLen; ++i)
+		curtoken[i] = t;
+}
 
 void scrolltoken()
 {
 	for (int i = 0; i < LL_LRLen - 1; ++i)
 		curtoken[i] = curtoken[i + 1];
 	curtoken[LL_LRLen - 1] = gettok();
-	
 }
 
-std::unique_ptr<ExprAST> ParseDoubleLiteralAST()
+
+std::unique_ptr<StringLiteralAST> ParseStringLiteralAST()
 {
-	auto result = llvm::make_unique<DoubleLiteralAST>(curtoken[0].token_value);
-	scrolltoken();
+	std::string temps = curtoken[0].token_value.string_literal;
+	scrolltoken(); // consume 1 string token
+	// wait,  this string may be concat
+	while (curtoken[0].token_kind == literal_string)
+	{
+		temps += curtoken[0].token_value.string_literal;
+		scrolltoken(); // consume 1 string token
+	}
+	auto result = llvm::make_unique<StringLiteralAST>(temps);
 	return std::move(result);
 }
 
-std::unique_ptr<ExprAST> ParseIntLiteralAST()
+std::unique_ptr<IntLiteralAST> ParseIntLiteralAST()
 {
-	auto result = llvm::make_unique<IntLiteralAST>(curtoken[0].token_value);
-	scrolltoken(); // consume the number
+	auto result = llvm::make_unique<IntLiteralAST>(curtoken[0].token_value.int_literal);
+	scrolltoken(); // consume 1 int token
 	return std::move(result);
 }
 
-std::unique_ptr<ExprAST> ParseStringLiteralAST()
+std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST()
 {
-	auto result = llvm::make_unique<StringLiteralAST>(curtoken[0].token_value);
-	scrolltoken(); // consume the number
+	auto result = llvm::make_unique<DoubleLiteralAST>(curtoken[0].token_value.double_literal);
+	scrolltoken(); // consume 1 double token
 	return std::move(result);
 }
 
-std::unique_ptr<ExprAST> ParseIdAST()
+std::unique_ptr<IdAST> ParseIdAST()
 {
 	auto result = llvm::make_unique<IdAST>(curtoken[0].token_value);
-	scrolltoken();
+	scrolltoken(); // consume 1 id token
 	return std::move(result);
 }
 
-std::string callee;
-std::vector<std::unique_ptr<ExprAST>> args;
-
-std::unique_ptr<ExprAST> ParseCallAST()
+std::unique_ptr<CallAST> ParseCallAST()
 {
-	string_value sval = (curtoken[0]).token_value;
-	std::string callee = (curtoken[0]).token_value.s;
-	auto Result = llvm::make_unique<CallAST>(curtoken[0].token_value);
-	scrolltoken(); // consume the number
-	return std::move(Result);
+	std::string callee = (curtoken[0]).token_value.string_literal;
+	scrolltoken(); // consume 1 callee name;
+	if (!(curtoken[0].token_kind == symbol&&curtoken[0].token_value.symbol_mark == left_bracket_mark))
+	{
+		throw std::runtime_error("missing '(' when parsing function call");
+	}
+	auto args = ParseBracketExprseqAST();
+	return llvm::make_unique<CallAST>(callee,args);
+}
+
+std::unique_ptr<SEOrormarkSEAST> ParseSEOrormarkSEAST()
+{
+	auto LHS = ParseSimpleExprAST();
+}
+
+std::unique_ptr<BracketExprseqAST> ParseBracketExprseqAST()
+{
+	scrolltoken(); // consume 1 '(';
+	std::vector<std::unique_ptr<SimpleExprAST>> exprs;
+	auto se = ParseSimpleExprAST();
+	exprs.push_back(se);
+	while (!(curtoken[0].token_kind == symbol &&curtoken[0].token_value.symbol_mark == right_bracket_mark))
+	{
+		if (!(curtoken[0].token_kind == symbol &&curtoken[0].token_value.symbol_mark == comma_mark))
+		{
+			throw std::runtime_error("missing  ',' in args list");
+		}	
+		scrolltoken(); // consume 1 ',';
+		auto se = ParseSimpleExprAST();
+		exprs.push_back(se);
+	}
+	if (!(curtoken[0].token_kind == symbol &&curtoken[0].token_value.symbol_mark == right_bracket_mark))
+	{
+		throw std::runtime_error("missing  ')' when args list ends");
+	}
+	scrolltoken(); // consume 1 ')';
+	return llvm::make_unique<BracketExprseqAST>(std::move(exprs));
+}
+
+std::unique_ptr<SimpleExprAST> ParseSimpleExprAST()
+{
+	;
 }

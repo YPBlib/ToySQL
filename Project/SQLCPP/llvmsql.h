@@ -729,6 +729,14 @@ public:
 	virtual ~value() = default;
 };
 
+class blank_value :public value
+{
+	friend val;
+	char ch = ' ';
+public:
+	blank_value(char ch):ch(ch){}
+};
+
 class int_value :public value
 {
 	friend val;
@@ -807,6 +815,11 @@ struct val
 	val& operator=(const id_value& i)
 	{
 		IdentifierStr = i.id;
+		return *this;
+	}
+	val& operator=(const blank_value& blank)
+	{
+		ch = blank.ch;
 		return *this;
 	}
 };

@@ -6,7 +6,6 @@
 expr:
     expr OR expr
   | expr || expr
-  | expr XOR expr
   | expr AND expr
   | expr && expr
   | NOT expr
@@ -36,26 +35,75 @@ bit_expr:
   | bit_expr - bit_expr
   | bit_expr * bit_expr
   | bit_expr / bit_expr
-  | bit_expr DIV bit_expr
-  | bit_expr MOD bit_expr
   | bit_expr % bit_expr
-  | bit_expr ^ bit_expr
-  | simple_expr
+  | unit_simple_expr
+
+unit_simple_expr:
+    + simple_expr
+  | - simple_expr
+  | ! simple_expr
 
 simple_expr:
     literal
   | identifier
+  | table_col
   | function_call
-  | variable
-  | simple_expr || simple_expr
-  | + simple_expr
-  | - simple_expr
-  | ~ simple_expr
-  | ! simple_expr
+  | paren_expr
+
+literal:
+    int_literal
+  | double_literal
+  | string_literal
+
+paren_expr:
   | (expr [, expr] ...)
   | (subquery)
   | EXISTS (subquery)
-  | case_expr
+
+subquery:
+  SELECT
+    [ DISTINCT ]
+    expr [, expr ...]
+    [   FROM table_references
+		[WHERE where_condition] 
+		[GROUP BY {col_name | expr | position} [ASC | DESC]] 
+		[HAVING where_condition]
+		[ORDER BY {col_name | expr | position} [ASC | DESC]]
+		[INTO var_name [, var_name]]
+    ]
+
+table_references:
+    escaped_table_reference [, escaped_table_reference ... ]
+
+escaped_table_reference:
+    table_reference
+  | { OJ table_reference }
+
+table_reference:
+    table_factor
+  | join_table
+
+table_factor:
+    tbl_name 
+  | table_subquery [AS] alias
+  | ( table_references )
+
+join_table:
+    table_reference [INNER | CROSS] JOIN table_factor [join_condition]
+  | table_reference STRAIGHT_JOIN table_factor
+  | table_reference STRAIGHT_JOIN table_factor ON conditional_expr
+  | table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
+  | table_reference NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
+
+join_condition:
+    ON conditional_expr
+  | USING (column_list)
+
+
+
+
+-------------------------------------------------------------------
+
 
 表达式的产生式
 
