@@ -8,20 +8,16 @@
 #include<regex>
 #include"llvmsql.h"
 
-
-
 #define LookAheadLen 6
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
-
-
-
-
-
 
 // ignore blank
 // ignore comment
 // to store current token-value
 static int scanner_status;
+token curtoken;
+
+///  scan_utils begin
 
 std::vector<std::string> reserved_dict
 { "ACCESSIBLE","ACCOUNT","ACTION","ADD","AFTER","AGAINST","AGGREGATE","ALGORITHM","ALL","ALTER",
@@ -758,6 +754,8 @@ void scroll_Char(int* ahead)
 			scan_error(s){}
 	};
 
+	/// scan_utils end
+
 	token gettok()
 	{
 		if (scanner_status != blank)
@@ -808,7 +806,7 @@ void scroll_Char(int* ahead)
 			{
 				scroll_Char(LookAhead);
 				if (LookAhead[0] == EOF)
-					throw scan_nsp::comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
+					throw comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
 			}
 			scroll_Char(LookAhead);
 			scroll_Char(LookAhead);
@@ -915,7 +913,7 @@ void scroll_Char(int* ahead)
 				}
 
 				if (LookAhead[0] == EOF)
-					throw scan_nsp::string_error((std::string{ "" }+(match_char == '"' ? '"' : '\'')) + " in string literal dismatches");
+					throw string_error((std::string{ "" }+(match_char == '"' ? '"' : '\'')) + " in string literal dismatches");
 			}
 		}
 

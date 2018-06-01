@@ -3,11 +3,15 @@
 #ifndef llvmsql_h
 #define llvmsql_h
 
+#define LL_LRLen 6
+
+
 std::string string_literal; // ' ""
-int int_literal;    // 先判断是否是 int
-double double_literal; // 后判断是否是 double
-int symbol_mark;
+int int_literal = 0;    // 先判断是否是 int
+double double_literal = 0.; // 后判断是否是 double
+int symbol_mark = 0;
 std::string IdentifierStr;
+
 
 enum reserved_token_value
 {
@@ -701,7 +705,7 @@ enum status
 	symbol,
 	eof
 };
-
+struct val;
 class value;
 
 class int_value;
@@ -720,12 +724,14 @@ class token;
 
 class value
 {
+	friend val;
 public:
 	virtual ~value() = default;
 };
 
 class int_value :public value
 {
+	friend val;
 	int i;
 public:
 	int_value(int i) :i(i) {}
@@ -733,6 +739,7 @@ public:
 
 class double_value :public value
 {
+	friend val;
 	double d;
 public:
 	double_value(double d) :d(d) {}
@@ -740,6 +747,7 @@ public:
 
 class string_value :public value
 {
+	friend val;
 	std::string s;
 public:
 	string_value(std::string s) :s(s) {}
@@ -747,16 +755,18 @@ public:
 
 class reserved_value :public value
 {
-	int t;
+	friend val;
+	int r;
 public:
-	reserved_value(int t) :t(t) {}
+	reserved_value(int r) :r(r) {}
 };
 
 class id_value :public value
 {
-	std::string s;
+	friend val;
+	std::string id;
 public:
-	id_value(std::string s) :s(s) {}
+	id_value(std::string id) :id(id) {}
 };
 
 class eof_value :public value
@@ -764,11 +774,48 @@ class eof_value :public value
 	const int v = 0;
 };
 
+struct val
+{
+	std::string string_literal; // ' ""
+	int int_literal = 0;    // 先判断是否是 int
+	double double_literal = 0.; // 后判断是否是 double
+	int symbol_mark = 0;
+	std::string IdentifierStr;
+	char ch = ' ';
+	val() = default;
+	val(eof_value ev):ch(EOF){}
+	val& operator=(const string_value& s)
+	{
+		string_literal = s.s;
+		return *this;
+	}
+	val& operator=(const int_value& i)
+	{
+		int_literal = i.i;
+		return *this;
+	}
+	val& operator=(const double_value& d)
+	{
+		double_literal = d.d;
+		return *this;
+	}
+	val& operator=(const reserved_value& r)
+	{
+		symbol_mark = r.r;
+		return *this;
+	}
+	val& operator=(const id_value& i)
+	{
+		IdentifierStr = i.id;
+		return *this;
+	}
+};
+
 class token
 {
 public:
 	int token_kind;
-	value token_value;
+	val token_value;
 
 	token() = default;
 	token(const token& a) :token_kind(a.token_kind), token_value(a.token_value) {}
@@ -776,7 +823,9 @@ public:
 	{
 		token_kind = b.token_kind;
 		token_value = b.token_value;
+		return *this;
 	}
+	
 };
 
 token gettok();

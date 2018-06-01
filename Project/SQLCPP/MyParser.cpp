@@ -527,37 +527,44 @@ class SelectAST :public StatementAST
 };
 
 	
-#define tokenLen 6
 
-token curtoken[tokenLen];
+
+token curtoken[LL_LRLen];
 
 void scrolltoken()
 {
-	for (int i = 0; i < tokenLen - 1; ++i)
+	for (int i = 0; i < LL_LRLen - 1; ++i)
 		curtoken[i] = curtoken[i + 1];
-	curtoken[tokenLen - 1] = gettok();
+	curtoken[LL_LRLen - 1] = gettok();
 	
 }
 
 std::unique_ptr<ExprAST> ParseDoubleLiteralAST()
 {
-	auto Result = llvm::make_unique<DoubleLiteralAST>(curtoken[0].token_value);
+	auto result = llvm::make_unique<DoubleLiteralAST>(curtoken[0].token_value);
 	scrolltoken();
-	return std::move(Result);
+	return std::move(result);
 }
 
 std::unique_ptr<ExprAST> ParseIntLiteralAST()
 {
-	auto Result = llvm::make_unique<IntLiteralAST>(curtoken[0].token_value);
+	auto result = llvm::make_unique<IntLiteralAST>(curtoken[0].token_value);
 	scrolltoken(); // consume the number
-	return std::move(Result);
+	return std::move(result);
 }
 
 std::unique_ptr<ExprAST> ParseStringLiteralAST()
 {
-	auto Result = llvm::make_unique<StringLiteralAST>(curtoken[0].token_value);
+	auto result = llvm::make_unique<StringLiteralAST>(curtoken[0].token_value);
 	scrolltoken(); // consume the number
-	return std::move(Result);
+	return std::move(result);
+}
+
+std::unique_ptr<ExprAST> ParseIdAST()
+{
+	auto result = llvm::make_unique<IdAST>(curtoken[0].token_value);
+	scrolltoken();
+	return std::move(result);
 }
 
 std::string callee;
@@ -565,6 +572,8 @@ std::vector<std::unique_ptr<ExprAST>> args;
 
 std::unique_ptr<ExprAST> ParseCallAST()
 {
+	string_value sval = (curtoken[0]).token_value;
+	std::string callee = (curtoken[0]).token_value.s;
 	auto Result = llvm::make_unique<CallAST>(curtoken[0].token_value);
 	scrolltoken(); // consume the number
 	return std::move(Result);
