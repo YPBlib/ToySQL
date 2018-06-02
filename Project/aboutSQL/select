@@ -8,10 +8,9 @@ SELECT
     select_expr [, select_expr ...]
     [   FROM table_references
 		[WHERE where_condition] 
-		[GROUP BY {col_name | expr | position} [ASC | DESC]] 
+		[GROUP BY {col_name | expr , ...} [ASC | DESC]] 
 		[HAVING where_condition]
-		[ORDER BY {col_name | expr | position} [ASC | DESC]]
-		[INTO var_name [, var_name]]
+		[ORDER BY {col_name | expr , ...} [ASC | DESC]]
     ]
 
 

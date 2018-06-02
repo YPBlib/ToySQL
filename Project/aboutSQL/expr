@@ -4,50 +4,53 @@
 //===----------------------------------------------------------------------===//
 
 expr:
-    expr OR expr
-  | expr || expr
-  | expr AND expr
-  | expr && expr
+    exp OR expr
+  | exp || expr
+  | exp AND expr
+  | exp && expr
+  | exp
+
+exp:
   | NOT expr
   | ! expr
+  | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
   | boolean_primary
 
 boolean_primary:
-    boolean_primary IS [NOT] NULL	
+    boolean_primary IS [NOT] NULL
   | boolean_primary comparison_operator predicate
   | boolean_primary comparison_operator {ALL | ANY} (subquery)
   | predicate
 
+comparison_operator: = , >= , > , <= , < , <> , !=
+
 predicate:
     bit_expr [NOT] IN (subquery)
   | bit_expr [NOT] IN (expr [, expr] ...)
-  | bit_expr [NOT] BETWEEN bit_expr AND predicate
   | bit_expr [NOT] REGEXP bit_expr
   | bit_expr
 
-
 bit_expr:
-    bit_expr | bit_expr
-  | bit_expr & bit_expr
-  | bit_expr << bit_expr
-  | bit_expr >> bit_expr
-  | bit_expr + bit_expr
-  | bit_expr - bit_expr
-  | bit_expr * bit_expr
-  | bit_expr / bit_expr
-  | bit_expr % bit_expr
-  | unit_simple_expr
+    bit_expr + bit_exp
+  | bit_expr - bit_exp
+  | bit_exp
 
-unit_simple_expr:
-    + simple_expr
-  | - simple_expr
-  | ! simple_expr
+bit_exp:
+  | bit_exp * bit_ex
+  | bit_exp / bit_ex
+  | bit_exp % bit_ex
+  | bit_ex
 
-simple_expr:
-    literal
-  | identifier
-  | table_col
-  | function_call
+bit_ex:
+    + bit_ex
+  | - bit_ex
+  | simple_expr
+
+simple_expr:  
+    identifier
+  | identifier.identifier    // table_col
+  | identifier ( expr [, expr] ...)    // function_call
+  | literal
   | paren_expr
 
 literal:
@@ -56,21 +59,24 @@ literal:
   | string_literal
 
 paren_expr:
-  | (expr [, expr] ...)
-  | (subquery)
+    ( expr )
+  | ( subquery )
   | EXISTS (subquery)
+
 
 subquery:
   SELECT
     [ DISTINCT ]
-    expr [, expr ...]
+    select_expr [, select_expr ...]
     [   FROM table_references
 		[WHERE where_condition] 
-		[GROUP BY {col_name | expr | position} [ASC | DESC]] 
+		[GROUP BY {col_name | expr , ...} [ASC | DESC]] 
 		[HAVING where_condition]
-		[ORDER BY {col_name | expr | position} [ASC | DESC]]
-		[INTO var_name [, var_name]]
+		[ORDER BY {col_name | expr , ...} [ASC | DESC]]
     ]
+
+select_expr:
+    expr [AS alias]
 
 table_references:
     table_reference [, table_reference ... ]
@@ -86,8 +92,6 @@ table_factor:
 
 join_table:
     table_reference [INNER | CROSS] JOIN table_factor [join_condition]
-  | table_reference STRAIGHT_JOIN table_factor
-  | table_reference STRAIGHT_JOIN table_factor ON conditional_expr
   | table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
   | table_reference NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
 
@@ -95,72 +99,8 @@ join_condition:
     ON conditional_expr
   | USING (column_list)
 
-
--------------------------------------------------------------------
-
-
-表达式的产生式
-
-expr:
-    expr OR expr
-  | expr || expr
-  | expr XOR expr
-  | expr AND expr
-  | expr && expr
-  | NOT expr
-  | ! expr
-  | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
-  | boolean_primary
-
-boolean_primary:
-    boolean_primary IS [NOT] NULL
-  | boolean_primary <=> predicate
-  | boolean_primary comparison_operator predicate
-  | boolean_primary comparison_operator {ALL | ANY} (subquery)
-  | predicate
-
-comparison_operator: = | >= | > | <= | < | <> | !=
-
-predicate:
-    bit_expr [NOT] IN (subquery)
-  | bit_expr [NOT] IN (expr [, expr] ...)
-  | bit_expr [NOT] BETWEEN bit_expr AND predicate
-  | bit_expr SOUNDS LIKE bit_expr
-  | bit_expr [NOT] LIKE simple_expr [ESCAPE simple_expr]
-  | bit_expr [NOT] REGEXP bit_expr
-  | bit_expr
-
-bit_expr:
-    bit_expr | bit_expr
-  | bit_expr & bit_expr
-  | bit_expr << bit_expr
-  | bit_expr >> bit_expr
-  | bit_expr + bit_expr
-  | bit_expr - bit_expr
-  | bit_expr * bit_expr
-  | bit_expr / bit_expr
-  | bit_expr DIV bit_expr
-  | bit_expr MOD bit_expr
-  | bit_expr % bit_expr
-  | bit_expr ^ bit_expr
-  | simple_expr
-
-simple_expr:
-    literal
-  | identifier
-  | function_call
-  | variable
-  | simple_expr || simple_expr
-  | + simple_expr
-  | - simple_expr
-  | ~ simple_expr
-  | ! simple_expr
-  | (expr [, expr] ...)
-  | (subquery)
-  | EXISTS (subquery)
-
-  
-  
 //===----------------------------------------------------------------------===//
 // expr end
 //===----------------------------------------------------------------------===//
+
+
