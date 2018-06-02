@@ -11,6 +11,12 @@
 #define LookAheadLen 6
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
 
+std::string string_literal; // ' ""
+int int_literal = 0;    // 先判断是否是 int
+double double_literal = 0.; // 后判断是否是 double
+int symbol_mark = 0;
+std::string IdentifierStr;
+
 // ignore blank
 // ignore comment
 // to store current token-value
@@ -993,7 +999,7 @@ void scroll_Char(int* ahead)
 			if (scanner_status == literal_int)
 			{
 				token t;
-				t.token_kind = int_literal;
+				t.token_kind = scanner_status;
 				t.token_value = int_value(atoi(numeric_str.c_str()));
 				scanner_status = blank;
 				return t;
@@ -1001,7 +1007,7 @@ void scroll_Char(int* ahead)
 			else
 			{
 				token t;
-				t.token_kind = double_literal;
+				t.token_kind = scanner_status;
 				t.token_value = double_value(atof(numeric_str.c_str()));
 				scanner_status = blank;
 				return t;

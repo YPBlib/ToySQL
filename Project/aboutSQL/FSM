@@ -64,6 +64,7 @@ follow boolean_primary:
 	comparison_operator
 
 follow predicate:
+	follow(boolean_primary)
 	
 
 follow bit_expr:
@@ -87,4 +88,4 @@ follow simple_expr:
 	follow(bit_ex)
 
 follow(subquery):
-)
+	)

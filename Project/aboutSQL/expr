@@ -51,18 +51,14 @@ simple_expr:
   | identifier.identifier    // table_col
   | identifier ( expr [, expr] ...)    // function_call
   | literal
-  | paren_expr
+  | ( expr )
+  | ( subquery )
+  | EXISTS (subquery)
 
 literal:
     int_literal
   | double_literal
   | string_literal
-
-paren_expr:
-    ( expr )
-  | ( subquery )
-  | EXISTS (subquery)
-
 
 subquery:
   SELECT
