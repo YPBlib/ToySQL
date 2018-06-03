@@ -874,17 +874,20 @@ public:
 
 class ColdefAST
 {
+public:
+	std::string tbname;
 	std::string colname;
-	int dtype;
+	int dtype=0;
 	bool nullable = true;
 	bool unique = false;
 	bool primary = false;
 	int n = 0;
-public:
+	ColdefAST() = default;
 	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary) :
 		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
 	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary, int n) :
 		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
+	~ColdefAST() = default;
 };
 
 
@@ -1328,6 +1331,7 @@ class CreateTableSimpleAST :public CreateTableAST
 public:
 	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<ColdefAST>> create_defs) :
 		table_name(table_name), create_defs(std::move(create_defs)) {}
+	~CreateTableSimpleAST() = default;
 };
 
 class CreateTableSelectAST :public CreateTableAST
@@ -1409,7 +1413,6 @@ std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
 std::unique_ptr<ParenExprAST> ParseParenExprAST();
 std::unique_ptr<IdAST> ParseIdAST();
 std::unique_ptr<CallAST> ParseCallAST();
-std::unique_ptr<TablecolAST> ParseTablecolAST();
 std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
 //std::unique_ptr<SubqueryAST> ParseSubqueryAST();
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();

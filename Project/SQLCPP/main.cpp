@@ -657,9 +657,9 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	x = ParseLiteralAST();
- 	auto y = ParseColdefAST();
-	y=ParseColdefAST();
-	y=ParseColdefAST();
+ 	auto y = ParseCreateTableSimpleAST();
+	
+	y = nullptr;
 	x = ParseLiteralAST();
 	// Install standard binary operators.
 	// 1 is lowest precedence.

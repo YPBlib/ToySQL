@@ -208,20 +208,6 @@ std::unique_ptr<CallAST> ParseCallAST()
 }
 */
 
-std::unique_ptr<TablecolAST> ParseTablecolAST()
-{
-	auto n1 = ParseIdAST();
-	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == dot_mark)
-	{
-		currtoken = gettok();
-		auto n2 = ParseIdAST();
-		return llvm::make_unique<TablecolAST>(n1->getvalue()->IdentifierStr, n2->getvalue()->IdentifierStr);
-	}
-	else
-	{
-		return llvm::make_unique<TablecolAST>(n1->getvalue()->IdentifierStr);
-	}
-}
 
 /*
 std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
@@ -281,18 +267,9 @@ public:
 };
 */
 
-/*
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
-{
-	// consume ` CREATE TABLE `
-	currtoken = gettok();
-	currtoken = gettok();
-	std::string table_name = ParseIdAST()->getvalue()->IdentifierStr;
-	// consume `(`
-	currtoken = gettok();
 
-}
-*/
+
+
 
 
 std::unique_ptr<ColdefAST> ParseColdefAST()
@@ -330,7 +307,7 @@ std::unique_ptr<ColdefAST> ParseColdefAST()
 			{
 				currtoken = gettok();
 			}
-			return llvm::make_unique<ColdefAST>(colname, literal_int, true, false, false, n);
+			return llvm::make_unique<ColdefAST>(colname, literal_string, true, false, false, n);
 		}
 		throw std::runtime_error("char size must be int \n");
 		
@@ -339,3 +316,36 @@ std::unique_ptr<ColdefAST> ParseColdefAST()
 }
 
 
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
+{
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
+	// consume ` CREATE TABLE `
+	currtoken = gettok();
+	currtoken = gettok();
+	std::string table_name = ParseIdAST()->getvalue()->IdentifierStr;
+	// consume `(`
+	currtoken = gettok();
+	std::vector<std::unique_ptr<ColdefAST>> cols;
+	auto col = ParseColdefAST();
+	col->tbname = table_name;
+	cols.push_back(std::move(col));
+	while (currtoken.token_kind == symbol&& currtoken.token_value.symbol_mark == comma_mark)
+	{
+		// consume `,`
+		currtoken = gettok();
+		auto col = ParseColdefAST();
+		col->tbname = table_name;
+		cols.push_back(std::move(col));
+	}
+	// consume `)`
+	currtoken = gettok();
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
+	//return nullptr;
+	return llvm::make_unique<CreateTableSimpleAST>(table_name, std::move(cols));
+}
