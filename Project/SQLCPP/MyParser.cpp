@@ -256,7 +256,7 @@ std::unique_ptr<BitExpAST> ParseBitExpAST()
 		auto op = llvm::make_unique<int>(currtoken.token_value.symbol_mark);
 		currtoken = gettok();	// consume '*' or  '/ ' or '%'
 		auto bitexp = ParseBitExpAST();
-		return llvm::make_unique<BitExprAST>(bitex, op, bitexp);
+		return llvm::make_unique<BitExpAST>(bitex, op, bitexp);
 	}
 	else
 	{
@@ -291,16 +291,46 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 	}
 	else if (currtoken.token_kind == id)
 	{
-		;
+		auto idstr = ParseIdAST();
+		LR lr;
+		lr.push_back(std::move(idstr));
+		if (currtoken.token_kind == currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == dot_mark)
+		{
+			;
+		}
+		else if ( currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == left_bracket_mark)
+		{
+			currtoken = gettok();	//s=consume '('
+			if (currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == dot_mark)
+			{
+				currtoken = gettok();	//s=consume '.'
+				auto colname = ParseIdAST();
+				auto tablename = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value);
+				auto tablecol = llvm::make_unique<TablecolAST>(tablename, colname);
+				return llvm::make_unique<SimpleExprAST>(tablecol);
+			}
+			else
+			{
+				auto call = ParseCallAST(std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value));
+				return llvm::make_unique<SimpleExprAST>(call);
+			}
+		}
+		else
+		{
+			auto str = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value);
+			auto idast = llvm::make_unique<IdAST>(str);
+			return llvm::make_unique<SimpleExprAST>(idast);
+		}
 	}
 	else if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == left_bracket_mark || currtoken.token_value.symbol_mark == tok_EXISTS))
 	{
-		;
+		
+
 	}
 	else
 	{
-		throw std::runtime_error("expect simple expression")
+		throw std::runtime_error("expect simple expression");
 	}
 }
 
@@ -477,7 +507,7 @@ std::unique_ptr<CallAST> ParseCallAST()
 	{
 		throw std::runtime_error(s);
 	}
-	std::string callee = x->getvalue()->IdentifierStr;
+	std::unique_ptr<std::string> callee = std::move(x->id);
 	if (!(currtoken.token_kind == symbol && currtoken.token_value.symbol_mark != left_bracket_mark))
 	{
 		throw std::runtime_error("expect '(' \n");
@@ -496,6 +526,23 @@ std::unique_ptr<CallAST> ParseCallAST()
 	else
 		throw std::runtime_error("expect ')'");
 
+}
+
+std::unique_ptr<CallAST> ParseCallAST(std::unique_ptr<std::string> callee)
+{
+	std::vector<std::unique_ptr<ExprAST>> args;
+	args.push_back(ParseExprAST());
+	while (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark != comma_mark)
+	{
+		currtoken = gettok();    // consume 1 comma token
+		args.push_back(ParseExprAST());
+	}
+	if (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark != right_bracket_mark)
+	{
+		return llvm::make_unique<CallAST>(callee, args);
+	}
+	else
+		throw std::runtime_error("expect ')'");
 }
 
 std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()

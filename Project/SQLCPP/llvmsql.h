@@ -981,19 +981,16 @@ public:
 
 class BitExAST :public BitExpAST
 {
+public:
 	std::unique_ptr<int> mark = nullptr;
 	std::unique_ptr<BitExAST> bitex = nullptr;
 	std::unique_ptr<SimpleExprAST> SE = nullptr;
-public:
 	BitExAST() = default;
 	BitExAST(std::unique_ptr<int> mark, std::unique_ptr<BitExAST> bitex) :
 		mark(std::move(mark)), bitex(std::move(bitex)) {}
 	BitExAST(std::unique_ptr<SimpleExprAST> SE) :
 		SE(std::move(SE)) {}
 };
-
-
-
 
 class SimpleExprAST :public BitExAST
 {
@@ -1018,22 +1015,18 @@ public:
 
 class IdAST final :public SimpleExprAST
 {
-	std::string id;
 public:
-	IdAST(const std::string& id) :id(id) {}
-	std::unique_ptr<val> getvalue()
-	{
-		val v;
-		v.IdentifierStr = id;
-		return llvm::make_unique<val>(v);
-	}
+	std::unique_ptr<std::string> id=nullptr;
+	IdAST() = default;
+	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
+	
 };
 
 class TablecolAST final :SimpleExprAST
 {
+public:
 	std::string table_name;
 	std::string col_name;
-public:
 	TablecolAST(const std::string& col_name) :table_name(""), col_name(col_name) {}
 	TablecolAST(const std::string& table_name, const std::string& col_name) :table_name(table_name), col_name(col_name) {}
 	std::unique_ptr<val> getvalue()
@@ -1044,61 +1037,48 @@ public:
 
 class CallAST final :public SimpleExprAST
 {
-	std::string callee;
-	std::vector<std::unique_ptr<ExprAST>> args;
 public:
-	CallAST(const std::string &callee, std::vector<std::unique_ptr<ExprAST>> args)
-		: callee(callee), args(std::move(args)) {}
+	std::unique_ptr<std::string> callee;
+	std::vector<std::unique_ptr<ExprAST>> args;
+	CallAST(std::unique_ptr<std::string> callee, std::vector<std::unique_ptr<ExprAST>> args)
+		: callee(std::move(callee) ), args(std::move(args)) {}
 };
 
 class LiteralAST :public SimpleExprAST
 {
-	;
+public:
+	std::unique_ptr<IntLiteralAST> liti = nullptr;
+	std::unique_ptr<DoubleLiteralAST> litd = nullptr;
+	std::unique_ptr<StringLiteralAST> lits = nullptr;
 };
 
 class IntLiteralAST final :public LiteralAST
 {
-	int value;
 public:
-	IntLiteralAST(int value) :value(value) {}
-	std::unique_ptr<val> getvalue()
-	{
-		val v;
-		v.int_literal = value;
-		return llvm::make_unique<val>(v);
-	}
+	std::unique_ptr<int> value = nullptr;
+	IntLiteralAST(std::unique_ptr<int> value) :value(std::move(value)) {}
 };
 
 class DoubleLiteralAST final : public LiteralAST
 {
-	double value;
 public:
-	DoubleLiteralAST(double value) : value(value) {}
-	std::unique_ptr<val> getvalue()
-	{
-		val v;
-		v.double_literal = value;
-		return llvm::make_unique<val>(v);
-	}
+	std::unique_ptr<double> value = nullptr;
+	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
+	
 };
 
 class StringLiteralAST final :public LiteralAST
 {
-	std::string value;
 public:
-	StringLiteralAST(const std::string& value) :value(value) {}
-	std::unique_ptr<val> getvalue()
-	{
-		val v;
-		v.string_literal = value;
-		return llvm::make_unique<val>(v);
-	}
+	std::unique_ptr<std::string> value = nullptr;
+	StringLiteralAST(std::unique_ptr<std::string> value) :value(std::move(value)) {}
+	
 };
 
 class ParenExprAST final :public SimpleExprAST
 {
-	std::unique_ptr<ExprAST> expr;
 public:
+	std::unique_ptr<ExprAST> expr;
 	ParenExprAST(std::unique_ptr<ExprAST> expr) :
 		expr(std::move(expr)) {}
 };
@@ -1380,8 +1360,7 @@ std::unique_ptr<PredicateAST> ParsePredicateAST();
 std::unique_ptr<BitExprAST> ParseBitExprAST();
 std::unique_ptr<BitExpAST> ParseBitExpAST();
 std::unique_ptr<BitExAST> ParseBitExAST();
-
-
+std::unique_ptr<SimpleExprAST> ParseSEAST();
 
 
 
