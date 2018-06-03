@@ -858,18 +858,7 @@ token gettok();
 
 
 
-class datatype
-{
-	int i = 0;
-	double d = 0.;
-	std::string s;
-public:
-	datatype(int i, double d, const std::string& s) :i(i), d(d), s(s) {}
-	datatype(int i) :i(i) {}
-	datatype(const std::string& s) :s(s) {}
-	datatype(double d) : d(d) {}
-	~datatype() = default;
-};
+
 
 class table_col
 {
@@ -882,15 +871,15 @@ public:
 	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
 };
 
-class col_def
+class ColdefAST
 {
 	int dtype;
-	std::unique_ptr<datatype> defaultvalue;
+	std::unique_ptr<val> defaultvalue;
 	bool nullable = true;
 	bool unique = false;
 	bool primary = false;
 public:
-	col_def(int dtype, std::unique_ptr<datatype> defaultvalue, bool nullable, bool unique, bool primary) :
+	ColdefAST(int dtype, std::unique_ptr<val> defaultvalue, bool nullable, bool unique, bool primary) :
 		dtype(dtype), defaultvalue(std::move(defaultvalue)),
 		nullable(nullable), unique(unique), primary(primary) {}
 
@@ -899,11 +888,11 @@ public:
 class create_def
 {
 	std::string col_name;
-	std::unique_ptr<col_def> col_defs;
+	std::unique_ptr<ColdefAST> col_defs;
 	bool primary;
 	bool unique;
 public:
-	create_def(bool primary, bool unique, const std::string& col_name, std::unique_ptr<col_def> col_defs) :
+	create_def(bool primary, bool unique, const std::string& col_name, std::unique_ptr<ColdefAST> col_defs) :
 		primary(primary), unique(unique), col_name(col_name), col_defs(std::move(col_defs)) {}
 };
 
@@ -1337,10 +1326,11 @@ class CreateTableAST :public CreateAST
 
 class CreateTableSimpleAST :public CreateTableAST
 {
+	std::string table_name; 
 	std::vector<std::unique_ptr<create_def>> create_defs;
 public:
-	CreateTableSimpleAST(std::vector<std::unique_ptr<create_def>> create_defs) :
-		create_defs(std::move(create_defs)) {}
+	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<create_def>> create_defs) :
+		table_name(table_name), create_defs(std::move(create_defs)) {}
 };
 
 class CreateTableSelectAST :public CreateTableAST
@@ -1424,7 +1414,9 @@ std::unique_ptr<IdAST> ParseIdAST();
 std::unique_ptr<CallAST> ParseCallAST();
 std::unique_ptr<TablecolAST> ParseTablecolAST();
 std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
-std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+//std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+
 
 
 

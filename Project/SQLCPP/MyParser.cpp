@@ -20,12 +20,14 @@
 #include <vector>
 #include<exception>
 #include"llvmsql.h"
+#include"catalog.h"
 using namespace llvm;
 
+/// SQL begin
 
+std::map<table_col, SQLcol> name_entity_map;
 
-
-/// AST end
+/// SQL end
 
 using LR = std::vector<std::unique_ptr<ExprAST>> ;
 using LL = std::vector<std::unique_ptr<ExprAST>> ;
@@ -202,6 +204,7 @@ std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
 	return llvm::make_unique<ExistsSubqueryAST>(subquery);
 };
 
+/*
 std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 {
 	currtoken = gettok();    // consume 'SELECT' reserved word
@@ -245,4 +248,56 @@ public:
 		group_flag(group_flag), groupby_col_name(std::move(groupby_col_name)),
 		order_flag(order_flag), orderby_col_name(std::move(orderby_col_name))
 	{}
+};
+*/
+
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
+{
+	// consume ` CREATE TABLE `
+	currtoken = gettok();
+	currtoken = gettok();
+	std::string table_name = ParseIdAST()->getvalue()->IdentifierStr;
+	// consume `(`
+	currtoken = gettok();
+
+}
+class CreateTableSimpleAST :public CreateTableAST
+{
+	std::vector<std::unique_ptr<create_def>> create_defs;
+public:
+	CreateTableSimpleAST(std::vector<std::unique_ptr<create_def>> create_defs) :
+		create_defs(std::move(create_defs)) {}
+};
+
+std::unique_ptr<ColdefAST> ParseColdefAST()
+{
+	std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_INT)
+	{
+		;
+	}
+	if (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == tok_FLOAT || currtoken.token_value.symbol_mark == tok_DOUBLE))
+	{
+		;
+	}
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_CHAR)
+	{
+		;
+	}
+}
+
+
+class ColdefAST
+{
+	int dtype;
+	std::unique_ptr<val> defaultvalue;
+	bool nullable = true;
+	bool unique = false;
+	bool primary = false;
+public:
+	ColdefAST(int dtype, std::unique_ptr<val> defaultvalue, bool nullable, bool unique, bool primary) :
+		dtype(dtype), defaultvalue(std::move(defaultvalue)),
+		nullable(nullable), unique(unique), primary(primary) {}
+
 };
