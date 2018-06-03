@@ -896,24 +896,26 @@ public:
 class ExprAST
 {
 public:
+	std::unique_ptr<ExpAST> lhs = nullptr;
+	std::unique_ptr<int> op = nullptr;
+	std::unique_ptr<ExprAST> rhs = nullptr;
 	virtual ~ExprAST() = default;
-	virtual std::unique_ptr<val> getvalue() = 0;
+	ExprAST() = default;
+	ExprAST(std::unique_ptr<ExpAST> lhs, std::unique_ptr<int> op, std::unique_ptr<ExprAST> rhs):
+		lhs(std::move(lhs)),op(std::move(op)) ,rhs(std::move(rhs)){}
 };
 
 class ExpAST :public ExprAST
 {
-	;
+public:
+	std::unique_ptr<ExprAST> expr = nullptr;
+	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
+	ExpAST() = default;
+	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp):
+		expr(std::move(expr)),bp(std::move(bp)){}
 };
 
-class BinExpAST final :public ExprAST
-{
-	std::unique_ptr<ExpAST> lhs;
-	std::unique_ptr<ExprAST> rhs;
-	int op;
-public:
-	BinExpAST(std::unique_ptr<ExpAST> lhs, std::unique_ptr<ExprAST> rhs, int op) :
-		op(op), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
-};
+
 
 
 class NotExprAST final :public ExpAST
@@ -1212,6 +1214,7 @@ public:
 
 class UsingJoinCondAST final :public JoinCondAST
 {
+public:
 	std::vector<std::unique_ptr<TablecolAST>> cols;
 	UsingJoinCondAST(std::vector<std::unique_ptr<TablecolAST>> cols) :
 		cols(std::move(cols)) {}
@@ -1406,10 +1409,45 @@ class SelectAST :public StatementAST
 
 
 void init_scanner();
+
+
+
+std::unique_ptr<ExprAST> ParseExprAST();
+std::unique_ptr<ExpAST> ParseExpAST();
+
+
+
+
+
+
+
+
+
+
+class ExpAST :public ExprAST
+{
+public:
+	std::unique_ptr<ExprAST> expr = nullptr;
+	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
+	ExpAST() = default;
+	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp) :
+		expr(std::move(expr)), bp(std::move(bp)) {}
+};
+
+
+
+
 std::unique_ptr<LiteralAST> ParseLiteralAST();
 std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
 std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
+
+
+
+std::unique_ptr<TablecolAST> ParseTablecolAST();
+
+
+
 std::unique_ptr<ParenExprAST> ParseParenExprAST();
 std::unique_ptr<IdAST> ParseIdAST();
 std::unique_ptr<CallAST> ParseCallAST();
@@ -1417,6 +1455,9 @@ std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
 //std::unique_ptr<SubqueryAST> ParseSubqueryAST();
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
 std::unique_ptr<ColdefAST> ParseColdefAST();
+std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
+std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
+
 
 
 
