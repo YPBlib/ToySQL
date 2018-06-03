@@ -1074,6 +1074,12 @@ class IdAST final :public SimpleExprAST
 	std::string id;
 public:
 	IdAST(const std::string& id) :id(id) {}
+	std::unique_ptr<val> getvalue()
+	{
+		val v;
+		v.IdentifierStr = id;
+		return llvm::make_unique<val>(v);
+	}
 };
 
 class TablecolAST final :SimpleExprAST
@@ -1270,16 +1276,16 @@ class SubqueryAST final :public SimpleExprAST
 	bool from_flag = false;
 	std::vector<std::unique_ptr<TableRefsAST>> tbrefs;
 
-	bool where_flag = false;
+	bool where_flag = false;  
 	std::unique_ptr<ExprAST> wherecond;
 
-	bool having_flag = false;
+	bool having_flag = false;  
 	std::unique_ptr<ExprAST> havingcond;
 
-	bool group_flag = false;
+	bool group_flag = false;  bool group_ASC = true;
 	std::vector<table_col> groupby_col_name;
 
-	bool order_flag = false;
+	bool order_flag = false;  bool order_ASC = true;
 	std::vector<table_col> orderby_col_name;
 
 public:
@@ -1287,15 +1293,15 @@ public:
 		bool from_flag, std::vector<std::unique_ptr<TableRefsAST>> tbrefs,
 		bool where_flag, std::unique_ptr<ExprAST> wherecond,
 		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool group_flag, std::vector<table_col> groupby_col_name,
-		bool order_flag, std::vector<table_col> orderby_col_name
+		bool group_flag, bool group_ASC,std::vector<table_col> groupby_col_name,
+		bool order_flag, bool order_ASC,std::vector<table_col> orderby_col_name
 	) :
 		distinct_flag(distinct_flag), exprs(std::move(exprs)),
 		from_flag(from_flag), tbrefs(std::move(tbrefs)),
 		where_flag(where_flag), wherecond(std::move(wherecond)),
 		having_flag(having_flag), havingcond(std::move(havingcond)),
-		group_flag(group_flag), groupby_col_name(std::move(groupby_col_name)),
-		order_flag(order_flag), orderby_col_name(std::move(orderby_col_name))
+		group_flag(group_flag), group_ASC(group_ASC),groupby_col_name(std::move(groupby_col_name)),
+		order_flag(order_flag), order_ASC(order_ASC),orderby_col_name(std::move(orderby_col_name))
 	{}
 };
 
@@ -1414,6 +1420,13 @@ std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
 std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
 std::unique_ptr<ParenExprAST> ParseParenExprAST();
+std::unique_ptr<IdAST> ParseIdAST();
+std::unique_ptr<CallAST> ParseCallAST();
+std::unique_ptr<TablecolAST> ParseTablecolAST();
+std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
+std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+
+
 
 #endif // !llvmsql_h
 
