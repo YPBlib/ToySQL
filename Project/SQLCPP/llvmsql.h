@@ -964,46 +964,56 @@ public:
 		bitexp(std::move(bitexp)){}
 	BitExprAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<int> op,std::unique_ptr<BitExpAST> bitexp) :
 		bitexp(std::move(bitexp)),op(std::move(op)),bitexpr(std::move(bitexpr)){}
-
 };
-
-
-
-
-
-class SubqueryAST;
-
-
-
-
-
-
-
-
-
 
 class BitExpAST :public BitExprAST
 {
-	;
+public:
+	std::unique_ptr<BitExpAST> bitexp = nullptr;
+	std::unique_ptr<int> op = nullptr;
+	std::unique_ptr<BitExAST> bitex = nullptr;
+	BitExpAST() = default;
+	BitExpAST(std::unique_ptr<BitExAST> bitex) :
+		bitex(std::move(bitex)) {}
+	BitExpAST(std::unique_ptr<BitExAST> bitex, std::unique_ptr<int> op, std::unique_ptr<BitExpAST> bitexp) :
+		bitexp(std::move(bitexp)), op(std::move(op)), bitex(std::move(bitex)) {}
 };
-
-
 
 class BitExAST :public BitExpAST
 {
-	int mark;
-	std::unique_ptr<BitExAST> bitex;
+	std::unique_ptr<int> mark = nullptr;
+	std::unique_ptr<BitExAST> bitex = nullptr;
+	std::unique_ptr<SimpleExprAST> SE = nullptr;
 public:
 	BitExAST() = default;
-	BitExAST(int mark, std::unique_ptr<BitExAST> bitex) :
-		mark(mark), bitex(std::move(bitex)) {}
+	BitExAST(std::unique_ptr<int> mark, std::unique_ptr<BitExAST> bitex) :
+		mark(std::move(mark)), bitex(std::move(bitex)) {}
+	BitExAST(std::unique_ptr<SimpleExprAST> SE) :
+		SE(std::move(SE)) {}
 };
+
 
 
 
 class SimpleExprAST :public BitExAST
 {
-	;
+public:
+	std::unique_ptr<IdAST> id = nullptr;
+	std::unique_ptr<CallAST> call = nullptr;
+	std::unique_ptr<TablecolAST> tablecol = nullptr;
+	std::unique_ptr<ExprAST> expr = nullptr;
+	std::unique_ptr<SubqueryAST> sub = nullptr;
+	std::unique_ptr<ExistsSubqueryAST> exists = nullptr;
+	std::unique_ptr<LiteralAST> lit = nullptr;
+
+	SimpleExprAST() = default;
+	SimpleExprAST(std::unique_ptr<IdAST> id):id(std::move(id)){}
+	SimpleExprAST(std::unique_ptr<CallAST> call) :call(std::move(call)) {}
+	SimpleExprAST(std::unique_ptr<TablecolAST> tablecol) :tablecol(std::move(tablecol)) {}
+	SimpleExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
+	SimpleExprAST(std::unique_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
+	SimpleExprAST(std::unique_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
+	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
 };
 
 class IdAST final :public SimpleExprAST
@@ -1096,6 +1106,7 @@ public:
 
 
 
+class SubqueryAST;
 
 class TableRefAST
 {
@@ -1367,6 +1378,9 @@ std::unique_ptr<ExpAST> ParseExpAST();
 std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
 std::unique_ptr<PredicateAST> ParsePredicateAST();
 std::unique_ptr<BitExprAST> ParseBitExprAST();
+std::unique_ptr<BitExpAST> ParseBitExpAST();
+std::unique_ptr<BitExAST> ParseBitExAST();
+
 
 
 

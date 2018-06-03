@@ -246,13 +246,84 @@ std::unique_ptr<BitExprAST> ParseBitExprAST()
 	}
 }
 
+std::unique_ptr<BitExpAST> ParseBitExpAST()
+{
+	auto bitex = ParseBitExAST();
+	if (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == mult_mark || currtoken.token_value.symbol_mark == div_mark
+			|| currtoken.token_value.symbol_mark == mod_mark))
+	{
+		auto op = llvm::make_unique<int>(currtoken.token_value.symbol_mark);
+		currtoken = gettok();	// consume '*' or  '/ ' or '%'
+		auto bitexp = ParseBitExpAST();
+		return llvm::make_unique<BitExprAST>(bitex, op, bitexp);
+	}
+	else
+	{
+		return llvm::make_unique<BitExpAST>(bitex);
+	}
+}
 
+std::unique_ptr<BitExAST> ParseBitExAST()
+{
+	if (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == plus_mark || currtoken.token_value.symbol_mark == minus_mark))
+	{
+		auto mark = llvm::make_unique<int>(currtoken.token_value.symbol_mark);
+		currtoken = gettok();	//consume mark
+		auto bitex = ParseBitExAST();
+		return llvm::make_unique<BitExAST>(mark, bitex);
+	}
+	else
+	{
+		auto SE = ParseSEAST();
+		return llvm::make_unique<BitExAST>(SE);
+	}
+}
 
+std::unique_ptr<SimpleExprAST> ParseSEAST()
+{
+	if (currtoken.token_kind == literal_double || currtoken.token_kind == literal_string
+		|| currtoken.token_kind == literal_int)
+	{
+		auto lit = ParseLiteralAST();
+		return llvm::make_unique<SimpleExprAST>(lit);
+	}
+	else if (currtoken.token_kind == id)
+	{
+		;
+	}
+	else if (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == left_bracket_mark || currtoken.token_value.symbol_mark == tok_EXISTS))
+	{
+		;
+	}
+	else
+	{
+		throw std::runtime_error("expect simple expression")
+	}
+}
 
+class SimpleExprAST :public BitExAST
+{
+public:
+	std::unique_ptr<IdAST> id = nullptr;
+	std::unique_ptr<CallAST> call = nullptr;
+	std::unique_ptr<TablecolAST> tablecol = nullptr;
+	std::unique_ptr<ExprAST> expr = nullptr;
+	std::unique_ptr<SubqueryAST> sub = nullptr;
+	std::unique_ptr<ExistsSubqueryAST> exists = nullptr;
+	std::unique_ptr<LiteralAST> lit = nullptr;
 
-
-
-
+	SimpleExprAST() = default;
+	SimpleExprAST(std::unique_ptr<IdAST> id) :id(std::move(id)) {}
+	SimpleExprAST(std::unique_ptr<CallAST> call) :call(std::move(call)) {}
+	SimpleExprAST(std::unique_ptr<TablecolAST> tablecol) :tablecol(std::move(tablecol)) {}
+	SimpleExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
+	SimpleExprAST(std::unique_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
+	SimpleExprAST(std::unique_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
+	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
+};
 
 
 
