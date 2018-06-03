@@ -655,10 +655,11 @@ static void MainLoop()
 int main()
 {
 	init_scanner();
-	ParseStringLiteralAST();
-	ParseIntLiteralAST();
-	ParseDoubleLiteralAST();
-	ParseStringLiteralAST();
+	std::unique_ptr<ExprAST> x;
+	x=ParseLiteralAST();
+	x=ParseLiteralAST();
+	x=ParseLiteralAST();
+	x=ParseLiteralAST();
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;

@@ -856,10 +856,20 @@ public:
 
 token gettok();
 
-class create_def;
 
 
-
+class datatype
+{
+	int i = 0;
+	double d = 0.;
+	std::string s;
+public:
+	datatype(int i, double d, const std::string& s) :i(i), d(d), s(s) {}
+	datatype(int i) :i(i) {}
+	datatype(const std::string& s) :s(s) {}
+	datatype(double d) : d(d) {}
+	~datatype() = default;
+};
 
 class table_col
 {
@@ -872,6 +882,31 @@ public:
 	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
 };
 
+class col_def
+{
+	int dtype;
+	std::unique_ptr<datatype> defaultvalue;
+	bool nullable = true;
+	bool unique = false;
+	bool primary = false;
+public:
+	col_def(int dtype, std::unique_ptr<datatype> defaultvalue, bool nullable, bool unique, bool primary) :
+		dtype(dtype), defaultvalue(std::move(defaultvalue)),
+		nullable(nullable), unique(unique), primary(primary) {}
+
+};
+
+class create_def
+{
+	std::string col_name;
+	std::unique_ptr<col_def> col_defs;
+	bool primary;
+	bool unique;
+public:
+	create_def(bool primary, bool unique, const std::string& col_name, std::unique_ptr<col_def> col_defs) :
+		primary(primary), unique(unique), col_name(col_name), col_defs(std::move(col_defs)) {}
+};
+
 
 class ExprAST
 {
@@ -879,7 +914,12 @@ public:
 	virtual ~ExprAST() = default;
 	virtual std::unique_ptr<val> getvalue() = 0;
 };
-class ExpAST :public ExprAST {};
+
+class ExpAST :public ExprAST
+{
+	;
+};
+
 class BinExpAST final :public ExprAST
 {
 	std::unique_ptr<ExpAST> lhs;
@@ -897,7 +937,12 @@ public:
 	std::unique_ptr<ExprAST> exp;
 	NotExprAST(std::unique_ptr<ExprAST> se) :exp(std::move(exp)) {}
 };
-class BooleanPrimaryAST :public ExpAST {};
+
+class BooleanPrimaryAST :public ExpAST
+{
+	;
+};
+
 class BPISAST :public ExpAST
 {
 	bool flag;
@@ -908,8 +953,16 @@ public:
 };
 
 
-class PredicateAST :public BooleanPrimaryAST {};
-class BitExprAST :public PredicateAST {};
+class PredicateAST :public BooleanPrimaryAST
+{
+	;
+};
+
+class BitExprAST :public PredicateAST
+{
+	;
+};
+
 class BPNULLAST :public BooleanPrimaryAST
 {
 	bool flag;
@@ -928,6 +981,7 @@ public:
 	BPCoPredicateAST(bool flag, std::unique_ptr<BitExprAST> bp, std::unique_ptr<PredicateAST> predicate) :
 		op(op), bp(std::move(bp)), predicate(std::move(predicate)) {}
 };
+
 class SubqueryAST;
 class BPCoSubqueryAST :public BooleanPrimaryAST
 {
@@ -980,7 +1034,11 @@ public:
 		lhs(std::move(lhs)), rhs(std::move(rhs)), op(op) {}
 };
 
-class BitExpAST :public BitExprAST {};
+class BitExpAST :public BitExprAST
+{
+	;
+};
+
 class BinBitexp :public BitExprAST
 {
 	std::unique_ptr<BitExprAST> lhs;
@@ -991,7 +1049,12 @@ public:
 		lhs(std::move(lhs)), rhs(std::move(rhs)), op(op) {}
 
 };
-class BitExAST :public BitExpAST {};
+
+class BitExAST :public BitExpAST
+{
+	;
+};
+
 class SignedBitExAST :public BitExAST
 {
 	int mark;
@@ -1001,7 +1064,11 @@ public:
 		mark(mark), bitex(std::move(bitex)) {}
 };
 
-class SimpleExprAST :public BitExAST {};
+class SimpleExprAST :public BitExAST
+{
+	;
+};
+
 class IdAST final :public SimpleExprAST
 {
 	std::string id;
@@ -1027,7 +1094,11 @@ public:
 		: callee(callee), args(std::move(args)) {}
 };
 
-class LiteralAST :public SimpleExprAST {};
+class LiteralAST :public SimpleExprAST
+{
+	;
+};
+
 class IntLiteralAST final :public LiteralAST
 {
 	int value;
@@ -1079,16 +1150,6 @@ public:
 
 
 
-
-class TableRefAST;
-class TableRefsAST
-{
-	std::vector<std::unique_ptr<TableRefAST>> refs;
-public:
-	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
-};
-class JoinCondAST {};
-
 class TableRefAST
 {
 public:
@@ -1097,8 +1158,29 @@ public:
 	TableRefAST(const std::string& topalias) :topalias(topalias) {}
 };
 
-class TableFactorAST :public TableRefAST {};
-class JoinTableAST :public TableRefAST {};
+class TableRefsAST
+{
+	std::vector<std::unique_ptr<TableRefAST>> refs;
+public:
+	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
+};
+
+class JoinCondAST
+{
+	;
+};
+
+
+
+class TableFactorAST :public TableRefAST
+{
+	;
+};
+
+class JoinTableAST :public TableRefAST
+{
+	;
+};
 
 class TableNameAST final :public TableFactorAST
 {
@@ -1233,47 +1315,19 @@ public:
 	virtual ~StatementAST() = default;
 };
 
-class datatype
+
+
+class CreateAST :public StatementAST
 {
-	int i = 0;
-	double d = 0.;
-	std::string s;
-public:
-	datatype(int i, double d, const std::string& s) :i(i), d(d), s(s) {}
-	datatype(int i) :i(i) {}
-	datatype(const std::string& s) :s(s) {}
-	datatype(double d) : d(d) {}
-	~datatype() = default;
+	;
 };
 
-class CreateAST :public StatementAST {};
-
-class CreateTableAST :public CreateAST {};
-
-class col_def
+class CreateTableAST :public CreateAST
 {
-	int dtype;
-	std::unique_ptr<datatype> defaultvalue;
-	bool nullable = true;
-	bool unique = false;
-	bool primary = false;
-public:
-	col_def(int dtype, std::unique_ptr<datatype> defaultvalue, bool nullable, bool unique, bool primary) :
-		dtype(dtype), defaultvalue(std::move(defaultvalue)),
-		nullable(nullable), unique(unique), primary(primary) {}
-
+	;
 };
 
-class create_def
-{
-	std::string col_name;
-	std::unique_ptr<col_def> col_defs;
-	bool primary;
-	bool unique;
-public:
-	create_def(bool primary, bool unique, const std::string& col_name, std::unique_ptr<col_def> col_defs) :
-		primary(primary), unique(unique), col_name(col_name), col_defs(std::move(col_defs)) {}
-};
+
 
 class CreateTableSimpleAST :public CreateTableAST
 {
@@ -1355,6 +1409,7 @@ class SelectAST :public StatementAST
 
 
 void init_scanner();
+std::unique_ptr<LiteralAST> ParseLiteralAST();
 std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
 std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
