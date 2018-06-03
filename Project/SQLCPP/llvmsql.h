@@ -960,6 +960,11 @@ public:
 	std::unique_ptr<int> op = nullptr;
 	std::unique_ptr<BitExprAST> bitexpr = nullptr;
 	BitExprAST() = default;
+	BitExprAST(std::unique_ptr<BitExpAST> bitexp):
+		bitexp(std::move(bitexp)){}
+	BitExprAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<int> op,std::unique_ptr<BitExpAST> bitexp) :
+		bitexp(std::move(bitexp)),op(std::move(op)),bitexpr(std::move(bitexpr)){}
+
 };
 
 
@@ -1361,8 +1366,7 @@ std::unique_ptr<ExprAST> ParseExprAST();
 std::unique_ptr<ExpAST> ParseExpAST();
 std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
 std::unique_ptr<PredicateAST> ParsePredicateAST();
-
-
+std::unique_ptr<BitExprAST> ParseBitExprAST();
 
 
 

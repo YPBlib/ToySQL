@@ -229,6 +229,27 @@ std::unique_ptr<PredicateAST> ParsePredicateAST()
 	}
 }
 
+std::unique_ptr<BitExprAST> ParseBitExprAST()
+{
+	auto bitexp = ParseBitExpAST();
+	if (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == plus_mark || currtoken.token_value.symbol_mark == minus_mark))
+	{
+		auto op = llvm::make_unique<int>(currtoken.token_value.symbol_mark);
+		currtoken = gettok();	// consume '-' or  '+ '
+		auto bitexpr = ParseBitExprAST();
+		return llvm::make_unique<BitExprAST>(bitexp, op, bitexpr);
+	}
+	else
+	{
+		return llvm::make_unique<BitExprAST>(bitexp);
+	}
+}
+
+
+
+
+
 
 
 
