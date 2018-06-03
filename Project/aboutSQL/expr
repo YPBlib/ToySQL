@@ -13,7 +13,6 @@ expr:
 exp:
   | NOT expr
   | ! expr
-  | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
   | boolean_primary
 
 boolean_primary:
@@ -21,6 +20,9 @@ boolean_primary:
   | boolean_primary comparison_operator predicate
   | boolean_primary comparison_operator {ALL | ANY} (subquery)
   | predicate
+
+predicate((is null)|(op predicate)|(op all/any subquery))*
+
 
 comparison_operator: = , >= , > , <= , < , <> , !=
 

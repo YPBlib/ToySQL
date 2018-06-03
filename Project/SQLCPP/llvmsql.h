@@ -915,141 +915,86 @@ public:
 		expr(std::move(expr)),bp(std::move(bp)){}
 };
 
-
-
-
-class NotExprAST final :public ExpAST
-{
-public:
-	std::unique_ptr<ExprAST> exp;
-	NotExprAST(std::unique_ptr<ExprAST> se) :exp(std::move(exp)) {}
-};
-
 class BooleanPrimaryAST :public ExpAST
 {
-	;
-};
-
-class BPISAST :public ExpAST
-{
-	bool flag;
-	std::unique_ptr<BooleanPrimaryAST> bp;
 public:
-	BPISAST(bool flag, std::unique_ptr<BooleanPrimaryAST> bp) :
-		flag(flag), bp(std::move(bp)) {}
+	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
+	std::unique_ptr<PredicateAST> p = nullptr;
+	std::unique_ptr<bool> flag = nullptr;	// true for all, false for any
+	std::unique_ptr<int> op = nullptr;
+	std::unique_ptr<SubqueryAST> sub = nullptr;
+	BooleanPrimaryAST() = default;
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<bool> flag) :
+		bp(std::move(bp)), flag(std::move(flag)){}
+	BooleanPrimaryAST(std::unique_ptr<PredicateAST> p):
+		p(std::move(p)){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp , std::unique_ptr<PredicateAST> p, std::unique_ptr<int> op):
+		bp(std::move(bp)),p(std::move(p)), op(std::move(op)){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp, std::unique_ptr<SubqueryAST>sub, std::unique_ptr<int> op):
+		bp(std::move(bp)),sub(std::move(sub)),op(std::move(op)){}
 };
-
 
 class PredicateAST :public BooleanPrimaryAST
 {
-	;
+public:
+	std::unique_ptr<BitExprAST> bitexpr = nullptr;
+	std::unique_ptr<bool> flag = nullptr;
+	std::unique_ptr<BitExprAST> rhs = nullptr;
+	std::unique_ptr<SubqueryAST> sub = nullptr;
+	std::vector<std::unique_ptr<ExprAST>> exprs;
+	PredicateAST() = default;
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr):
+		bitexpr(std::move(bitexpr)){}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<SubqueryAST> sub, std::unique_ptr<bool> flag) :
+		bitexpr(std::move(bitexpr)),sub(std::move(sub)),flag(std::move(flag)){}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<BitExprAST> rhs, std::unique_ptr<bool> flag) :
+		bitexpr(std::move(bitexpr)), rhs(std::move(rhs)), flag(std::move(flag)) {}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::vector<std::unique_ptr<ExprAST>> exprs, std::unique_ptr<bool> flag) :
+			bitexpr(std::move(bitexpr)),exprs(std::move(exprs)), flag(std::move(flag)) {}
 };
 
 class BitExprAST :public PredicateAST
 {
-	;
+public:
+	std::unique_ptr<BitExpAST> bitexp = nullptr;
+	std::unique_ptr<int> op = nullptr;
+	std::unique_ptr<BitExprAST> bitexpr = nullptr;
+	BitExprAST() = default;
 };
 
-class BPNULLAST :public BooleanPrimaryAST
-{
-	bool flag;
-	std::unique_ptr<BitExprAST> bp;
-public:
-	BPNULLAST(bool flag, std::unique_ptr<BitExprAST> bp) :
-		flag(flag), bp(std::move(bp)) {}
-};
 
-class BPCoPredicateAST :public BooleanPrimaryAST
-{
-	int op;
-	std::unique_ptr<BitExprAST> bp;
-	std::unique_ptr<PredicateAST> predicate;
-public:
-	BPCoPredicateAST(bool flag, std::unique_ptr<BitExprAST> bp, std::unique_ptr<PredicateAST> predicate) :
-		op(op), bp(std::move(bp)), predicate(std::move(predicate)) {}
-};
+
+
 
 class SubqueryAST;
-class BPCoSubqueryAST :public BooleanPrimaryAST
-{
-	bool flag;
-	int op;
-	std::unique_ptr<BitExprAST> bp;
-	std::unique_ptr<SubqueryAST> subquery;
-public:
-	BPCoSubqueryAST(bool falg, int op, std::unique_ptr<BitExprAST> bp, std::unique_ptr<SubqueryAST> subquery) :
-		flag(flag), op(op), bp(std::move(bp)), subquery(std::move(subquery)) {}
-};
 
-class BEInSubqueryAST :public PredicateAST
-{
-	bool flag;
-	std::unique_ptr<BitExprAST> be;
-	std::unique_ptr<SubqueryAST> subquery;
-public:
-	BEInSubqueryAST(bool flag, std::unique_ptr<BitExprAST> be, std::unique_ptr<SubqueryAST> subquery) :
-		flag(flag), be(std::move(be)), subquery(std::move(subquery)) {}
-};
 
-class BEInExprseqAST :public PredicateAST
-{
-	bool flag;
-	std::unique_ptr<BitExprAST> be;
-	std::vector<ExprAST> exprs;
-public:
-	BEInExprseqAST(bool flag, std::unique_ptr<BitExprAST> be, std::vector<ExprAST> exprs) :
-		flag(flag), be(std::move(be)), exprs(std::move(exprs)) {}
-};
 
-class BERegexpAST :public PredicateAST
-{
-	bool flag;
-	std::unique_ptr<BitExprAST> LHS;
-	std::unique_ptr<BitExprAST> RHS;
-public:
-	BERegexpAST(bool flag, std::unique_ptr<BitExprAST> LHS, std::unique_ptr<BitExprAST> RHS) :
-		flag(flag), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
-};
 
-class BinBitexpr :public BitExprAST
-{
-	std::unique_ptr<BitExprAST> lhs;
-	std::unique_ptr<BitExprAST> rhs;
-	int op;
-public:
-	BinBitexpr(std::unique_ptr<BitExprAST> lhs, std::unique_ptr<BitExprAST> rhs, int op) :
-		lhs(std::move(lhs)), rhs(std::move(rhs)), op(op) {}
-};
+
+
+
+
+
 
 class BitExpAST :public BitExprAST
 {
 	;
 };
 
-class BinBitexp :public BitExprAST
-{
-	std::unique_ptr<BitExprAST> lhs;
-	std::unique_ptr<BitExprAST> rhs;
-	int op;
-public:
-	BinBitexp(std::unique_ptr<BitExprAST> lhs, std::unique_ptr<BitExprAST> rhs, int op) :
-		lhs(std::move(lhs)), rhs(std::move(rhs)), op(op) {}
 
-};
 
 class BitExAST :public BitExpAST
-{
-	;
-};
-
-class SignedBitExAST :public BitExAST
 {
 	int mark;
 	std::unique_ptr<BitExAST> bitex;
 public:
-	SignedBitExAST(int mark, std::unique_ptr<BitExAST> bitex) :
+	BitExAST() = default;
+	BitExAST(int mark, std::unique_ptr<BitExAST> bitex) :
 		mark(mark), bitex(std::move(bitex)) {}
 };
+
+
 
 class SimpleExprAST :public BitExAST
 {
@@ -1414,6 +1359,8 @@ void init_scanner();
 
 std::unique_ptr<ExprAST> ParseExprAST();
 std::unique_ptr<ExpAST> ParseExpAST();
+std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
+std::unique_ptr<PredicateAST> ParsePredicateAST();
 
 
 
@@ -1423,16 +1370,6 @@ std::unique_ptr<ExpAST> ParseExpAST();
 
 
 
-
-class ExpAST :public ExprAST
-{
-public:
-	std::unique_ptr<ExprAST> expr = nullptr;
-	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
-	ExpAST() = default;
-	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp) :
-		expr(std::move(expr)), bp(std::move(bp)) {}
-};
 
 
 
@@ -1441,18 +1378,12 @@ std::unique_ptr<LiteralAST> ParseLiteralAST();
 std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
 std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
-
-
-
 std::unique_ptr<TablecolAST> ParseTablecolAST();
-
-
-
 std::unique_ptr<ParenExprAST> ParseParenExprAST();
 std::unique_ptr<IdAST> ParseIdAST();
 std::unique_ptr<CallAST> ParseCallAST();
 std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
-//std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+std::unique_ptr<SubqueryAST> ParseSubqueryAST();
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
 std::unique_ptr<ColdefAST> ParseColdefAST();
 std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
