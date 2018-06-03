@@ -627,7 +627,7 @@ static void MainLoop()
 {
 	while (true)
 	{
-		fprintf(stderr, "ready> ");
+		fprintf(stderr, "YSQL> ");
 		switch (CurTok)
 		{
 		case tok_eof:
@@ -656,10 +656,11 @@ int main()
 {
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
-	x=ParseLiteralAST();
-	x=ParseLiteralAST();
-	x=ParseLiteralAST();
-	x=ParseLiteralAST();
+	x = ParseLiteralAST();
+ 	auto y = ParseColdefAST();
+	y=ParseColdefAST();
+	y=ParseColdefAST();
+	x = ParseLiteralAST();
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;
@@ -668,7 +669,7 @@ int main()
 	BinopPrecedence['*'] = 40; // highest.
 	
 							   // Prime the first token.
-	fprintf(stderr, "ready> ");
+	fprintf(stderr, "YSQL> ");
 	getnextToken();
 
 	// Make the module, which holds all the code.

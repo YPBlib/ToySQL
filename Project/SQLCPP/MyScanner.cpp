@@ -1019,7 +1019,7 @@ void scroll_Char(int* ahead)
 		// 后判断短的运算符比如<=
 		if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(lteqgt_mark);
@@ -1032,7 +1032,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '<' && LookAhead[1] == '<')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(left_shift_mark);
@@ -1044,7 +1044,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '>' && LookAhead[1] == '>')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(right_shift_mark);
@@ -1056,7 +1056,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '>' && LookAhead[1] == '=')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(gteq_mark);
@@ -1068,7 +1068,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '<' && LookAhead[1] == '=')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(lteq_mark);
@@ -1080,7 +1080,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '<' && LookAhead[1] == '>')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(ltgt_mark);
@@ -1092,7 +1092,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '!' && LookAhead[1] == '=')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(noteq_mark);
@@ -1104,7 +1104,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '&' && LookAhead[1] == '&')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(andand_mark);
@@ -1116,7 +1116,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '|' && LookAhead[1] == '|')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(oror_mark);
@@ -1128,7 +1128,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == ':' && LookAhead[1] == '=')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(assign_mark);
@@ -1140,7 +1140,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '!')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(not_mark);
@@ -1151,7 +1151,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '-')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(minus_mark);
@@ -1162,7 +1162,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '~')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(tilde_mark);
@@ -1173,7 +1173,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '^')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(hat_mark);
@@ -1184,7 +1184,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '*')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(mult_mark);
@@ -1195,7 +1195,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '/')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(div_mark);
@@ -1206,7 +1206,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '%')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(mod_mark);
@@ -1217,7 +1217,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '+')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(plus_mark);
@@ -1228,7 +1228,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '&')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(and_mark);
@@ -1239,7 +1239,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '|')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(or_mark);
@@ -1250,7 +1250,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '=')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(eq_mark);
@@ -1261,7 +1261,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '>')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(gt_mark);
@@ -1272,7 +1272,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '<')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(lt_mark);
@@ -1283,7 +1283,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '#')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(number_sign_mark);
@@ -1294,7 +1294,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '@')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(at_mark);
@@ -1305,7 +1305,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '$')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(dollar_mark);
@@ -1316,7 +1316,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == ',')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(comma_mark);
@@ -1327,7 +1327,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '(')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(left_bracket_mark);
@@ -1338,7 +1338,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == ')')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(right_bracket_mark);
@@ -1349,7 +1349,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '[')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(left_square_mark);
@@ -1360,7 +1360,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == ']')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(right_square_mark);
@@ -1371,7 +1371,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '{')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(left_curly_mark);
@@ -1382,7 +1382,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '}')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(right_curly_mark);
@@ -1393,7 +1393,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '.')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(dot_mark);
@@ -1404,7 +1404,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == ';')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(semicolon_mark);
@@ -1415,7 +1415,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '?')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(qusetion_mark);
@@ -1426,7 +1426,7 @@ void scroll_Char(int* ahead)
 
 		if (LookAhead[0] == '`')
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			auto t = token();
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(backquote_mark);
@@ -1449,7 +1449,7 @@ void scroll_Char(int* ahead)
 
 		if (find(reserved_dict.cbegin(), reserved_dict.cend(), idstr) != reserved_dict.cend())
 		{
-			scanner_status = symbol_mark;
+			scanner_status = symbol;
 			t.token_kind = scanner_status;
 			t.token_value = reserved_value(reserved_map[idstr]);
 		}

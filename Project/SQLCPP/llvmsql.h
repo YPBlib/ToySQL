@@ -718,6 +718,7 @@ enum status
 	symbol,
 	eof
 };
+
 struct val;
 class value;
 
@@ -860,7 +861,7 @@ token gettok();
 
 
 
-class table_col
+class table_col:public val
 {
 	using pair = std::pair<std::string, std::string>;
 	pair p;
@@ -873,28 +874,20 @@ public:
 
 class ColdefAST
 {
+	std::string colname;
 	int dtype;
-	std::unique_ptr<val> defaultvalue;
 	bool nullable = true;
 	bool unique = false;
 	bool primary = false;
+	int n = 0;
 public:
-	ColdefAST(int dtype, std::unique_ptr<val> defaultvalue, bool nullable, bool unique, bool primary) :
-		dtype(dtype), defaultvalue(std::move(defaultvalue)),
-		nullable(nullable), unique(unique), primary(primary) {}
-
+	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary) :
+		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
+	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary, int n) :
+		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
 };
 
-class create_def
-{
-	std::string col_name;
-	std::unique_ptr<ColdefAST> col_defs;
-	bool primary;
-	bool unique;
-public:
-	create_def(bool primary, bool unique, const std::string& col_name, std::unique_ptr<ColdefAST> col_defs) :
-		primary(primary), unique(unique), col_name(col_name), col_defs(std::move(col_defs)) {}
-};
+
 
 
 class ExprAST
@@ -1078,6 +1071,10 @@ class TablecolAST final :SimpleExprAST
 public:
 	TablecolAST(const std::string& col_name) :table_name(""), col_name(col_name) {}
 	TablecolAST(const std::string& table_name, const std::string& col_name) :table_name(table_name), col_name(col_name) {}
+	std::unique_ptr<val> getvalue()
+	{
+		return llvm::make_unique<table_col>(table_name, col_name);
+	}
 };
 
 class CallAST final :public SimpleExprAST
@@ -1327,9 +1324,9 @@ class CreateTableAST :public CreateAST
 class CreateTableSimpleAST :public CreateTableAST
 {
 	std::string table_name; 
-	std::vector<std::unique_ptr<create_def>> create_defs;
+	std::vector<std::unique_ptr<ColdefAST>> create_defs;
 public:
-	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<create_def>> create_defs) :
+	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<ColdefAST>> create_defs) :
 		table_name(table_name), create_defs(std::move(create_defs)) {}
 };
 
@@ -1416,6 +1413,7 @@ std::unique_ptr<TablecolAST> ParseTablecolAST();
 std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
 //std::unique_ptr<SubqueryAST> ParseSubqueryAST();
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+std::unique_ptr<ColdefAST> ParseColdefAST();
 
 
 

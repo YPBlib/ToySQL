@@ -52,6 +52,10 @@ std::unique_ptr<StringLiteralAST> ParseStringLiteralAST()
 		currtoken=gettok(); // consume 1 string token
 	}
 	auto result = llvm::make_unique<StringLiteralAST>(temps);
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
 	return std::move(result);
 }
 
@@ -67,6 +71,10 @@ std::unique_ptr<IntLiteralAST> ParseIntLiteralAST()
 	}
 	auto result = llvm::make_unique<IntLiteralAST>(currtoken.token_value.int_literal);
 	currtoken = gettok(); // consume 1 int token
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
 	return std::move(result);
 }
 
@@ -82,6 +90,10 @@ std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST()
 	}
 	auto result = llvm::make_unique<DoubleLiteralAST>(currtoken.token_value.double_literal);
 	currtoken = gettok(); // consume 1 double token
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
 	return std::move(result);
 }
 
@@ -113,14 +125,26 @@ std::unique_ptr<LiteralAST> ParseLiteralAST()
 	}
 	if (currtoken.token_kind == literal_double)
 	{
+		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+		{
+			currtoken = gettok();
+		}
 		return ParseDoubleLiteralAST();
 	}
 	if (currtoken.token_kind == literal_int)
 	{
+		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+		{
+			currtoken = gettok();
+		}
 		return ParseIntLiteralAST();
 	}
 	if (currtoken.token_kind == literal_string)
 	{
+		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+		{
+			currtoken = gettok();
+		}
 		return ParseStringLiteralAST();
 	}
 	else
@@ -139,6 +163,10 @@ std::unique_ptr<IdAST> ParseIdAST()
 	}
 	auto result = llvm::make_unique<IdAST>(currtoken.token_value.IdentifierStr);
 	currtoken = gettok(); // consume 1 id
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
 	return std::move(result);
 };
 
@@ -195,6 +223,7 @@ std::unique_ptr<TablecolAST> ParseTablecolAST()
 	}
 }
 
+/*
 std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
 {
 	currtoken = gettok();  // consume 'EXISTS' reserved word
@@ -203,6 +232,7 @@ std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
 	currtoken = gettok();  // consume ')' reserved word
 	return llvm::make_unique<ExistsSubqueryAST>(subquery);
 };
+*/
 
 /*
 std::unique_ptr<SubqueryAST> ParseSubqueryAST()
@@ -251,6 +281,7 @@ public:
 };
 */
 
+/*
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 {
 	// consume ` CREATE TABLE `
@@ -261,43 +292,50 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 	currtoken = gettok();
 
 }
-class CreateTableSimpleAST :public CreateTableAST
-{
-	std::vector<std::unique_ptr<create_def>> create_defs;
-public:
-	CreateTableSimpleAST(std::vector<std::unique_ptr<create_def>> create_defs) :
-		create_defs(std::move(create_defs)) {}
-};
+*/
+
 
 std::unique_ptr<ColdefAST> ParseColdefAST()
 {
 	std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_INT)
 	{
-		;
+		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+		{
+			currtoken = gettok();
+		}
+		currtoken = gettok();    // consume `INT`
+		return llvm::make_unique<ColdefAST>(colname, literal_int, true, false, false);
 	}
 	if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == tok_FLOAT || currtoken.token_value.symbol_mark == tok_DOUBLE))
 	{
-		;
+		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+		{
+			currtoken = gettok();
+		}
+		currtoken = gettok();    // consume `DOUBLE`
+		return llvm::make_unique<ColdefAST>(colname, literal_double, true, false, false);
 	}
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_CHAR)
 	{
-		;
+		currtoken = gettok();   // consume `CHAR`
+		currtoken = gettok();   // consume `(`
+		if (currtoken.token_kind == literal_int)
+		{
+			int n = currtoken.token_value.int_literal;
+			currtoken = gettok();    // consume int literal
+			currtoken = gettok();    // consume `)`
+			while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+			{
+				currtoken = gettok();
+			}
+			return llvm::make_unique<ColdefAST>(colname, literal_int, true, false, false, n);
+		}
+		throw std::runtime_error("char size must be int \n");
+		
 	}
+	return nullptr;
 }
 
 
-class ColdefAST
-{
-	int dtype;
-	std::unique_ptr<val> defaultvalue;
-	bool nullable = true;
-	bool unique = false;
-	bool primary = false;
-public:
-	ColdefAST(int dtype, std::unique_ptr<val> defaultvalue, bool nullable, bool unique, bool primary) :
-		dtype(dtype), defaultvalue(std::move(defaultvalue)),
-		nullable(nullable), unique(unique), primary(primary) {}
-
-};
