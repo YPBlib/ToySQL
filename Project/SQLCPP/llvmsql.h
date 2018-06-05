@@ -861,7 +861,7 @@ token gettok();
 
 
 
-class table_col:public val
+class table_col :public val
 {
 	using pair = std::pair<std::string, std::string>;
 	pair p;
@@ -872,24 +872,6 @@ public:
 	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
 };
 
-class ColdefAST
-{
-public:
-	std::string tbname;
-	std::string colname;
-	int dtype=0;
-	bool nullable = true;
-	bool unique = false;
-	bool primary = false;
-	int n = 0;
-	ColdefAST() = default;
-	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary) :
-		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
-	ColdefAST(const std::string& colname, int dtype, bool nullable, bool unique, bool primary, int n) :
-		colname(colname), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
-	~ColdefAST() = default;
-};
-
 
 
 
@@ -897,12 +879,14 @@ class ExprAST
 {
 public:
 	std::unique_ptr<ExpAST> lhs = nullptr;
-	std::unique_ptr<int> op = nullptr;
+	int op;
 	std::unique_ptr<ExprAST> rhs = nullptr;
 	virtual ~ExprAST() = default;
 	ExprAST() = default;
-	ExprAST(std::unique_ptr<ExpAST> lhs, std::unique_ptr<int> op, std::unique_ptr<ExprAST> rhs):
-		lhs(std::move(lhs)),op(std::move(op)) ,rhs(std::move(rhs)){}
+	ExprAST(std::unique_ptr<ExpAST> lhs):
+		lhs(std::move(lhs)){}
+	ExprAST(std::unique_ptr<ExpAST> lhs, int op, std::unique_ptr<ExprAST> rhs):
+		lhs(std::move(lhs)),op(op) ,rhs(std::move(rhs)){}
 };
 
 class ExpAST :public ExprAST
@@ -911,8 +895,10 @@ public:
 	std::unique_ptr<ExprAST> expr = nullptr;
 	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
 	ExpAST() = default;
-	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp):
-		expr(std::move(expr)),bp(std::move(bp)){}
+	ExpAST(std::unique_ptr<ExprAST> expr) :
+		expr(std::move(expr)){}
+	ExpAST(std::unique_ptr<BooleanPrimaryAST> bp):
+		bp(std::move(bp)){}
 };
 
 class BooleanPrimaryAST :public ExpAST
@@ -920,74 +906,74 @@ class BooleanPrimaryAST :public ExpAST
 public:
 	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
 	std::unique_ptr<PredicateAST> p = nullptr;
-	std::unique_ptr<bool> flag = nullptr;	// true for all, false for any
-	std::unique_ptr<int> op = nullptr;
+	bool flag;	// true for all, false for any
+	int op;
 	std::unique_ptr<SubqueryAST> sub = nullptr;
 	BooleanPrimaryAST() = default;
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<bool> flag) :
-		bp(std::move(bp)), flag(std::move(flag)){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, bool flag) :
+		bp(std::move(bp)), flag(flag){}
 	BooleanPrimaryAST(std::unique_ptr<PredicateAST> p):
 		p(std::move(p)){}
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp , std::unique_ptr<PredicateAST> p, std::unique_ptr<int> op):
-		bp(std::move(bp)),p(std::move(p)), op(std::move(op)){}
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp, std::unique_ptr<SubqueryAST>sub, std::unique_ptr<int> op):
-		bp(std::move(bp)),sub(std::move(sub)),op(std::move(op)){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp , std::unique_ptr<PredicateAST> p, int op):
+		bp(std::move(bp)),p(std::move(p)), op(op){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp, std::unique_ptr<SubqueryAST>sub,int op):
+		bp(std::move(bp)),sub(std::move(sub)),op(op){}
 };
 
 class PredicateAST :public BooleanPrimaryAST
 {
 public:
 	std::unique_ptr<BitExprAST> bitexpr = nullptr;
-	std::unique_ptr<bool> flag = nullptr;
+	bool flag;
 	std::unique_ptr<BitExprAST> rhs = nullptr;
 	std::unique_ptr<SubqueryAST> sub = nullptr;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
 	PredicateAST() = default;
 	PredicateAST(std::unique_ptr<BitExprAST> bitexpr):
 		bitexpr(std::move(bitexpr)){}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<SubqueryAST> sub, std::unique_ptr<bool> flag) :
-		bitexpr(std::move(bitexpr)),sub(std::move(sub)),flag(std::move(flag)){}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<BitExprAST> rhs, std::unique_ptr<bool> flag) :
-		bitexpr(std::move(bitexpr)), rhs(std::move(rhs)), flag(std::move(flag)) {}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::vector<std::unique_ptr<ExprAST>> exprs, std::unique_ptr<bool> flag) :
-			bitexpr(std::move(bitexpr)),exprs(std::move(exprs)), flag(std::move(flag)) {}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<SubqueryAST> sub, bool flag) :
+		bitexpr(std::move(bitexpr)),sub(std::move(sub)),flag(flag){}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<BitExprAST> rhs, bool flag) :
+		bitexpr(std::move(bitexpr)), rhs(std::move(rhs)), flag(flag) {}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::vector<std::unique_ptr<ExprAST>> exprs, bool flag) :
+			bitexpr(std::move(bitexpr)),exprs(std::move(exprs)), flag(flag) {}
 };
 
 class BitExprAST :public PredicateAST
 {
 public:
 	std::unique_ptr<BitExpAST> bitexp = nullptr;
-	std::unique_ptr<int> op = nullptr;
+	int op;
 	std::unique_ptr<BitExprAST> bitexpr = nullptr;
 	BitExprAST() = default;
 	BitExprAST(std::unique_ptr<BitExpAST> bitexp):
 		bitexp(std::move(bitexp)){}
-	BitExprAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<int> op,std::unique_ptr<BitExpAST> bitexp) :
-		bitexp(std::move(bitexp)),op(std::move(op)),bitexpr(std::move(bitexpr)){}
+	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op,std::unique_ptr<BitExpAST> bitexp) :
+		bitexp(std::move(bitexp)),op(op),bitexpr(std::move(bitexpr)){}
 };
 
 class BitExpAST :public BitExprAST
 {
 public:
 	std::unique_ptr<BitExpAST> bitexp = nullptr;
-	std::unique_ptr<int> op = nullptr;
+	int op;
 	std::unique_ptr<BitExAST> bitex = nullptr;
 	BitExpAST() = default;
 	BitExpAST(std::unique_ptr<BitExAST> bitex) :
 		bitex(std::move(bitex)) {}
-	BitExpAST(std::unique_ptr<BitExAST> bitex, std::unique_ptr<int> op, std::unique_ptr<BitExpAST> bitexp) :
-		bitexp(std::move(bitexp)), op(std::move(op)), bitex(std::move(bitex)) {}
+	BitExpAST(std::unique_ptr<BitExAST> bitex,int op, std::unique_ptr<BitExpAST> bitexp) :
+		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
 
 class BitExAST :public BitExpAST
 {
 public:
-	std::unique_ptr<int> mark = nullptr;
+	int mark;
 	std::unique_ptr<BitExAST> bitex = nullptr;
 	std::unique_ptr<SimpleExprAST> SE = nullptr;
 	BitExAST() = default;
-	BitExAST(std::unique_ptr<int> mark, std::unique_ptr<BitExAST> bitex) :
-		mark(std::move(mark)), bitex(std::move(bitex)) {}
+	BitExAST(int mark, std::unique_ptr<BitExAST> bitex) :
+		mark(mark), bitex(std::move(bitex)) {}
 	BitExAST(std::unique_ptr<SimpleExprAST> SE) :
 		SE(std::move(SE)) {}
 };
@@ -1017,22 +1003,33 @@ class IdAST final :public SimpleExprAST
 {
 public:
 	std::unique_ptr<std::string> id=nullptr;
-	IdAST() = default;
 	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
-	
+};
+
+class ColdefAST
+{
+public:
+	std::unique_ptr<std::string> col_name = nullptr;
+	int dtype = 0;
+	bool nullable = true;
+	bool unique = false;
+	bool primary = false;
+	int n ;
+	ColdefAST() = default;
+	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary) :
+		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
+	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary, int n) :
+		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
 };
 
 class TablecolAST final :SimpleExprAST
 {
 public:
-	std::string table_name;
-	std::string col_name;
-	TablecolAST(const std::string& col_name) :table_name(""), col_name(col_name) {}
-	TablecolAST(const std::string& table_name, const std::string& col_name) :table_name(table_name), col_name(col_name) {}
-	std::unique_ptr<val> getvalue()
-	{
-		return llvm::make_unique<table_col>(table_name, col_name);
-	}
+	std::unique_ptr<std::string> table_name = nullptr;
+	std::unique_ptr<std::string> col_name = nullptr;
+	TablecolAST(std::unique_ptr<std::string> col_name): col_name(std::move(col_name) ) {}
+	TablecolAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name):
+		table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
 
 class CallAST final :public SimpleExprAST
@@ -1047,9 +1044,12 @@ public:
 class LiteralAST :public SimpleExprAST
 {
 public:
-	std::unique_ptr<IntLiteralAST> liti = nullptr;
-	std::unique_ptr<DoubleLiteralAST> litd = nullptr;
-	std::unique_ptr<StringLiteralAST> lits = nullptr;
+	std::unique_ptr<IntLiteralAST> intvalue = nullptr;
+	std::unique_ptr<DoubleLiteralAST> doublevalue = nullptr;
+	std::unique_ptr<StringLiteralAST> stringvalue = nullptr;
+	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
+	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
+	LiteralAST(std::unique_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
 };
 
 class IntLiteralAST final :public LiteralAST
@@ -1064,7 +1064,6 @@ class DoubleLiteralAST final : public LiteralAST
 public:
 	std::unique_ptr<double> value = nullptr;
 	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
-	
 };
 
 class StringLiteralAST final :public LiteralAST
@@ -1082,6 +1081,11 @@ public:
 	ParenExprAST(std::unique_ptr<ExprAST> expr) :
 		expr(std::move(expr)) {}
 };
+
+
+
+
+
 
 
 
@@ -1203,6 +1207,7 @@ public:
 
 class SubqueryAST final :public SimpleExprAST
 {
+	//	handle select * from CASE
 	bool distinct_flag = false;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
 
@@ -1361,16 +1366,6 @@ std::unique_ptr<BitExprAST> ParseBitExprAST();
 std::unique_ptr<BitExpAST> ParseBitExpAST();
 std::unique_ptr<BitExAST> ParseBitExAST();
 std::unique_ptr<SimpleExprAST> ParseSEAST();
-
-
-
-
-
-
-
-
-
-
 std::unique_ptr<LiteralAST> ParseLiteralAST();
 std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();

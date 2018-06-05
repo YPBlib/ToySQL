@@ -44,13 +44,9 @@ bool iscompop(const int& i)
 
 std::unique_ptr<ExprAST> ParseExprAST()
 {
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
 	auto lhs = ParseExpAST();
 	std::unique_ptr<ExprAST> rhs = nullptr;
-	std::unique_ptr<int> op = nullptr;
+	int op;
 	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
 	{
 		currtoken = gettok();
@@ -62,15 +58,14 @@ std::unique_ptr<ExprAST> ParseExprAST()
 			currtoken.token_value.symbol_mark == oror_mark)
 		)
 	{
-		op = llvm::make_unique<int>(currtoken.token_value.symbol_mark);
-		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-		{
-			currtoken = gettok();
-		}
+		op = currtoken.token_value.symbol_mark;
 		rhs = ParseExprAST();
+		return llvm::make_unique<ExprAST>(lhs, op, rhs);
 	}
+	else
+		return llvm::make_unique<ExprAST>(lhs);
 		
-	return llvm::make_unique<ExprAST>(lhs, op, rhs);
+	
 }
 
 std::unique_ptr<ExpAST> ParseExpAST()
