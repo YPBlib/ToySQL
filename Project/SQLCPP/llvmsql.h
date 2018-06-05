@@ -855,9 +855,6 @@ public:
 	
 };
 
-token gettok();
-
-
 
 
 
@@ -883,10 +880,23 @@ class ExistsSubqueryAST;
 class SubqueryAST;
 class SelectExprAST;
 
-class CreateTableSimpleAST;
 class ColdefAST;
 class OnJoinCondAST;
 class UsingJoinCondAST;
+
+class StatementAST;
+class CreateAST;
+class CreateTableAST;
+class CreateTableSimpleAST;
+class CreateTableSelectAST;
+class CreateTableLikeAST;
+class CreateIndexAST;
+class DropAST;
+class DropTableAST;
+class DropIndexAST;
+class InsertAST;
+class DeleteAST;
+class SelectAST;
 
 std::unique_ptr<ExprAST> ParseExprAST();
 std::unique_ptr<ExpAST> ParseExpAST();
@@ -912,6 +922,9 @@ std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
 std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
 
 
+token gettok();
+void init_scanner();
+void init_parser();
 
 
 
@@ -1269,11 +1282,8 @@ public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
 	std::unique_ptr<JoinCondAST> cond;
-	bool innerflag = false;
-	bool crossflag = false;
-	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
-		ref(std::move(ref)), factor(std::move(factor)), cond(nullptr) {}
-	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor, std::unique_ptr<JoinCondAST> cond) :
+	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,
+		std::unique_ptr<JoinCondAST> cond) :
 		ref(std::move(ref)), factor(std::move(factor)), cond(std::move(cond)) {}
 };
 
@@ -1283,11 +1293,9 @@ public:
 	std::unique_ptr<TableRefAST> lhs;
 	std::unique_ptr<TableRefAST> rhs;
 	std::unique_ptr<JoinCondAST> cond;
-	bool leftflag = false;
-	bool rightflag = false;
-	bool outerflag = false;
-	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond) :
-		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)) {}
+	int lr;
+	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
+		lr(lr),lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)) {}
 };
 
 class TRNLROJAST final :public JoinTableAST
@@ -1295,15 +1303,10 @@ class TRNLROJAST final :public JoinTableAST
 public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
-	bool leftflag = false;
-	bool rightflag = false;
-	bool outerflag = false;
-	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
-		ref(std::move(ref)), factor(std::move(factor)) {}
+	int lr;
+	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
+		lr(lr),ref(std::move(ref)), factor(std::move(factor)) {}
 };
-
-
-
 
 
 
@@ -1316,17 +1319,37 @@ public:
 class StatementAST
 {
 public:
+	std::unique_ptr<CreateAST> create;
+	std::unique_ptr<SelectAST> select;
+	std::unique_ptr<DropAST> drop;
+	std::unique_ptr<InsertAST> insert;
+	StatementAST() = default;
+	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select,
+		std::unique_ptr<DropAST> drop, std::unique_ptr<InsertAST> insert):
+		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),insert(std::move(insert)){}
 	virtual ~StatementAST() = default;
 };
 
 class CreateAST :public StatementAST
 {
-	;
+public:
+	std::unique_ptr<CreateTableAST> ctable;
+	std::unique_ptr<CreateIndexAST> cindex;
+	CreateAST() = default;
+	CreateAST(std::unique_ptr<CreateTableAST> ctable, std::unique_ptr<CreateIndexAST> cindex):
+		ctable(std::move(ctable)),cindex(std::move(cindex)){}
 };
 
 class CreateTableAST :public CreateAST
 {
-	;
+public:
+	std::unique_ptr< CreateTableSimpleAST> simplecreate;
+	std::unique_ptr<CreateTableSelectAST> selectcreate;
+	std::unique_ptr<CreateTableLikeAST> likecreate;
+	CreateTableAST() = default;
+	CreateTableAST(std::unique_ptr< CreateTableSimpleAST> simplecreate,
+		std::unique_ptr<CreateTableSelectAST> selectcreate, std::unique_ptr<CreateTableLikeAST> likecreate):
+		simplecreate(std::move(simplecreate)),selectcreate(std::move(selectcreate)),likecreate(std::move(likecreate)){}
 };
 
 class CreateTableSimpleAST :public CreateTableAST
@@ -1408,11 +1431,6 @@ class SelectAST :public StatementAST
 {
 	std::unique_ptr<SubqueryAST> subquery;
 };
-
-
-void init_scanner();
-void init_parser();
-
 
 
 
