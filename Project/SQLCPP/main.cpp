@@ -656,6 +656,7 @@ int main()
 {
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
+	init_parser();
 	x = ParseLiteralAST();
  	auto y = ParseCreateTableSimpleAST();
 	

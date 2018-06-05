@@ -872,6 +872,54 @@ public:
 	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
 };
 
+class ExprAST;
+class ExpAST;
+class BooleanPrimaryAST;
+class PredicateAST;
+class BitExprAST;
+class BitExpAST;
+class BitExAST;
+class SimpleExprAST;
+class LiteralAST;
+class StringLiteralAST;
+class IntLiteralAST;
+class DoubleLiteralAST;
+class ParenExprAST;
+class TablecolAST;
+class IdAST;
+class CallAST;
+class ExistsSubqueryAST;
+class SubqueryAST;
+
+class CreateTableSimpleAST;
+class ColdefAST;
+class OnJoinCondAST;
+class UsingJoinCondAST;
+
+std::unique_ptr<ExprAST> ParseExprAST();
+std::unique_ptr<ExpAST> ParseExpAST();
+std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
+std::unique_ptr<PredicateAST> ParsePredicateAST();
+std::unique_ptr<BitExprAST> ParseBitExprAST();
+std::unique_ptr<BitExpAST> ParseBitExpAST();
+std::unique_ptr<BitExAST> ParseBitExAST();
+std::unique_ptr<SimpleExprAST> ParseSEAST();
+std::unique_ptr<LiteralAST> ParseLiteralAST();
+std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
+std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
+std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
+std::unique_ptr<TablecolAST> ParseTablecolAST();
+std::unique_ptr<ParenExprAST> ParseParenExprAST();
+std::unique_ptr<IdAST> ParseIdAST();
+std::unique_ptr<CallAST> ParseCallAST();
+std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
+std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+std::unique_ptr<ColdefAST> ParseColdefAST();
+std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
+std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
+
+
 
 
 
@@ -1047,6 +1095,7 @@ public:
 	std::unique_ptr<IntLiteralAST> intvalue = nullptr;
 	std::unique_ptr<DoubleLiteralAST> doublevalue = nullptr;
 	std::unique_ptr<StringLiteralAST> stringvalue = nullptr;
+	LiteralAST() = default;
 	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
 	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
 	LiteralAST(std::unique_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
@@ -1355,31 +1404,9 @@ class SelectAST :public StatementAST
 
 
 void init_scanner();
+void init_parser();
 
 
-
-std::unique_ptr<ExprAST> ParseExprAST();
-std::unique_ptr<ExpAST> ParseExpAST();
-std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
-std::unique_ptr<PredicateAST> ParsePredicateAST();
-std::unique_ptr<BitExprAST> ParseBitExprAST();
-std::unique_ptr<BitExpAST> ParseBitExpAST();
-std::unique_ptr<BitExAST> ParseBitExAST();
-std::unique_ptr<SimpleExprAST> ParseSEAST();
-std::unique_ptr<LiteralAST> ParseLiteralAST();
-std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
-std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
-std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
-std::unique_ptr<TablecolAST> ParseTablecolAST();
-std::unique_ptr<ParenExprAST> ParseParenExprAST();
-std::unique_ptr<IdAST> ParseIdAST();
-std::unique_ptr<CallAST> ParseCallAST();
-std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
-std::unique_ptr<SubqueryAST> ParseSubqueryAST();
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
-std::unique_ptr<ColdefAST> ParseColdefAST();
-std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
-std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
 
 
 

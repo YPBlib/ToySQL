@@ -33,6 +33,10 @@ using LR = std::vector<std::unique_ptr<ExprAST>> ;
 using LL = std::vector<std::unique_ptr<ExprAST>> ;
 token currtoken;
 
+void init_parser()
+{
+	currtoken = gettok();
+}
 
 
 bool iscompop(const int& i)
@@ -300,19 +304,19 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 			{
 				currtoken = gettok();	//s=consume '.'
 				auto colname = ParseIdAST();
-				auto tablename = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value);
+				auto tablename = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->stringvalue->value);
 				auto tablecol = llvm::make_unique<TablecolAST>(tablename, colname);
 				return llvm::make_unique<SimpleExprAST>(tablecol);
 			}
 			else
 			{
-				auto call = ParseCallAST(std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value));
+				auto call = ParseCallAST(std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->stringvalue->value));
 				return llvm::make_unique<SimpleExprAST>(call);
 			}
 		}
 		else
 		{
-			auto str = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->lits->value);
+			auto str = std::move((lr[0])->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->stringvalue->value);
 			auto idast = llvm::make_unique<IdAST>(str);
 			return llvm::make_unique<SimpleExprAST>(idast);
 		}
@@ -559,7 +563,7 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 
 std::unique_ptr<ColdefAST> ParseColdefAST()
 {
-	std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
+	auto colname = std::move(ParseIdAST()->id);
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_INT)
 	{
 		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
@@ -609,19 +613,19 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 	// consume ` CREATE TABLE `
 	currtoken = gettok();
 	currtoken = gettok();
-	std::string table_name = ParseIdAST()->getvalue()->IdentifierStr;
+	auto table_name = std::move(ParseIdAST()->id);
 	// consume `(`
 	currtoken = gettok();
 	std::vector<std::unique_ptr<ColdefAST>> cols;
 	auto col = ParseColdefAST();
-	col->tbname = table_name;
+	col->col_name = std::move(table_name);
 	cols.push_back(std::move(col));
 	while (currtoken.token_kind == symbol&& currtoken.token_value.symbol_mark == comma_mark)
 	{
 		// consume `,`
 		currtoken = gettok();
 		auto col = ParseColdefAST();
-		col->tbname = table_name;
+		col-> = table_name;
 		cols.push_back(std::move(col));
 	}
 	// consume `)`
