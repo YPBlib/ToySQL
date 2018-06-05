@@ -1,0 +1,40 @@
+vector<char> v97{'\a'};
+vector<char> v98{'\b'};
+vector<char> v99{'\c'};
+vector<char> v100{'\d'};
+vector<char> v101{'\e'};
+vector<char> v102{'\f'};
+vector<char> v103{'\g'};
+vector<char> v104{'\h'};
+vector<char> v105{'\i'};
+vector<char> v106{'\j'};
+vector<char> v107{'\k'};
+vector<char> v108{'\l'};
+vector<char> v109{'\m'};
+vector<char> v110{'\n'};
+vector<char> v111{'\o'};
+vector<char> v112{'\p'};
+vector<char> v113{'\q'};
+vector<char> v114{'\r'};
+vector<char> v115{'\s'};
+vector<char> v116{'\t'};
+vector<char> v117{'\u'};
+vector<char> v118{'\v'};
+vector<char> v119{'\w'};
+vector<char> v120{'\x'};
+vector<char> v121{'\y'};
+vector<char> v122{'\z'};
+
+-- 来自 MySQL 5.7 文档
+
+\0 	An ASCII NUL (X'00') character
+\' 	A single quote (') character
+\" 	A double quote (") character
+\b 	A backspace character
+\n 	A newline (linefeed) character
+\r 	A carriage return character
+\t 	A tab character
+\Z 	ASCII 26 (Control+Z); see note following the table
+\\ 	A backslash (\) character
+\% 	A % character; see note following the table
+\_ 	A _ character; see note following the table
