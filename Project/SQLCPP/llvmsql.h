@@ -1164,9 +1164,6 @@ public:
 
 
 
-
-
-
 class SelectExprAST
 {
 public:
@@ -1176,8 +1173,6 @@ public:
 		expr(std::move(expr)), alias(std::move(alias)) {}
 
 };
-
-
 
 class TableRefsAST
 {
@@ -1230,8 +1225,6 @@ public:
 		oncond(std::move(oncond)),uselist(std::move(uselist)){}
 };
 
-
-
 class TableNameAST final :public TableFactorAST
 {
 public:
@@ -1275,7 +1268,6 @@ public:
 		cols(std::move(cols)) {}
 };
 
-
 class TRIJAST final :public JoinTableAST
 {
 public:
@@ -1307,13 +1299,6 @@ public:
 	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
 		lr(lr),ref(std::move(ref)), factor(std::move(factor)) {}
 };
-
-
-
-
-
-
-
 
 
 class StatementAST
@@ -1352,92 +1337,97 @@ public:
 		simplecreate(std::move(simplecreate)),selectcreate(std::move(selectcreate)),likecreate(std::move(likecreate)){}
 };
 
-class CreateTableSimpleAST :public CreateTableAST
+class CreateTableSimpleAST final:public CreateTableAST
 {
-	std::string table_name; 
-	std::vector<std::unique_ptr<ColdefAST>> create_defs;
 public:
+	std::string table_name;
+	std::vector<std::unique_ptr<ColdefAST>> create_defs;
 	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<ColdefAST>> create_defs) :
 		table_name(table_name), create_defs(std::move(create_defs)) {}
 	~CreateTableSimpleAST() = default;
 };
 
-class CreateTableSelectAST :public CreateTableAST
+class CreateTableSelectAST final:public CreateTableAST
 {
-	std::string table_name;
 public:
-	CreateTableSelectAST(const std::string& table_name) :
-		table_name(table_name) {}
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<SelectExprAST> select;
+	CreateTableSelectAST(std::unique_ptr<std::string> table_name, std::unique_ptr<SelectExprAST> select) :
+		table_name(std::move(table_name)),select(std::move(select)) {}
 };
 
-class CreateTableLikeAST :public CreateTableAST
+class CreateTableLikeAST final:public CreateTableAST
 {
-	std::string table_name;
-	std::string old_name;
 public:
-	CreateTableLikeAST(const std::string& table_name, const std::string& old_name) :
-		table_name(table_name), old_name(old_name) {}
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<std::string> old_name;
+	CreateTableLikeAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> old_name) :
+		table_name(std::move(table_name)), old_name(std::move(old_name)) {}
 };
 
-class CreateIndexAST :public CreateAST
+class CreateIndexAST final:public CreateAST
 {
-	std::string index_name;
-	std::string table_name;
-	std::string col_name;
 public:
-	CreateIndexAST(const std::string& index_name, const std::string& table_name, const std::string& col_name) :
-		index_name(index_name), table_name(table_name), col_name(col_name) {}
+	std::unique_ptr<std::string> index_name;
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<std::string> col_name;
+	CreateIndexAST(std::unique_ptr<std::string> index_name,
+		std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name) :
+		index_name(std::move(index_name)), table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
 
-class DropAST :public StatementAST {};
-
-class DropTableAST :public DropAST
+class DropAST :public StatementAST
 {
+public:
+	std::unique_ptr<DropTableAST> droptb;
+	std::unique_ptr<DropIndexAST> dropindex;
+	DropAST() = default;
+	DropAST(std::unique_ptr<DropTableAST> droptb, std::unique_ptr<DropIndexAST> dropindex):
+		droptb(std::move(droptb)),dropindex(std::move(dropindex)){}
+};
+
+class DropTableAST final:public DropAST
+{
+public:
 	std::vector<std::string> table_list;
-
-public:
 	DropTableAST(std::vector<std::string> table_list) : table_list(std::move(table_list)) {}
 };
 
-class DropIndexAST :public DropAST
+class DropIndexAST final:public DropAST
 {
-	std::string index_name;
-	std::string table_name;
 public:
-	DropIndexAST(const std::string& index_name, const std::string& table_name) :
+	std::unique_ptr<std::string> index_name;
+	std::unique_ptr<std::string> table_name;
+	DropIndexAST(std::unique_ptr<std::string> index_name, std::unique_ptr<std::string> table_name) :
 		index_name(std::move(index_name)), table_name(std::move(table_name)) {}
 };
 
-class InsertAST :public StatementAST
+class InsertAST final:public StatementAST
 {
-	std::string table_name;
+public:
+	std::unique_ptr<std::string> table_name;
 	std::vector<std::string> col_name;
 	std::vector<std::unique_ptr<ExprAST>> value_list;
-public:
-	InsertAST(const std::string& table_name, std::vector<std::string>col_name, std::vector<std::unique_ptr<ExprAST>> value_list) :
-		table_name(table_name), col_name(std::move(col_name)), value_list(std::move(value_list)) {}
+	InsertAST(std::unique_ptr<std::string> table_name,
+		std::vector<std::string> col_name, std::vector<std::unique_ptr<ExprAST>> value_list) :
+		table_name(std::move(table_name)), col_name(std::move(col_name)), value_list(std::move(value_list)) {}
 };
 
-class DeleteAST :public StatementAST
+class DeleteAST final:public StatementAST
 {
-	std::string table_name;
+public:
+	std::unique_ptr<std::string> table_name;
 	std::unique_ptr< ExprAST> where_condition;
-public:
-	DeleteAST(const std::string& table_name, std::unique_ptr<ExprAST>where_condition) :
-		table_name(table_name), where_condition(std::move(where_condition)) {}
+	DeleteAST(std::unique_ptr<std::string> table_name, std::unique_ptr< ExprAST> where_condition) :
+		table_name(std::move(table_name)), where_condition(std::move(where_condition)) {}
 };
 
-class SelectAST :public StatementAST
+class SelectAST final:public StatementAST
 {
+public:
 	std::unique_ptr<SubqueryAST> subquery;
+	SelectAST(std::unique_ptr<SubqueryAST> subquery):
+		subquery(std::move(subquery)){}
 };
-
-
-
-
-
 
 #endif // !llvmsql_h
-
-
-

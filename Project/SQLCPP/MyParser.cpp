@@ -25,7 +25,7 @@ using namespace llvm;
 
 /// SQL begin
 
-std::map<table_col, SQLcol> name_entity_map;
+
 
 /// SQL end
 
