@@ -861,16 +861,7 @@ token gettok();
 
 
 
-class table_col :public val
-{
-	using pair = std::pair<std::string, std::string>;
-	pair p;
-public:
-	typename pair::first_type& table_name = p.first;
-	typename pair::second_type& col_name = p.second;
-	table_col() = default;
-	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
-};
+
 
 class ExprAST;
 class ExpAST;
@@ -1129,18 +1120,18 @@ class SubqueryAST final :public SimpleExprAST
 	std::unique_ptr<ExprAST> havingcond;
 
 	bool group_flag = false;  bool group_ASC = true;
-	std::vector<table_col> groupby_col_name;
+	std::vector<std::unique_ptr<TablecolAST>> groupby_col_name;
 
 	bool order_flag = false;  bool order_ASC = true;
-	std::vector<table_col> orderby_col_name;
+	std::vector<std::unique_ptr<TablecolAST>> orderby_col_name;
 
 public:
 	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
 		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
 		bool where_flag, std::unique_ptr<ExprAST> wherecond,
 		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool group_flag, bool group_ASC, std::vector<table_col> groupby_col_name,
-		bool order_flag, bool order_ASC, std::vector<table_col> orderby_col_name
+		bool group_flag, bool group_ASC, std::vector<std::unique_ptr<TablecolAST>> groupby_col_name,
+		bool order_flag, bool order_ASC, std::vector<std::unique_ptr<TablecolAST>> orderby_col_name
 	) :
 		distinct_flag(distinct_flag), exprs(std::move(exprs)),
 		from_flag(from_flag), tbrefs(std::move(tbrefs)),
@@ -1185,33 +1176,56 @@ public:
 class TableRefAST
 {
 public:
-	std::string topalias;
+	std::unique_ptr<TableFactorAST> tbfactor;
+	std::unique_ptr<JoinTableAST> jointb;
 	TableRefAST() = default;
-	TableRefAST(const std::string& topalias) :topalias(topalias) {}
-};
-
-class JoinCondAST
-{
-public:
-
+	TableRefAST(std::unique_ptr<TableFactorAST> tbfactor, std::unique_ptr<JoinTableAST> jointb):
+		tbfactor(std::move(tbfactor)),jointb(std::move(jointb)){}
+	
 };
 
 class TableFactorAST :public TableRefAST
 {
 public:
+	std::unique_ptr<TableNameAST> tbname;
+	std::unique_ptr<TableQueryAST> tbsub;
+	std::unique_ptr<TableRefsAST> tbrefs;
 	TableFactorAST() = default;
+	TableFactorAST(std::unique_ptr<TableNameAST> tbname,std::unique_ptr<TableQueryAST> tbsub,
+		std::unique_ptr<TableRefsAST> tbrefs):
+		tbname(std::move(tbname)),tbsub(std::move(tbsub)),tbrefs(std::move(tbrefs)){}
 };
 
 class JoinTableAST :public TableRefAST
 {
-public://
+public:
+	std::unique_ptr<TRLROJAST> lroj;
+	std::unique_ptr<TRNLROJAST> nlroj;
+	std::unique_ptr<TRIJAST> ij;
+	JoinTableAST() = default;
+	JoinTableAST(std::unique_ptr<TRLROJAST> lroj, std::unique_ptr<TRNLROJAST> nlroj, std::unique_ptr<TRIJAST> ij) :
+		lroj(std::move(lroj)), nlroj(std::move(nlroj)), ij(std::move(ij)) {}
 };
+
+class JoinCondAST
+{
+public:
+	std::unique_ptr<ExprAST> oncond;
+	std::vector<std::unique_ptr<TableNameAST>> uselist;
+	JoinCondAST() = default;
+	JoinCondAST(std::unique_ptr<ExprAST> oncond, std::vector<std::unique_ptr<TableNameAST>> uselist):
+		oncond(std::move(oncond)),uselist(std::move(uselist)){}
+};
+
+
 
 class TableNameAST final :public TableFactorAST
 {
 public:
-	std::string name;
-	TableNameAST(const std::string& name) :name(name) {}
+	std::unique_ptr<std::string> tbname;
+	std::unique_ptr<std::string> alias;
+	TableNameAST(std::unique_ptr<std::string> tbname, std::unique_ptr<std::string> alias) :
+		tbname(std::move(tbname)),alias(std::move(alias)) {}
 };
 
 class TableQueryAST final :public TableFactorAST
@@ -1247,6 +1261,7 @@ public:
 	UsingJoinCondAST(std::vector<std::unique_ptr<TablecolAST>> cols) :
 		cols(std::move(cols)) {}
 };
+
 
 class TRIJAST final :public JoinTableAST
 {

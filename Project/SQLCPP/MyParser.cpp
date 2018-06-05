@@ -333,29 +333,6 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 	}
 }
 
-class SimpleExprAST :public BitExAST
-{
-public:
-	std::unique_ptr<IdAST> id = nullptr;
-	std::unique_ptr<CallAST> call = nullptr;
-	std::unique_ptr<TablecolAST> tablecol = nullptr;
-	std::unique_ptr<ExprAST> expr = nullptr;
-	std::unique_ptr<SubqueryAST> sub = nullptr;
-	std::unique_ptr<ExistsSubqueryAST> exists = nullptr;
-	std::unique_ptr<LiteralAST> lit = nullptr;
-
-	SimpleExprAST() = default;
-	SimpleExprAST(std::unique_ptr<IdAST> id) :id(std::move(id)) {}
-	SimpleExprAST(std::unique_ptr<CallAST> call) :call(std::move(call)) {}
-	SimpleExprAST(std::unique_ptr<TablecolAST> tablecol) :tablecol(std::move(tablecol)) {}
-	SimpleExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
-	SimpleExprAST(std::unique_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
-	SimpleExprAST(std::unique_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
-	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
-};
-
-
-
 std::unique_ptr<StringLiteralAST> ParseStringLiteralAST()
 {
 	while (currtoken.token_kind == blank|| currtoken.token_kind == comment)
