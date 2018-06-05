@@ -1120,7 +1120,7 @@ class SubqueryAST final :public SimpleExprAST
 	std::vector<std::unique_ptr<SelectExprAST>> exprs;
 
 	bool from_flag = false;
-	std::vector<std::unique_ptr<TableRefsAST>> tbrefs;
+	std::unique_ptr<TableRefsAST> tbrefs;
 
 	bool where_flag = false;
 	std::unique_ptr<ExprAST> wherecond;
@@ -1136,7 +1136,7 @@ class SubqueryAST final :public SimpleExprAST
 
 public:
 	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
-		bool from_flag, std::vector<std::unique_ptr<TableRefsAST>> tbrefs,
+		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
 		bool where_flag, std::unique_ptr<ExprAST> wherecond,
 		bool having_flag, std::unique_ptr<ExprAST> havingcond,
 		bool group_flag, bool group_ASC, std::vector<table_col> groupby_col_name,
@@ -1163,7 +1163,24 @@ public:
 
 
 
+class SelectExprAST
+{
+public:
+	std::unique_ptr<ExprAST> expr;
+	std::unique_ptr<std::string> alias;
+	SelectExprAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<std::string> alias) :
+		expr(std::move(expr)), alias(std::move(alias)) {}
 
+};
+
+
+
+class TableRefsAST
+{
+public:
+	std::vector<std::unique_ptr<TableRefAST>> refs;
+	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
+};
 
 class TableRefAST
 {
@@ -1173,40 +1190,35 @@ public:
 	TableRefAST(const std::string& topalias) :topalias(topalias) {}
 };
 
-class TableRefsAST
-{
-	std::vector<std::unique_ptr<TableRefAST>> refs;
-public:
-	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
-};
-
 class JoinCondAST
 {
-	;
+public:
+
 };
 
 class TableFactorAST :public TableRefAST
 {
-	;
+public:
+	TableFactorAST() = default;
 };
 
 class JoinTableAST :public TableRefAST
 {
-	;
+public://
 };
 
 class TableNameAST final :public TableFactorAST
 {
-	std::string name;
 public:
+	std::string name;
 	TableNameAST(const std::string& name) :name(name) {}
 };
 
 class TableQueryAST final :public TableFactorAST
 {
+public:
 	std::string alias;
 	std::unique_ptr<SubqueryAST> subq;
-public:
 	TableQueryAST(const std::string& alias, std::unique_ptr<SubqueryAST> subq) :
 		alias(alias), subq(std::move(subq)) {}
 
@@ -1214,16 +1226,16 @@ public:
 
 class ParenTableRefAST final :public TableFactorAST
 {
-	std::unique_ptr<TableRefsAST> refs;
 public:
+	std::unique_ptr<TableRefsAST> refs;
 	ParenTableRefAST(std::unique_ptr<TableRefsAST> refs) :
 		refs(std::move(refs)) {}
 };
 
 class OnJoinCondAST final :public JoinCondAST
 {
-	std::unique_ptr<ExprAST> cond;
 public:
+	std::unique_ptr<ExprAST> cond;
 	OnJoinCondAST(std::unique_ptr<ExprAST> cond) :
 		cond(std::move(cond)) {}
 };
@@ -1238,10 +1250,10 @@ public:
 
 class TRIJAST final :public JoinTableAST
 {
+public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
 	std::unique_ptr<JoinCondAST> cond;
-public:
 	bool innerflag = false;
 	bool crossflag = false;
 	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
@@ -1252,10 +1264,10 @@ public:
 
 class TRLROJAST final :public JoinTableAST
 {
+public:
 	std::unique_ptr<TableRefAST> lhs;
 	std::unique_ptr<TableRefAST> rhs;
 	std::unique_ptr<JoinCondAST> cond;
-public:
 	bool leftflag = false;
 	bool rightflag = false;
 	bool outerflag = false;
@@ -1265,9 +1277,9 @@ public:
 
 class TRNLROJAST final :public JoinTableAST
 {
+public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
-public:
 	bool leftflag = false;
 	bool rightflag = false;
 	bool outerflag = false;
@@ -1275,15 +1287,7 @@ public:
 		ref(std::move(ref)), factor(std::move(factor)) {}
 };
 
-class SelectExprAST
-{
-public:
-	std::unique_ptr<ExprAST> expr;
-	std::unique_ptr<std::string> alias;
-	SelectExprAST(std::unique_ptr<ExprAST> expr,std::unique_ptr<std::string> alias):
-		expr(std::move(expr)),alias(std::move(alias)){}
 
-};
 
 
 
