@@ -925,7 +925,7 @@ std::unique_ptr<ParenExprAST> ParseParenExprAST();
 std::unique_ptr<SubqueryAST> ParseSubqueryAST();
 std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
 std::unique_ptr<SelectExprAST> ParseSelectExprAST();
-std::unique_ptr<TableRefsAS> ParseTableRefsAS();
+std::unique_ptr<TableRefsAST> ParseTableRefsAST();
 std::unique_ptr<TableRefAST> ParseTableRefAST();
 std::unique_ptr<TableFactorAST> ParseTableFactorAST();
 std::unique_ptr<JoinTableAST> ParseJoinTableAST();
@@ -1011,23 +1011,21 @@ public:
 class BitExprAST :public PredicateAST
 {
 public:
-	std::unique_ptr<BitExpAST> bitexp;
+	std::unique_ptr<BitExprAST> bitexpr; 
 	int op;
-	std::unique_ptr<BitExprAST> bitexpr;
+	std::unique_ptr<BitExpAST> bitexp;
 	BitExprAST() = default;
-	BitExprAST(std::unique_ptr<BitExpAST> bitexp,int op, std::unique_ptr<BitExprAST> bitexpr) :
-		bitexp(std::move(bitexp)),op(op),bitexpr(std::move(bitexpr)){}
+	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op, std::unique_ptr<BitExpAST> bitexp) :
+		bitexpr(std::move(bitexpr)),op(op),bitexp(std::move(bitexp)){}
 };
 
 class BitExpAST :public BitExprAST
 {
 public:
-	std::unique_ptr<BitExpAST> bitexp = nullptr;
+	std::unique_ptr<BitExpAST> bitexp;
 	int op;
-	std::unique_ptr<BitExAST> bitex = nullptr;
+	std::unique_ptr<BitExAST> bitex;
 	BitExpAST() = default;
-	BitExpAST(std::unique_ptr<BitExAST> bitex) :
-		bitex(std::move(bitex)) {}
 	BitExpAST(std::unique_ptr<BitExpAST> bitexp, int op, std::unique_ptr<BitExAST> bitex) :
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
@@ -1036,8 +1034,8 @@ class BitExAST :public BitExpAST
 {
 public:
 	int mark;
-	std::unique_ptr<BitExAST> bitex = nullptr;
-	std::unique_ptr<SimpleExprAST> SE = nullptr;
+	std::unique_ptr<BitExAST> bitex;
+	std::unique_ptr<SimpleExprAST> SE;
 	BitExAST() = default;
 	BitExAST(int mark, std::unique_ptr<BitExAST> bitex, std::unique_ptr<SimpleExprAST> SE) :
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
@@ -1046,13 +1044,13 @@ public:
 class SimpleExprAST :public BitExAST
 {
 public:
-	std::unique_ptr<IdAST> id = nullptr;
-	std::unique_ptr<CallAST> call = nullptr;
-	std::unique_ptr<TablecolAST> tablecol = nullptr;
-	std::unique_ptr<ExprAST> expr = nullptr;
-	std::unique_ptr<SubqueryAST> sub = nullptr;
-	std::unique_ptr<ExistsSubqueryAST> exists = nullptr;
-	std::unique_ptr<LiteralAST> lit = nullptr;
+	std::unique_ptr<IdAST> id;
+	std::unique_ptr<CallAST> call;
+	std::unique_ptr<TablecolAST> tablecol;
+	std::unique_ptr<ExprAST> expr;
+	std::unique_ptr<SubqueryAST> sub;
+	std::unique_ptr<ExistsSubqueryAST> exists;
+	std::unique_ptr<LiteralAST> lit;
 
 	SimpleExprAST() = default;
 	SimpleExprAST(std::unique_ptr<IdAST> id):id(std::move(id)){}
@@ -1099,18 +1097,18 @@ public:
 class CallAST final :public SimpleExprAST
 {
 public:
-	std::unique_ptr<std::string> callee;
+	std::unique_ptr<IdAST> callee;
 	std::vector<std::unique_ptr<ExprAST>> args;
-	CallAST(std::unique_ptr<std::string> callee, std::vector<std::unique_ptr<ExprAST>> args)
+	CallAST(std::unique_ptr<IdAST> callee, std::vector<std::unique_ptr<ExprAST>> args)
 		: callee(std::move(callee) ), args(std::move(args)) {}
 };
 
 class LiteralAST :public SimpleExprAST
 {
 public:
-	std::unique_ptr<IntLiteralAST> intvalue = nullptr;
-	std::unique_ptr<DoubleLiteralAST> doublevalue = nullptr;
-	std::unique_ptr<StringLiteralAST> stringvalue = nullptr;
+	std::unique_ptr<IntLiteralAST> intvalue;
+	std::unique_ptr<DoubleLiteralAST> doublevalue;
+	std::unique_ptr<StringLiteralAST> stringvalue ;
 	LiteralAST() = default;
 	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
 	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
@@ -1134,7 +1132,7 @@ public:
 class StringLiteralAST final :public LiteralAST
 {
 public:
-	std::unique_ptr<std::string> value = nullptr;
+	std::unique_ptr<std::string> value;
 	StringLiteralAST(std::unique_ptr<std::string> value) :value(std::move(value)) {}
 	
 };
@@ -1159,29 +1157,28 @@ class SubqueryAST final :public SimpleExprAST
 	bool where_flag = false;
 	std::unique_ptr<ExprAST> wherecond;
 
+	bool group_flag = false;
+	std::vector<std::unique_ptr<ExprAST>> groupby_exprs;
+
 	bool having_flag = false;
 	std::unique_ptr<ExprAST> havingcond;
 
-	bool group_flag = false;  bool group_ASC = true;
-	std::vector<std::unique_ptr<TablecolAST>> groupby_col_name;
-
-	bool order_flag = false;  bool order_ASC = true;
-	std::vector<std::unique_ptr<TablecolAST>> orderby_col_name;
+	bool order_flag = false;
+	std::vector<std::unique_ptr<ExprAST>> orderby_exprs;
 
 public:
 	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
 		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
-		bool where_flag, std::unique_ptr<ExprAST> wherecond,
+		bool where_flag, std::unique_ptr<ExprAST> wherecond,		
+		bool group_flag, std::vector<std::unique_ptr<ExprAST>> groupby_exprs,
 		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool group_flag, bool group_ASC, std::vector<std::unique_ptr<TablecolAST>> groupby_col_name,
-		bool order_flag, bool order_ASC, std::vector<std::unique_ptr<TablecolAST>> orderby_col_name
-	) :
+		bool order_flag, std::vector<std::unique_ptr<ExprAST>> orderby_exprs):
 		distinct_flag(distinct_flag), exprs(std::move(exprs)),
 		from_flag(from_flag), tbrefs(std::move(tbrefs)),
 		where_flag(where_flag), wherecond(std::move(wherecond)),
+		group_flag(group_flag), groupby_exprs(std::move(groupby_exprs)),
 		having_flag(having_flag), havingcond(std::move(havingcond)),
-		group_flag(group_flag), group_ASC(group_ASC), groupby_col_name(std::move(groupby_col_name)),
-		order_flag(order_flag), order_ASC(order_ASC), orderby_col_name(std::move(orderby_col_name))
+		order_flag(order_flag), orderby_exprs(std::move(orderby_exprs))
 	{}
 };
 
