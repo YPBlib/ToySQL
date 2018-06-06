@@ -491,6 +491,50 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 		where_flag, wherecond, group_flag, groupby_exprs, having_flag, havingcond, order_flag, orderby_exprs);
 }
 
+std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST()
+{
+	currtoken = gettok();	// consume `ON`
+	return llvm::make_unique<OnJoinCondAST>(ParseExprAST());
+}
+
+std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST()
+{
+	currtoken = gettok();	//	consume `USING`
+	currtoken = gettok();	//	consume `(`
+	std::vector<std::unique_ptr<TablecolAST>> cols;
+	std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
+	cols.push_back(std::move(llvm::make_unique<TablecolAST>(colname)));
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+	{
+		currtoken = gettok();	// consume ','
+		std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
+		cols.push_back(std::move(llvm::make_unique<TablecolAST>(colname)));
+	}
+	consumeit({ right_bracket_mark }, "expect `)`");
+	return llvm::make_unique<UsingJoinCondAST>(cols);
+}
+
+std::unique_ptr<TablecolAST> ParseTablecolAST()
+{
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
+	 table_name = ParseIdAST()->getvalue()->IdentifierStr;
+	currtoken = gettok();	// consume '.' mark
+	std::string col_name = ParseIdAST()->getvalue()->IdentifierStr;
+	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	{
+		currtoken = gettok();
+	}
+	return llvm::make_unique<TablecolAST>(table_name, col_name);
+}
+
+
+
+
+
+
 std::unique_ptr<ColdefAST> ParseColdefAST()
 {
 	auto colname = std::move(ParseIdAST()->id);
@@ -561,71 +605,7 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 	return llvm::make_unique<CreateTableSimpleAST>(table_name, std::move(cols));
 }
 
-std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST()
-{
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	currtoken = gettok();	// consume `ON`
-	//auto cond = ParseExprAST();
-	auto cond = ParseLiteralAST();
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	return llvm::make_unique<OnJoinCondAST>(cond);
-}
 
-std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST()
-{
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	//	consume `USING (`
-	currtoken = gettok(); currtoken = gettok();
-	std::vector<std::unique_ptr<TablecolAST>> cols;
-	std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
-	cols.push_back(std::move(llvm::make_unique<TablecolAST>(colname)));
-	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
-	{
-		currtoken = gettok();	// consume ','
-		std::string colname = ParseIdAST()->getvalue()->IdentifierStr;
-		cols.push_back(std::move(llvm::make_unique<TablecolAST>(colname)));
-	}
-	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == right_bracket_mark)
-	{
-		currtoken = gettok();	// consume '('
-		while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-		{
-			currtoken = gettok();
-		}
-		return llvm::make_unique<UsingJoinCondAST>(cols);
-	}
-	else
-	{
-		throw std::runtime_error("using condition miss ')' mark");
-	}
-	
-	
-}
-
-std::unique_ptr<TablecolAST> ParseTablecolAST()
-{
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	std::string table_name = ParseIdAST()->getvalue()->IdentifierStr;
-	currtoken = gettok();	// consume '.' mark
-	std::string col_name = ParseIdAST()->getvalue()->IdentifierStr;
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	return llvm::make_unique<TablecolAST>(table_name, col_name);
-}
 
 
 
