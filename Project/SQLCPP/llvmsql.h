@@ -857,9 +857,6 @@ public:
 
 
 
-
-
-
 class ExprAST;
 class ExpAST;
 class BooleanPrimaryAST;
@@ -868,22 +865,31 @@ class BitExprAST;
 class BitExpAST;
 class BitExAST;
 class SimpleExprAST;
+class IdAST;
+class ColdefAST;
+class TablecolAST;
+class CallAST;
 class LiteralAST;
-class StringLiteralAST;
 class IntLiteralAST;
 class DoubleLiteralAST;
+class StringLiteralAST;
 class ParenExprAST;
-class TablecolAST;
-class IdAST;
-class CallAST;
-class ExistsSubqueryAST;
 class SubqueryAST;
+class ExistsSubqueryAST;
 class SelectExprAST;
-
-class ColdefAST;
+class TableRefsAS; 
+class TableRefAST;
+class TableFactorAST;
+class JoinTableAST;
+class JoinCondAST;
+class TableNameAST;
+class TableQueryAST;
+class ParenTableRefAST;
 class OnJoinCondAST;
 class UsingJoinCondAST;
-
+class TRIJAST;
+class TRLROJAST;
+class TRNLROJAST;
 class StatementAST;
 class CreateAST;
 class CreateTableAST;
@@ -898,6 +904,7 @@ class InsertAST;
 class DeleteAST;
 class SelectAST;
 
+
 std::unique_ptr<ExprAST> ParseExprAST();
 std::unique_ptr<ExpAST> ParseExpAST();
 std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
@@ -906,26 +913,49 @@ std::unique_ptr<BitExprAST> ParseBitExprAST();
 std::unique_ptr<BitExpAST> ParseBitExpAST();
 std::unique_ptr<BitExAST> ParseBitExAST();
 std::unique_ptr<SimpleExprAST> ParseSEAST();
+std::unique_ptr<IdAST> ParseIdAST();
+std::unique_ptr<ColdefAST> ParseColdefAST();
+std::unique_ptr<TablecolAST> ParseTablecolAST();
+std::unique_ptr<CallAST> ParseCallAST();
 std::unique_ptr<LiteralAST> ParseLiteralAST();
-std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
 std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
-std::unique_ptr<TablecolAST> ParseTablecolAST();
+std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
 std::unique_ptr<ParenExprAST> ParseParenExprAST();
-std::unique_ptr<IdAST> ParseIdAST();
-std::unique_ptr<CallAST> ParseCallAST();
-std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
 std::unique_ptr<SubqueryAST> ParseSubqueryAST();
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
-std::unique_ptr<ColdefAST> ParseColdefAST();
+std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
+std::unique_ptr<SelectExprAST> ParseSelectExprAST();
+std::unique_ptr<TableRefsAS> ParseTableRefsAS();
+std::unique_ptr<TableRefAST> ParseTableRefAST();
+std::unique_ptr<TableFactorAST> ParseTableFactorAST();
+std::unique_ptr<JoinTableAST> ParseJoinTableAST();
+std::unique_ptr<JoinCondAST> ParseJoinCondAST();
+std::unique_ptr<TableNameAST> ParseTableNameAST();
+std::unique_ptr<TableQueryAST> ParseTableQueryAST();
+std::unique_ptr<ParenTableRefAST> ParseParenTableRefAST();
 std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
 std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
+std::unique_ptr<TRIJAST> ParseTRIJAST();
+std::unique_ptr<TRLROJAST> ParseTRLROJAST();
+std::unique_ptr<TRNLROJAST> ParseTRNLROJAST();
+std::unique_ptr<StatementAST> ParseStatementAST();
+std::unique_ptr<CreateAST> ParseCreateAST();
+std::unique_ptr<CreateTableAST> ParseCreateTableAST();
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
+std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+std::unique_ptr<CreateIndexAST> ParseCreateIndexAST();
+std::unique_ptr<DropAST> ParseDropAST();
+std::unique_ptr<DropTableAST> ParseDropTableAST();
+std::unique_ptr<DropIndexAST> ParseDropIndexAST();
+std::unique_ptr<InsertAST> ParseInsertAST();
+std::unique_ptr<DeleteAST> ParseDeleteAST();
+std::unique_ptr<SelectAST> ParseSelectAST();
 
 
 token gettok();
 void init_scanner();
 void init_parser();
-
 
 
 class ExprAST
