@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include<iostream>
 #include <cstdlib>
 #include <map>
 #include <memory>
@@ -657,11 +658,26 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	init_parser();
-	x = ParseLiteralAST();
- 	auto y = ParseCreateTableSimpleAST();
+	try
+	{
+		auto z = ParseSelectAST();
+	}
+	catch (std::runtime_error& s)
+	{
+		std::cout << s.what() << std::endl;
+	}
+	try
+	{
+		auto y = ParseCreateTableSimpleAST();
+	}
+	catch (std::runtime_error& s)
+	{
+		std::cout << s.what() << std::endl;
+	}
+ 	
 	
-	y = nullptr;
-	x = ParseLiteralAST();
+	
+	ParseLiteralAST();
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;

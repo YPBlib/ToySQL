@@ -983,7 +983,7 @@ public:
 		lhs(std::move(lhs)),op(op) ,rhs(std::move(rhs)){}
 };
 
-class ExpAST :public ExprAST
+class ExpAST
 {
 public:
 	std::unique_ptr<ExprAST> expr;
@@ -993,13 +993,13 @@ public:
 		expr(std::move(expr)),bp(std::move(bp)){}
 };
 
-class BooleanPrimaryAST :public ExpAST
+class BooleanPrimaryAST
 {
 public:
 	std::unique_ptr<BooleanPrimaryAST> bp;
 	std::unique_ptr<PredicateAST> p;
-	int flag;
-	int op;
+	int flag = 0;
+	int op = 0;
 	std::unique_ptr<SubqueryAST> sub;
 	BooleanPrimaryAST() = default;
 	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<PredicateAST> p, 
@@ -1007,7 +1007,7 @@ public:
 		bp(std::move(bp)),p(std::move(p)),flag(flag),op(op),sub(std::move(sub)) {}
 };
 
-class PredicateAST :public BooleanPrimaryAST
+class PredicateAST
 {
 public:
 	std::unique_ptr<BitExprAST> bitexpr;
@@ -1021,7 +1021,7 @@ public:
 			bitexpr(std::move(bitexpr)),flag(flag),rhs(std::move(rhs)),sub(std::move(sub)),exprs(std::move(exprs)){}
 };
 
-class BitExprAST :public PredicateAST
+class BitExprAST
 {
 public:
 	std::unique_ptr<BitExprAST> bitexpr; 
@@ -1032,7 +1032,7 @@ public:
 		bitexpr(std::move(bitexpr)),op(op),bitexp(std::move(bitexp)){}
 };
 
-class BitExpAST :public BitExprAST
+class BitExpAST
 {
 public:
 	std::unique_ptr<BitExpAST> bitexp;
@@ -1043,7 +1043,7 @@ public:
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
 
-class BitExAST :public BitExpAST
+class BitExAST
 {
 public:
 	int mark;
@@ -1054,7 +1054,7 @@ public:
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
 };
 
-class SimpleExprAST :public BitExAST
+class SimpleExprAST
 {
 public:
 	std::unique_ptr<IdAST> id;
@@ -1075,14 +1075,14 @@ public:
 	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
 };
 
-class IdAST final :public SimpleExprAST
+class IdAST final
 {
 public:
 	std::unique_ptr<std::string> id=nullptr;
 	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
 };
 
-class TablecolAST final :SimpleExprAST
+class TablecolAST
 {
 public:
 	std::unique_ptr<std::string> table_name;
@@ -1091,7 +1091,7 @@ public:
 		table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
 
-class CallAST final :public SimpleExprAST
+class CallAST
 {
 public:
 	std::unique_ptr<IdAST> callee;
@@ -1100,7 +1100,7 @@ public:
 		: callee(std::move(callee) ), args(std::move(args)) {}
 };
 
-class LiteralAST :public SimpleExprAST
+class LiteralAST
 {
 public:
 	std::unique_ptr<IntLiteralAST> intvalue;
@@ -1112,21 +1112,21 @@ public:
 	LiteralAST(std::unique_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
 };
 
-class IntLiteralAST final :public LiteralAST
+class IntLiteralAST
 {
 public:
 	std::unique_ptr<int> value = nullptr;
 	IntLiteralAST(std::unique_ptr<int> value) :value(std::move(value)) {}
 };
 
-class DoubleLiteralAST final : public LiteralAST
+class DoubleLiteralAST
 {
 public:
 	std::unique_ptr<double> value = nullptr;
 	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
 };
 
-class StringLiteralAST final :public LiteralAST
+class StringLiteralAST
 {
 public:
 	std::unique_ptr<std::string> value;
@@ -1134,7 +1134,7 @@ public:
 	
 };
 
-class ParenExprAST final :public SimpleExprAST
+class ParenExprAST
 {
 public:
 	std::unique_ptr<ExprAST> expr;
@@ -1142,7 +1142,7 @@ public:
 		expr(std::move(expr)) {}
 };
 
-class SubqueryAST final :public SimpleExprAST
+class SubqueryAST
 {
 	//	handle select * from CASE
 	bool distinct_flag = false;
@@ -1179,7 +1179,7 @@ public:
 	{}
 };
 
-class ExistsSubqueryAST final :public SimpleExprAST
+class ExistsSubqueryAST
 {
 	std::unique_ptr<SubqueryAST> subquery;
 public:
@@ -1216,7 +1216,7 @@ public:
 		tbfactor(std::move(tbfactor)),trij(std::move(trij)),trlroj(std::move(trlroj)),trnlroj(std::move(trnlroj)){}
 };
 
-class TableFactorAST :public TableRefAST
+class TableFactorAST
 {
 public:
 	std::unique_ptr<TableNameAST> tbname;
@@ -1238,7 +1238,7 @@ public:
 		oncond(std::move(oncond)),uselist(std::move(uselist)){}
 };
 
-class TableNameAST final :public TableFactorAST
+class TableNameAST
 {
 public:
 	std::unique_ptr<IdAST> tbname;
@@ -1247,7 +1247,7 @@ public:
 		tbname(std::move(tbname)),alias(std::move(alias)) {}
 };
 
-class TableQueryAST final :public TableFactorAST
+class TableQueryAST
 {
 public:
 	std::unique_ptr<SubqueryAST> subq;
@@ -1257,7 +1257,7 @@ public:
 };
 
 
-class OnJoinCondAST final :public JoinCondAST
+class OnJoinCondAST
 {
 public:
 	std::unique_ptr<ExprAST> cond;
@@ -1265,7 +1265,7 @@ public:
 		cond(std::move(cond)) {}
 };
 
-class UsingJoinCondAST final :public JoinCondAST
+class UsingJoinCondAST
 {
 public:
 	std::vector<std::unique_ptr<TablecolAST>> cols;
@@ -1308,7 +1308,6 @@ public:
 class StatementAST
 {
 public:
-	int delimeter = semicolon_mark;
 	std::unique_ptr<CreateAST> create;
 	std::unique_ptr<SelectAST> select;
 	std::unique_ptr<DropAST> drop;
@@ -1320,7 +1319,7 @@ public:
 	virtual ~StatementAST() = default;
 };
 
-class CreateAST :public StatementAST
+class CreateAST
 {
 public:
 	std::unique_ptr<CreateTableAST> ctable;
@@ -1330,7 +1329,7 @@ public:
 		ctable(std::move(ctable)),cindex(std::move(cindex)){}
 };
 
-class CreateTableAST :public CreateAST
+class CreateTableAST
 {
 public:
 	std::unique_ptr< CreateTableSimpleAST> simplecreate;
@@ -1342,7 +1341,7 @@ public:
 		simplecreate(std::move(simplecreate)),selectcreate(std::move(selectcreate)),likecreate(std::move(likecreate)){}
 };
 
-class CreateTableSimpleAST final:public CreateTableAST
+class CreateTableSimpleAST
 {
 public:
 	std::unique_ptr<IdAST> table_name;
@@ -1351,7 +1350,7 @@ public:
 		table_name(std::move(table_name)), create_defs(std::move(create_defs)) {}
 };
 
-class CreateTableSelectAST final:public CreateTableAST
+class CreateTableSelectAST
 {
 public:
 	std::unique_ptr<std::string> table_name;
@@ -1360,7 +1359,7 @@ public:
 		table_name(std::move(table_name)),select(std::move(select)) {}
 };
 
-class CreateTableLikeAST final:public CreateTableAST
+class CreateTableLikeAST
 {
 public:
 	std::unique_ptr<std::string> table_name;
@@ -1387,6 +1386,7 @@ public:
 
 class RefdefAST
 {
+public:
 	std::unique_ptr<IdAST> tbname;
 	std::vector<std::unique_ptr<IdAST>> colname;
 	int deleteop = 0;
@@ -1399,10 +1399,10 @@ class ColdefAST
 {
 public:
 	std::unique_ptr<DatatypeAST> dtype;
-	bool null_flag;
+	bool null_flag = true;
 	std::unique_ptr<ExprAST> default_value;
-	bool unique_flag;
-	bool primary_flag;
+	bool unique_flag = false;
+	bool primary_flag = false;
 	std::unique_ptr<RefdefAST> refdef;
 	ColdefAST(std::unique_ptr<DatatypeAST> dtype, bool null_flag, std::unique_ptr<ExprAST> default_value,
 	bool unique_flag, bool primary_flag, std::unique_ptr<RefdefAST> refdef):
@@ -1441,7 +1441,7 @@ public:
 	PrimaryAST(std::vector<std::unique_ptr<IdAST>> cols):cols(std::move(cols)){}
 };
 
-class CreateIndexAST final:public CreateAST
+class CreateIndexAST
 {
 public:
 	std::unique_ptr<std::string> index_name;
@@ -1452,7 +1452,7 @@ public:
 		index_name(std::move(index_name)), table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
 
-class DropAST :public StatementAST
+class DropAST
 {
 public:
 	std::unique_ptr<DropTableAST> droptb;
@@ -1462,14 +1462,14 @@ public:
 		droptb(std::move(droptb)),dropindex(std::move(dropindex)){}
 };
 
-class DropTableAST final:public DropAST
+class DropTableAST
 {
 public:
 	std::vector<std::string> table_list;
 	DropTableAST(std::vector<std::string> table_list) : table_list(std::move(table_list)) {}
 };
 
-class DropIndexAST final:public DropAST
+class DropIndexAST
 {
 public:
 	std::unique_ptr<std::string> index_name;
@@ -1478,7 +1478,7 @@ public:
 		index_name(std::move(index_name)), table_name(std::move(table_name)) {}
 };
 
-class InsertAST final:public StatementAST
+class InsertAST
 {
 public:
 	std::unique_ptr<std::string> table_name;
@@ -1489,7 +1489,7 @@ public:
 		table_name(std::move(table_name)), col_name(std::move(col_name)), value_list(std::move(value_list)) {}
 };
 
-class DeleteAST final:public StatementAST
+class DeleteAST
 {
 public:
 	std::unique_ptr<std::string> table_name;
@@ -1498,7 +1498,7 @@ public:
 		table_name(std::move(table_name)), where_condition(std::move(where_condition)) {}
 };
 
-class SelectAST final:public StatementAST
+class SelectAST
 {
 public:
 	std::unique_ptr<SubqueryAST> subquery;

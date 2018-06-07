@@ -28,10 +28,11 @@ using namespace llvm;
 
 
 /// SQL end
+token currtoken;
+int delimiter = semicolon_mark;
 
 using LR = std::vector<std::unique_ptr<ExprAST>> ;
 using LL = std::vector<std::unique_ptr<ExprAST>> ;
-token currtoken;
 void consumeit(std::vector<int> v, std::string s);
 
 void consumeit(std::vector<int> v, std::string s)
@@ -71,14 +72,13 @@ std::unique_ptr<ExprAST> ParseExprAST()
 		)
 	{
 		op = currtoken.token_value.symbol_mark;
+		currtoken = gettok();	// consume op
 		rhs = ParseExprAST();
 		return llvm::make_unique<ExprAST>(std::move(lhs), op, std::move(rhs));
 	}
 	else
 		return llvm::make_unique<ExprAST>(std::move(lhs),0,nullptr);
 }
-
-
 
 std::unique_ptr<ExpAST> ParseExpAST()
 {
@@ -117,6 +117,7 @@ std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
 				if (currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == tok_NULL)
 				{
 					currtoken = gettok();	// consume NULL
+					flag = tok_NULL;
 				}
 				else
 				{
@@ -171,7 +172,8 @@ std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
 			}
 		}
 	}
-	return llvm::make_unique<BooleanPrimaryAST>(std::move(bp), nullptr, 0, 0, nullptr);
+	return std::move(bp);
+	//return llvm::make_unique<BooleanPrimaryAST>(std::move(bp), nullptr, 0, 0, nullptr);
 }
 
 std::unique_ptr<PredicateAST> ParsePredicateAST()
@@ -455,11 +457,12 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 	else
 	{
 		currtoken = gettok();	// consume '*'
-		consumeit({ tok_FROM }, "expect from");
+		
 	}
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_FROM)
 	{
 		from_flag = true;
+		consumeit({ tok_FROM }, "expect FROM \n");
 		tbrefs = ParseTableRefsAST();
 
 		if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_WHERE)
@@ -493,16 +496,14 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 			order_flag = true;
 			currtoken = gettok();	// consume ORDER
 			consumeit({ tok_BY }, "`BY` must follow `ORDER`\n");
-		}
-
-		orderby_exprs.push_back(ParseExprAST());
-		while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
-		{
-			currtoken = gettok();	// consume comma
 			orderby_exprs.push_back(ParseExprAST());
+			while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+			{
+				currtoken = gettok();	// consume comma
+				orderby_exprs.push_back(ParseExprAST());
+			}
 		}
 	}
-	
 	return llvm::make_unique<SubqueryAST>(distinct_flag, std::move(exprs), from_flag, std::move(tbrefs),
 		where_flag, std::move(wherecond), group_flag, std::move(groupby_exprs),
 		having_flag, std::move(havingcond), order_flag, std::move(orderby_exprs) );
@@ -752,6 +753,7 @@ std::unique_ptr<DatatypeAST> ParseDatatypeAST()
 		if (currtoken.token_kind == literal_int)
 		{
 			n = currtoken.token_value.int_literal;
+			currtoken = gettok();	// consume int
 		}
 		consumeit({ right_bracket_mark }, "expect ')'");
 	}
@@ -760,9 +762,11 @@ std::unique_ptr<DatatypeAST> ParseDatatypeAST()
 
 std::unique_ptr<RefdefAST> ParseRefdefAST()
 {
-	consumeit({ tok_REFERENCES }, "expect REFERENCES \n");
 	std::unique_ptr<IdAST> tbname;
 	std::vector<std::unique_ptr<IdAST>> colname;
+	int deleteop = 0;
+	int updateop = 0; 
+	consumeit({ tok_REFERENCES }, "expect REFERENCES \n");
 	tbname = ParseIdAST();
 	consumeit({ left_bracket_mark }, "expect '('\n");
 	colname.push_back(ParseIdAST());
@@ -772,7 +776,39 @@ std::unique_ptr<RefdefAST> ParseRefdefAST()
 		colname.push_back(ParseIdAST());
 	}
 	consumeit({ right_bracket_mark }, "expect ')'\n");
-	return llvm::make_unique<RefdefAST>(std::move(tbname), std::move(colname));
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_ON)
+	{
+		currtoken = gettok();	// consume 'ON'
+		if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_DELETE)
+		{
+			currtoken = gettok();
+			deleteop = currtoken.token_value.symbol_mark;
+			currtoken = gettok();
+		}
+		else if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_UPDATE)
+		{
+			currtoken = gettok();
+			updateop = currtoken.token_value.symbol_mark;
+			currtoken = gettok();
+		}
+	}
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_ON)
+	{
+		currtoken = gettok();	// consume 'ON'
+		if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_DELETE)
+		{
+			currtoken = gettok();
+			deleteop = currtoken.token_value.symbol_mark;
+			currtoken = gettok();
+		}
+		else if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_UPDATE)
+		{
+			currtoken = gettok();
+			updateop = currtoken.token_value.symbol_mark;
+			currtoken = gettok();
+		}
+	}
+	return llvm::make_unique<RefdefAST>(std::move(tbname), std::move(colname),deleteop,updateop);
 }
 
 std::unique_ptr<PrimaryAST> ParsePrimaryAST()
@@ -787,7 +823,7 @@ std::unique_ptr<PrimaryAST> ParsePrimaryAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		cols.push_back(ParseIdAST());
 	}
-	return llvm::make_unique<PrimaryAST>(cols);
+	return llvm::make_unique<PrimaryAST>(std::move(cols));
 }
 
 std::unique_ptr<UniqueAST> ParseUniqueAST()
@@ -801,7 +837,7 @@ std::unique_ptr<UniqueAST> ParseUniqueAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		cols.push_back(ParseIdAST());
 	}
-	return llvm::make_unique<UniqueAST>(cols);
+	return llvm::make_unique<UniqueAST>(std::move(cols));
 }
 
 std::unique_ptr<ForeignAST> ParseForeignAST()
@@ -818,94 +854,155 @@ std::unique_ptr<ForeignAST> ParseForeignAST()
 		cols.push_back(ParseIdAST());
 	}
 	refdef = ParseRefdefAST();
-	return llvm::make_unique<ForeignAST>(cols, refdef);
+	return llvm::make_unique<ForeignAST>(std::move(cols), std::move(refdef));
 	
 }
 
 std::unique_ptr<CreatedefAST> ParseCreatedefAST()
 {
-	;
+	std::unique_ptr<IdAST> colname;
+	std::unique_ptr<ColdefAST> coldef;
+	std::unique_ptr<PrimaryAST> prim;
+	std::unique_ptr<UniqueAST> uni;
+	std::unique_ptr<ForeignAST> forei;
+	std::unique_ptr<ExprAST> check; 
+	if (currtoken.token_kind == id)
+	{
+		colname = ParseIdAST();
+		coldef = ParseColdefAST();
+	}
+	else if (currtoken.token_kind == symbol)
+	{
+		if (currtoken.token_value.symbol_mark == tok_PRIMARY)
+		{
+			prim = ParsePrimaryAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_UNIQUE)
+		{
+			uni = ParseUniqueAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_FOREIGN)
+		{
+			forei = ParseForeignAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_CHECK)
+		{
+			check = ParseExprAST();
+		}
+		else
+		{
+			throw std::runtime_error("expect table-column-creation beginning with\
+ column-name/PRIMARY/UNIQUE/FOREIGN/CHECK\n");
+			return nullptr;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("expect table-column-creation beginning with\
+ column-name/PRIMARY/UNIQUE/FOREIGN/CHECK\n");
+		return nullptr;
+	}
+	return llvm::make_unique<CreatedefAST>(std::move(colname), std::move(coldef),
+		std::move(prim), std::move(uni), std::move(forei), std::move(check));
 }
-
-
 
 std::unique_ptr<ColdefAST> ParseColdefAST()
 {
-	auto colname = std::move(ParseIdAST()->id);
-	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_INT)
+	std::unique_ptr<DatatypeAST> dtype;
+	bool null_flag = true;
+	std::unique_ptr<ExprAST> default_value;
+	bool unique_flag = false;
+	bool primary_flag = false;
+	std::unique_ptr<RefdefAST> refdef;
+	dtype = ParseDatatypeAST();
+	while (currtoken.token_kind == symbol)
 	{
-
-		currtoken = gettok();    // consume `INT`
-		return llvm::make_unique<ColdefAST>(colname, literal_int, true, false, false);
-	}
-	if (currtoken.token_kind == symbol &&
-		(currtoken.token_value.symbol_mark == tok_FLOAT || currtoken.token_value.symbol_mark == tok_DOUBLE))
-	{
-
-		currtoken = gettok();    // consume `DOUBLE`
-		return llvm::make_unique<ColdefAST>(colname, literal_double, true, false, false);
-	}
-	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_CHAR)
-	{
-		currtoken = gettok();   // consume `CHAR`
-		currtoken = gettok();   // consume `(`
-		if (currtoken.token_kind == literal_int)
+		if (currtoken.token_value.symbol_mark == tok_NOT)
 		{
-			int n = currtoken.token_value.int_literal;
-			currtoken = gettok();    // consume int literal
-			currtoken = gettok();    // consume `)`
-			while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-			{
-				currtoken = gettok();
-			}
-			return llvm::make_unique<ColdefAST>(colname, literal_string, true, false, false, n);
+			consumeit({ tok_NOT }, "expect NOT\n");
+			null_flag = true;
+			consumeit({ tok_NULL }, "expect NULL\n");
 		}
-		throw std::runtime_error("char size must be int \n");
-
+		else if (currtoken.token_value.symbol_mark == tok_NULL)
+		{
+			null_flag = false;
+			consumeit({ tok_NULL }, "expect NULL\n");
+		}
+		if (currtoken.token_value.symbol_mark == tok_DEFAULT)
+		{
+			consumeit({ tok_DEFAULT }, "expect DEFAULT \n");
+			default_value = ParseExprAST();
+		}
+		if (currtoken.token_value.symbol_mark == tok_UNIQUE)
+		{
+			consumeit({ tok_UNIQUE }, "expect UNIQUE \n");
+			unique_flag = true;
+			if (currtoken.token_value.symbol_mark == tok_KEY)
+			{
+				consumeit({ tok_KEY }, "expect KEY \n");
+			}
+		}
+		if (currtoken.token_value.symbol_mark == tok_PRIMARY|| currtoken.token_value.symbol_mark == tok_KEY)
+		{
+			if (currtoken.token_value.symbol_mark == tok_PRIMARY)
+			{
+				consumeit({ tok_PRIMARY }, "expect PRIMARY \n");
+			}
+			consumeit({ tok_KEY }, "expect KEY \n");
+		}
+		if (currtoken.token_value.symbol_mark == tok_REFERENCES)
+		{
+			break;
+		}
+		else
+			break;
 	}
-	return nullptr;
+	if (currtoken.token_value.symbol_mark == tok_REFERENCES)
+	{
+		refdef = ParseRefdefAST();
+	}
+	return llvm::make_unique<ColdefAST>(std::move(dtype), 
+		null_flag, std::move(default_value), unique_flag, primary_flag, std::move(refdef));
 }
-
-
-
-
-
 
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 {
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
+	consumeit({ tok_CREATE }, "expect `CREATE`\n");
+	consumeit({ tok_TABLE }, "expect `TABLE`\n");
+	auto Id = ParseIdAST();
+	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
+	consumeit({ left_bracket_mark }, "expect `(`\n");
+	create_defs.push_back(ParseCreatedefAST());
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
-		currtoken = gettok();
+		currtoken = gettok();	// consuem ','
+		create_defs.push_back(ParseCreatedefAST());
 	}
-	// consume ` CREATE TABLE `
-	currtoken = gettok();
-	currtoken = gettok();
-	auto table_name = std::move(ParseIdAST()->id);
-	// consume `(`
-	currtoken = gettok();
-	std::vector<std::unique_ptr<ColdefAST>> cols;
-	auto col = ParseColdefAST();
-	col->col_name = std::move(table_name);
-	cols.push_back(std::move(col));
-	while (currtoken.token_kind == symbol&& currtoken.token_value.symbol_mark == comma_mark)
-	{
-		// consume `,`
-		currtoken = gettok();
-		auto col = ParseColdefAST();
-		col-> = table_name;
-		cols.push_back(std::move(col));
-	}
-	// consume `)`
-	currtoken = gettok();
-	while (currtoken.token_kind == blank || currtoken.token_kind == comment)
-	{
-		currtoken = gettok();
-	}
-	return llvm::make_unique<CreateTableSimpleAST>(table_name, std::move(cols));
+	consumeit({ right_bracket_mark }, "expect `)`\n");
+	consumeit({ delimiter }, "expect delimiter \n");
+	return llvm::make_unique<CreateTableSimpleAST>(std::move(Id),std::move(create_defs));
+}
+
+std::unique_ptr<SelectAST> ParseSelectAST()
+{
+	auto subq = ParseSubqueryAST();
+	consumeit({ delimiter }, "expect delimiter \n");
+	return llvm::make_unique<SelectAST>(std::move(subq));
 }
 
 
 
+std::unique_ptr<StatementAST> ParseStatementAST();
+std::unique_ptr<CreateAST> ParseCreateAST();
+std::unique_ptr<CreateTableAST> ParseCreateTableAST();
+std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
+std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+std::unique_ptr<CreateIndexAST> ParseCreateIndexAST();
+std::unique_ptr<DropAST> ParseDropAST();
+std::unique_ptr<DropTableAST> ParseDropTableAST();
+std::unique_ptr<DropIndexAST> ParseDropIndexAST();
+std::unique_ptr<InsertAST> ParseInsertAST();
+std::unique_ptr<DeleteAST> ParseDeleteAST();
 
 
 
