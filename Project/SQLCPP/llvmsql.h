@@ -894,6 +894,7 @@ class CreateTableAST;
 class CreateTableSimpleAST;
 class CreateTableSelectAST;
 class CreateTableLikeAST;
+class CreatedefAST;
 class CreateIndexAST;
 class DropAST;
 class DropTableAST;
@@ -901,6 +902,12 @@ class DropIndexAST;
 class InsertAST;
 class DeleteAST;
 class SelectAST;
+class CreatedefAST;
+class RefdefAST;
+class DatatypeAST;
+class PrimaryAST;
+class UniqueAST;
+class ForeignAST;
 
 
 std::unique_ptr<ExprAST> ParseExprAST();
@@ -951,6 +958,12 @@ std::unique_ptr<DropIndexAST> ParseDropIndexAST();
 std::unique_ptr<InsertAST> ParseInsertAST();
 std::unique_ptr<DeleteAST> ParseDeleteAST();
 std::unique_ptr<SelectAST> ParseSelectAST();
+std::unique_ptr<CreatedefAST> ParseCreatedefAST();
+std::unique_ptr<RefdefAST> ParseRefdefAST();
+std::unique_ptr<DatatypeAST> ParseDatatypeAST();
+std::unique_ptr<PrimaryAST> ParsePrimaryAST();
+std::unique_ptr<UniqueAST> ParseUniqueAST();
+std::unique_ptr<ForeignAST> ParseForeignAST();
 
 
 token gettok();
@@ -1279,7 +1292,7 @@ public:
 	std::unique_ptr<JoinCondAST> cond;
 	int lr;
 	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
-		lr(lr),lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)) {}
+		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)),lr(lr) {}
 };
 
 class TRNLROJAST
@@ -1289,12 +1302,13 @@ public:
 	std::unique_ptr<TableFactorAST> factor;
 	int lr;
 	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
-		lr(lr),ref(std::move(ref)), factor(std::move(factor)) {}
+		ref(std::move(ref)), factor(std::move(factor)),lr(lr) {}
 };
 
 class StatementAST
 {
 public:
+	int delimeter = semicolon_mark;
 	std::unique_ptr<CreateAST> create;
 	std::unique_ptr<SelectAST> select;
 	std::unique_ptr<DropAST> drop;
@@ -1331,11 +1345,10 @@ public:
 class CreateTableSimpleAST final:public CreateTableAST
 {
 public:
-	std::string table_name;
-	std::vector<std::unique_ptr<ColdefAST>> create_defs;
-	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<ColdefAST>> create_defs) :
-		table_name(table_name), create_defs(std::move(create_defs)) {}
-	~CreateTableSimpleAST() = default;
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
+	CreateTableSimpleAST(std::unique_ptr<IdAST> table_name,std::vector<std::unique_ptr<CreatedefAST>> create_defs) :
+		table_name(std::move(table_name)), create_defs(std::move(create_defs)) {}
 };
 
 class CreateTableSelectAST final:public CreateTableAST
@@ -1356,20 +1369,76 @@ public:
 		table_name(std::move(table_name)), old_name(std::move(old_name)) {}
 };
 
+class CreatedefAST
+{
+public:
+	std::unique_ptr<IdAST> colname;
+	std::unique_ptr<ColdefAST> coldef;
+	std::unique_ptr<PrimaryAST> prim;
+	std::unique_ptr<UniqueAST> uni;
+	std::unique_ptr<ForeignAST> forei;
+	std::unique_ptr<ExprAST> check;
+	CreatedefAST(std::unique_ptr<IdAST> colname, std::unique_ptr<ColdefAST> coldef,
+		std::unique_ptr<PrimaryAST> prim, std::unique_ptr<UniqueAST> uni,
+		std::unique_ptr<ForeignAST> forei, std::unique_ptr<ExprAST> check) :
+		colname(std::move(colname)), coldef(std::move(coldef)), prim(std::move(prim)),
+		uni(std::move(uni)), forei(std::move(forei)), check(std::move(check)) {}
+};
+
+class RefdefAST
+{
+	std::unique_ptr<IdAST> tbname;
+	std::vector<std::unique_ptr<IdAST>> colname;
+	int deleteop = 0;
+	int updateop = 0;
+	RefdefAST(std::unique_ptr<IdAST> tbname, std::vector<std::unique_ptr<IdAST>> colname, int deleteop,int updateop):
+		tbname(std::move(tbname)),colname(std::move(colname)),deleteop(deleteop),updateop(updateop){}
+};
+
 class ColdefAST
 {
 public:
-	std::unique_ptr<std::string> col_name = nullptr;
+	std::unique_ptr<DatatypeAST> dtype;
+	bool null_flag;
+	std::unique_ptr<ExprAST> default_value;
+	bool unique_flag;
+	bool primary_flag;
+	std::unique_ptr<RefdefAST> refdef;
+	ColdefAST(std::unique_ptr<DatatypeAST> dtype, bool null_flag, std::unique_ptr<ExprAST> default_value,
+	bool unique_flag, bool primary_flag, std::unique_ptr<RefdefAST> refdef):
+		dtype(std::move(dtype)),null_flag(null_flag),default_value(std::move(default_value)),
+		unique_flag(unique_flag),primary_flag(primary_flag),refdef(std::move(refdef)){}
+};
+
+class DatatypeAST
+{
+public:
 	int dtype = 0;
-	bool nullable = true;
-	bool unique = false;
-	bool primary = false;
-	int n;
-	ColdefAST() = default;
-	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary) :
-		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
-	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary, int n) :
-		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
+	int n = 0;
+	DatatypeAST(int dtype, int n) :dtype(dtype), n(n) {}
+};
+
+class ForeignAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	std::unique_ptr<RefdefAST> refdef;
+	ForeignAST(std::vector<std::unique_ptr<IdAST>> cols, std::unique_ptr<RefdefAST> refdef) :
+		cols(std::move(cols)),refdef(std::move(refdef)){}
+};
+
+class UniqueAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	UniqueAST(std::vector<std::unique_ptr<IdAST>> cols) :cols(std::move(cols)) {}
+};
+
+class PrimaryAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	PrimaryAST(std::vector<std::unique_ptr<IdAST>> cols):cols(std::move(cols)){}
 };
 
 class CreateIndexAST final:public CreateAST
