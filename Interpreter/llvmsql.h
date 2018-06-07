@@ -855,139 +855,215 @@ public:
 	
 };
 
+
+
+class ExprAST;
+class ExpAST;
+class BooleanPrimaryAST;
+class PredicateAST;
+class BitExprAST;
+class BitExpAST;
+class BitExAST;
+class SimpleExprAST;
+class IdAST;
+class ColdefAST;
+class TablecolAST;
+class CallAST;
+class LiteralAST;
+class IntLiteralAST;
+class DoubleLiteralAST;
+class StringLiteralAST;
+class ParenExprAST;
+class SubqueryAST;
+class ExistsSubqueryAST;
+class SelectExprAST;
+class TableRefsAST; 
+class TableRefAST;
+class TableFactorAST;
+class JoinCondAST;
+class TableNameAST;
+class TableQueryAST;
+class OnJoinCondAST;
+class UsingJoinCondAST;
+class TRIJAST;
+class TRLROJAST;
+class TRNLROJAST;
+class StatementAST;
+class CreateAST;
+class CreateTableAST;
+class CreateTableSimpleAST;
+class CreateTableSelectAST;
+class CreateTableLikeAST;
+class CreatedefAST;
+class CreateIndexAST;
+class DropAST;
+class DropTableAST;
+class DropIndexAST;
+class InsertAST;
+class DeleteAST;
+class SelectAST;
+class CreatedefAST;
+class RefdefAST;
+class DatatypeAST;
+class PrimaryAST;
+class UniqueAST;
+class ForeignAST;
+
+
+std::unique_ptr<ExprAST> ParseExprAST();
+std::unique_ptr<ExpAST> ParseExpAST();
+std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
+std::unique_ptr<PredicateAST> ParsePredicateAST();
+std::unique_ptr<BitExprAST> ParseBitExprAST();
+std::unique_ptr<BitExpAST> ParseBitExpAST();
+std::unique_ptr<BitExAST> ParseBitExAST();
+std::unique_ptr<SimpleExprAST> ParseSEAST();
+std::unique_ptr<IdAST> ParseIdAST();
+std::unique_ptr<ColdefAST> ParseColdefAST();
+std::unique_ptr<TablecolAST> ParseTablecolAST();
+std::unique_ptr<CallAST> ParseCallAST();
+std::unique_ptr<CallAST> ParseCallAST(std::unique_ptr<IdAST> callee);
+std::unique_ptr<LiteralAST> ParseLiteralAST();
+std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
+std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
+std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
+std::unique_ptr<ParenExprAST> ParseParenExprAST();
+std::unique_ptr<SubqueryAST> ParseSubqueryAST();
+std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
+std::unique_ptr<SelectExprAST> ParseSelectExprAST();
+std::unique_ptr<TableRefsAST> ParseTableRefsAST();
+std::unique_ptr<TableRefAST> ParseTableRefAST();
+std::unique_ptr<TableFactorAST> ParseTableFactorAST();
+std::unique_ptr<JoinCondAST> ParseJoinCondAST();
+std::unique_ptr<TableNameAST> ParseTableNameAST();
+std::unique_ptr<TableQueryAST> ParseTableQueryAST();
+std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
+std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
+std::unique_ptr<TRIJAST> ParseTRIJAST();
+std::unique_ptr<TRLROJAST> ParseTRLROJAST();
+std::unique_ptr<TRNLROJAST> ParseTRNLROJAST();
+std::unique_ptr<TRNLROJAST> ParseTRNLROJAST(std::unique_ptr<TableRefAST> ref);
+std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs);
+std::unique_ptr<TRIJAST> ParseTRIJAST(std::unique_ptr<TableRefAST> ref);
+std::unique_ptr<StatementAST> ParseStatementAST();
+std::unique_ptr<CreateAST> ParseCreateAST();
+std::unique_ptr<CreateTableAST> ParseCreateTableAST();
+std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
+std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+std::unique_ptr<CreateIndexAST> ParseCreateIndexAST();
+std::unique_ptr<DropAST> ParseDropAST();
+std::unique_ptr<DropTableAST> ParseDropTableAST();
+std::unique_ptr<DropIndexAST> ParseDropIndexAST();
+std::unique_ptr<InsertAST> ParseInsertAST();
+std::unique_ptr<DeleteAST> ParseDeleteAST();
+std::unique_ptr<SelectAST> ParseSelectAST();
+std::unique_ptr<CreatedefAST> ParseCreatedefAST();
+std::unique_ptr<RefdefAST> ParseRefdefAST();
+std::unique_ptr<DatatypeAST> ParseDatatypeAST();
+std::unique_ptr<PrimaryAST> ParsePrimaryAST();
+std::unique_ptr<UniqueAST> ParseUniqueAST();
+std::unique_ptr<ForeignAST> ParseForeignAST();
+
+
 token gettok();
-
-
-
-
-
-class table_col :public val
-{
-	using pair = std::pair<std::string, std::string>;
-	pair p;
-public:
-	typename pair::first_type& table_name = p.first;
-	typename pair::second_type& col_name = p.second;
-	table_col() = default;
-	table_col(const std::string& table_name, const std::string& col_name) :p(table_name, col_name) {}
-};
-
-
+void init_scanner();
+void init_parser();
 
 
 class ExprAST
 {
 public:
-	std::unique_ptr<ExpAST> lhs = nullptr;
+	std::unique_ptr<ExpAST> lhs;
 	int op;
-	std::unique_ptr<ExprAST> rhs = nullptr;
+	std::unique_ptr<ExprAST> rhs;
 	virtual ~ExprAST() = default;
 	ExprAST() = default;
-	ExprAST(std::unique_ptr<ExpAST> lhs):
-		lhs(std::move(lhs)){}
 	ExprAST(std::unique_ptr<ExpAST> lhs, int op, std::unique_ptr<ExprAST> rhs):
 		lhs(std::move(lhs)),op(op) ,rhs(std::move(rhs)){}
 };
 
-class ExpAST :public ExprAST
+class ExpAST
 {
 public:
-	std::unique_ptr<ExprAST> expr = nullptr;
-	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
+	std::unique_ptr<ExprAST> expr;
+	std::unique_ptr<BooleanPrimaryAST> bp;
 	ExpAST() = default;
-	ExpAST(std::unique_ptr<ExprAST> expr) :
-		expr(std::move(expr)){}
-	ExpAST(std::unique_ptr<BooleanPrimaryAST> bp):
-		bp(std::move(bp)){}
+	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp) :
+		expr(std::move(expr)),bp(std::move(bp)){}
 };
 
-class BooleanPrimaryAST :public ExpAST
+class BooleanPrimaryAST
 {
 public:
-	std::unique_ptr<BooleanPrimaryAST> bp = nullptr;
-	std::unique_ptr<PredicateAST> p = nullptr;
-	bool flag;	// true for all, false for any
-	int op;
-	std::unique_ptr<SubqueryAST> sub = nullptr;
+	std::unique_ptr<BooleanPrimaryAST> bp;
+	std::unique_ptr<PredicateAST> p;
+	int flag = 0;
+	int op = 0;
+	std::unique_ptr<SubqueryAST> sub;
 	BooleanPrimaryAST() = default;
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, bool flag) :
-		bp(std::move(bp)), flag(flag){}
-	BooleanPrimaryAST(std::unique_ptr<PredicateAST> p):
-		p(std::move(p)){}
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp , std::unique_ptr<PredicateAST> p, int op):
-		bp(std::move(bp)),p(std::move(p)), op(op){}
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST>bp, std::unique_ptr<SubqueryAST>sub,int op):
-		bp(std::move(bp)),sub(std::move(sub)),op(op){}
+	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<PredicateAST> p, 
+		int flag, int op,	std::unique_ptr<SubqueryAST> sub):
+		bp(std::move(bp)),p(std::move(p)),flag(flag),op(op),sub(std::move(sub)) {}
 };
 
-class PredicateAST :public BooleanPrimaryAST
+class PredicateAST
 {
 public:
-	std::unique_ptr<BitExprAST> bitexpr = nullptr;
+	std::unique_ptr<BitExprAST> bitexpr;
 	bool flag;
-	std::unique_ptr<BitExprAST> rhs = nullptr;
-	std::unique_ptr<SubqueryAST> sub = nullptr;
+	std::unique_ptr<BitExprAST> rhs;
+	std::unique_ptr<SubqueryAST> sub;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
 	PredicateAST() = default;
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr):
-		bitexpr(std::move(bitexpr)){}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<SubqueryAST> sub, bool flag) :
-		bitexpr(std::move(bitexpr)),sub(std::move(sub)),flag(flag){}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::unique_ptr<BitExprAST> rhs, bool flag) :
-		bitexpr(std::move(bitexpr)), rhs(std::move(rhs)), flag(flag) {}
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, std::vector<std::unique_ptr<ExprAST>> exprs, bool flag) :
-			bitexpr(std::move(bitexpr)),exprs(std::move(exprs)), flag(flag) {}
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, bool flag, 
+		std::unique_ptr<BitExprAST> rhs, std::unique_ptr<SubqueryAST> sub,std::vector<std::unique_ptr<ExprAST>> exprs) :
+			bitexpr(std::move(bitexpr)),flag(flag),rhs(std::move(rhs)),sub(std::move(sub)),exprs(std::move(exprs)){}
 };
 
-class BitExprAST :public PredicateAST
+class BitExprAST
 {
 public:
-	std::unique_ptr<BitExpAST> bitexp = nullptr;
+	std::unique_ptr<BitExprAST> bitexpr; 
 	int op;
-	std::unique_ptr<BitExprAST> bitexpr = nullptr;
+	std::unique_ptr<BitExpAST> bitexp;
 	BitExprAST() = default;
-	BitExprAST(std::unique_ptr<BitExpAST> bitexp):
-		bitexp(std::move(bitexp)){}
-	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op,std::unique_ptr<BitExpAST> bitexp) :
-		bitexp(std::move(bitexp)),op(op),bitexpr(std::move(bitexpr)){}
+	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op, std::unique_ptr<BitExpAST> bitexp) :
+		bitexpr(std::move(bitexpr)),op(op),bitexp(std::move(bitexp)){}
 };
 
-class BitExpAST :public BitExprAST
+class BitExpAST
 {
 public:
-	std::unique_ptr<BitExpAST> bitexp = nullptr;
+	std::unique_ptr<BitExpAST> bitexp;
 	int op;
-	std::unique_ptr<BitExAST> bitex = nullptr;
+	std::unique_ptr<BitExAST> bitex;
 	BitExpAST() = default;
-	BitExpAST(std::unique_ptr<BitExAST> bitex) :
-		bitex(std::move(bitex)) {}
-	BitExpAST(std::unique_ptr<BitExAST> bitex,int op, std::unique_ptr<BitExpAST> bitexp) :
+	BitExpAST(std::unique_ptr<BitExpAST> bitexp, int op, std::unique_ptr<BitExAST> bitex) :
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
 
-class BitExAST :public BitExpAST
+class BitExAST
 {
 public:
 	int mark;
-	std::unique_ptr<BitExAST> bitex = nullptr;
-	std::unique_ptr<SimpleExprAST> SE = nullptr;
+	std::unique_ptr<BitExAST> bitex;
+	std::unique_ptr<SimpleExprAST> SE;
 	BitExAST() = default;
-	BitExAST(int mark, std::unique_ptr<BitExAST> bitex) :
-		mark(mark), bitex(std::move(bitex)) {}
-	BitExAST(std::unique_ptr<SimpleExprAST> SE) :
-		SE(std::move(SE)) {}
+	BitExAST(int mark, std::unique_ptr<BitExAST> bitex, std::unique_ptr<SimpleExprAST> SE) :
+		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
 };
 
-class SimpleExprAST :public BitExAST
+class SimpleExprAST
 {
 public:
-	std::unique_ptr<IdAST> id = nullptr;
-	std::unique_ptr<CallAST> call = nullptr;
-	std::unique_ptr<TablecolAST> tablecol = nullptr;
-	std::unique_ptr<ExprAST> expr = nullptr;
-	std::unique_ptr<SubqueryAST> sub = nullptr;
-	std::unique_ptr<ExistsSubqueryAST> exists = nullptr;
-	std::unique_ptr<LiteralAST> lit = nullptr;
+	std::unique_ptr<IdAST> id;
+	std::unique_ptr<CallAST> call;
+	std::unique_ptr<TablecolAST> tablecol;
+	std::unique_ptr<ExprAST> expr;
+	std::unique_ptr<SubqueryAST> sub;
+	std::unique_ptr<ExistsSubqueryAST> exists;
+	std::unique_ptr<LiteralAST> lit;
 
 	SimpleExprAST() = default;
 	SimpleExprAST(std::unique_ptr<IdAST> id):id(std::move(id)){}
@@ -999,82 +1075,66 @@ public:
 	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
 };
 
-class IdAST final :public SimpleExprAST
+class IdAST final
 {
 public:
 	std::unique_ptr<std::string> id=nullptr;
 	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
 };
 
-class ColdefAST
+class TablecolAST
 {
 public:
-	std::unique_ptr<std::string> col_name = nullptr;
-	int dtype = 0;
-	bool nullable = true;
-	bool unique = false;
-	bool primary = false;
-	int n ;
-	ColdefAST() = default;
-	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary) :
-		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary) {}
-	ColdefAST(std::unique_ptr<std::string> colname, int dtype, bool nullable, bool unique, bool primary, int n) :
-		col_name(std::move(col_name)), dtype(dtype), nullable(nullable), unique(unique), primary(primary), n(n) {}
-};
-
-class TablecolAST final :SimpleExprAST
-{
-public:
-	std::unique_ptr<std::string> table_name = nullptr;
-	std::unique_ptr<std::string> col_name = nullptr;
-	TablecolAST(std::unique_ptr<std::string> col_name): col_name(std::move(col_name) ) {}
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<std::string> col_name;
 	TablecolAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name):
 		table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
 
-class CallAST final :public SimpleExprAST
+class CallAST
 {
 public:
-	std::unique_ptr<std::string> callee;
+	std::unique_ptr<IdAST> callee;
 	std::vector<std::unique_ptr<ExprAST>> args;
-	CallAST(std::unique_ptr<std::string> callee, std::vector<std::unique_ptr<ExprAST>> args)
+	CallAST(std::unique_ptr<IdAST> callee, std::vector<std::unique_ptr<ExprAST>> args)
 		: callee(std::move(callee) ), args(std::move(args)) {}
 };
 
-class LiteralAST :public SimpleExprAST
+class LiteralAST
 {
 public:
-	std::unique_ptr<IntLiteralAST> intvalue = nullptr;
-	std::unique_ptr<DoubleLiteralAST> doublevalue = nullptr;
-	std::unique_ptr<StringLiteralAST> stringvalue = nullptr;
+	std::unique_ptr<IntLiteralAST> intvalue;
+	std::unique_ptr<DoubleLiteralAST> doublevalue;
+	std::unique_ptr<StringLiteralAST> stringvalue ;
+	LiteralAST() = default;
 	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
 	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
 	LiteralAST(std::unique_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
 };
 
-class IntLiteralAST final :public LiteralAST
+class IntLiteralAST
 {
 public:
 	std::unique_ptr<int> value = nullptr;
 	IntLiteralAST(std::unique_ptr<int> value) :value(std::move(value)) {}
 };
 
-class DoubleLiteralAST final : public LiteralAST
+class DoubleLiteralAST
 {
 public:
 	std::unique_ptr<double> value = nullptr;
 	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
 };
 
-class StringLiteralAST final :public LiteralAST
+class StringLiteralAST
 {
 public:
-	std::unique_ptr<std::string> value = nullptr;
+	std::unique_ptr<std::string> value;
 	StringLiteralAST(std::unique_ptr<std::string> value) :value(std::move(value)) {}
 	
 };
 
-class ParenExprAST final :public SimpleExprAST
+class ParenExprAST
 {
 public:
 	std::unique_ptr<ExprAST> expr;
@@ -1082,82 +1142,130 @@ public:
 		expr(std::move(expr)) {}
 };
 
+class SubqueryAST
+{
+	//	handle select * from CASE
+	bool distinct_flag = false;
+	std::vector<std::unique_ptr<SelectExprAST>> exprs;
 
+	bool from_flag = false;
+	std::unique_ptr<TableRefsAST> tbrefs;
 
+	bool where_flag = false;
+	std::unique_ptr<ExprAST> wherecond;
 
+	bool group_flag = false;
+	std::vector<std::unique_ptr<ExprAST>> groupby_exprs;
 
+	bool having_flag = false;
+	std::unique_ptr<ExprAST> havingcond;
 
+	bool order_flag = false;
+	std::vector<std::unique_ptr<ExprAST>> orderby_exprs;
 
+public:
+	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
+		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
+		bool where_flag, std::unique_ptr<ExprAST> wherecond,		
+		bool group_flag, std::vector<std::unique_ptr<ExprAST>> groupby_exprs,
+		bool having_flag, std::unique_ptr<ExprAST> havingcond,
+		bool order_flag, std::vector<std::unique_ptr<ExprAST>> orderby_exprs):
+		distinct_flag(distinct_flag), exprs(std::move(exprs)),
+		from_flag(from_flag), tbrefs(std::move(tbrefs)),
+		where_flag(where_flag), wherecond(std::move(wherecond)),
+		group_flag(group_flag), groupby_exprs(std::move(groupby_exprs)),
+		having_flag(having_flag), havingcond(std::move(havingcond)),
+		order_flag(order_flag), orderby_exprs(std::move(orderby_exprs))
+	{}
+};
 
+class ExistsSubqueryAST
+{
+	std::unique_ptr<SubqueryAST> subquery;
+public:
+	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
+};
 
-class SubqueryAST;
-
-class TableRefAST
+class SelectExprAST
 {
 public:
-	std::string topalias;
-	TableRefAST() = default;
-	TableRefAST(const std::string& topalias) :topalias(topalias) {}
+	std::unique_ptr<ExprAST> expr;
+	std::unique_ptr<IdAST> alias;
+	SelectExprAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<IdAST> alias) :
+		expr(std::move(expr)), alias(std::move(alias)) {}
+
 };
 
 class TableRefsAST
 {
-	std::vector<std::unique_ptr<TableRefAST>> refs;
 public:
+	std::vector<std::unique_ptr<TableRefAST>> refs;
 	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
+};
+
+class TableRefAST
+{
+public:
+	std::unique_ptr<TableFactorAST> tbfactor;
+	std::unique_ptr<TRIJAST> trij;
+	std::unique_ptr<TRLROJAST> trlroj;
+	std::unique_ptr<TRNLROJAST> trnlroj;
+	TableRefAST() = default;
+	TableRefAST(std::unique_ptr<TableFactorAST> tbfactor, std::unique_ptr<TRIJAST> trij,
+	std::unique_ptr<TRLROJAST> trlroj, std::unique_ptr<TRNLROJAST> trnlroj):
+		tbfactor(std::move(tbfactor)),trij(std::move(trij)),trlroj(std::move(trlroj)),trnlroj(std::move(trnlroj)){}
+};
+
+class TableFactorAST
+{
+public:
+	std::unique_ptr<TableNameAST> tbname;
+	std::unique_ptr<TableQueryAST> tbsub;
+	std::unique_ptr<TableRefsAST> tbrefs;
+	TableFactorAST() = default;
+	TableFactorAST(std::unique_ptr<TableNameAST> tbname,std::unique_ptr<TableQueryAST> tbsub,
+		std::unique_ptr<TableRefsAST> tbrefs):
+		tbname(std::move(tbname)),tbsub(std::move(tbsub)),tbrefs(std::move(tbrefs)){}
 };
 
 class JoinCondAST
 {
-	;
-};
-
-
-
-class TableFactorAST :public TableRefAST
-{
-	;
-};
-
-class JoinTableAST :public TableRefAST
-{
-	;
-};
-
-class TableNameAST final :public TableFactorAST
-{
-	std::string name;
 public:
-	TableNameAST(const std::string& name) :name(name) {}
+	std::unique_ptr<OnJoinCondAST> oncond;
+	std::unique_ptr<UsingJoinCondAST> uselist;
+	JoinCondAST() = default;
+	JoinCondAST(std::unique_ptr<OnJoinCondAST> oncond, std::unique_ptr<UsingJoinCondAST> uselist):
+		oncond(std::move(oncond)),uselist(std::move(uselist)){}
 };
 
-class TableQueryAST final :public TableFactorAST
+class TableNameAST
 {
-	std::string alias;
+public:
+	std::unique_ptr<IdAST> tbname;
+	std::unique_ptr<IdAST> alias;
+	TableNameAST(std::unique_ptr<IdAST> tbname, std::unique_ptr<IdAST> alias) :
+		tbname(std::move(tbname)),alias(std::move(alias)) {}
+};
+
+class TableQueryAST
+{
+public:
 	std::unique_ptr<SubqueryAST> subq;
-public:
-	TableQueryAST(const std::string& alias, std::unique_ptr<SubqueryAST> subq) :
-		alias(alias), subq(std::move(subq)) {}
-
+	std::unique_ptr<IdAST> alias;
+	TableQueryAST(std::unique_ptr<SubqueryAST> subq, std::unique_ptr<IdAST> alias) :
+		subq(std::move(subq)), alias(std::move(alias)) {}
 };
 
-class ParenTableRefAST final :public TableFactorAST
-{
-	std::unique_ptr<TableRefsAST> refs;
-public:
-	ParenTableRefAST(std::unique_ptr<TableRefsAST> refs) :
-		refs(std::move(refs)) {}
-};
 
-class OnJoinCondAST final :public JoinCondAST
+class OnJoinCondAST
 {
+public:
 	std::unique_ptr<ExprAST> cond;
-public:
 	OnJoinCondAST(std::unique_ptr<ExprAST> cond) :
 		cond(std::move(cond)) {}
 };
 
-class UsingJoinCondAST final :public JoinCondAST
+class UsingJoinCondAST
 {
 public:
 	std::vector<std::unique_ptr<TablecolAST>> cols;
@@ -1165,227 +1273,235 @@ public:
 		cols(std::move(cols)) {}
 };
 
-class TRIJAST final :public JoinTableAST
+class TRIJAST
 {
+public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
 	std::unique_ptr<JoinCondAST> cond;
-public:
-	bool innerflag = false;
-	bool crossflag = false;
-	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
-		ref(std::move(ref)), factor(std::move(factor)), cond(nullptr) {}
-	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor, std::unique_ptr<JoinCondAST> cond) :
+	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,
+		std::unique_ptr<JoinCondAST> cond) :
 		ref(std::move(ref)), factor(std::move(factor)), cond(std::move(cond)) {}
 };
 
-class TRLROJAST final :public JoinTableAST
+class TRLROJAST
 {
+public:
 	std::unique_ptr<TableRefAST> lhs;
 	std::unique_ptr<TableRefAST> rhs;
 	std::unique_ptr<JoinCondAST> cond;
-public:
-	bool leftflag = false;
-	bool rightflag = false;
-	bool outerflag = false;
-	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond) :
-		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)) {}
+	int lr;
+	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
+		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)),lr(lr) {}
 };
 
-class TRNLROJAST final :public JoinTableAST
+class TRNLROJAST
 {
+public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
-public:
-	bool leftflag = false;
-	bool rightflag = false;
-	bool outerflag = false;
-	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor) :
-		ref(std::move(ref)), factor(std::move(factor)) {}
+	int lr;
+	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
+		ref(std::move(ref)), factor(std::move(factor)),lr(lr) {}
 };
-
-
-class SubqueryAST final :public SimpleExprAST
-{
-	//	handle select * from CASE
-	bool distinct_flag = false;
-	std::vector<std::unique_ptr<ExprAST>> exprs;
-
-	bool from_flag = false;
-	std::vector<std::unique_ptr<TableRefsAST>> tbrefs;
-
-	bool where_flag = false;  
-	std::unique_ptr<ExprAST> wherecond;
-
-	bool having_flag = false;  
-	std::unique_ptr<ExprAST> havingcond;
-
-	bool group_flag = false;  bool group_ASC = true;
-	std::vector<table_col> groupby_col_name;
-
-	bool order_flag = false;  bool order_ASC = true;
-	std::vector<table_col> orderby_col_name;
-
-public:
-	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<ExprAST>> exprs,
-		bool from_flag, std::vector<std::unique_ptr<TableRefsAST>> tbrefs,
-		bool where_flag, std::unique_ptr<ExprAST> wherecond,
-		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool group_flag, bool group_ASC,std::vector<table_col> groupby_col_name,
-		bool order_flag, bool order_ASC,std::vector<table_col> orderby_col_name
-	) :
-		distinct_flag(distinct_flag), exprs(std::move(exprs)),
-		from_flag(from_flag), tbrefs(std::move(tbrefs)),
-		where_flag(where_flag), wherecond(std::move(wherecond)),
-		having_flag(having_flag), havingcond(std::move(havingcond)),
-		group_flag(group_flag), group_ASC(group_ASC),groupby_col_name(std::move(groupby_col_name)),
-		order_flag(order_flag), order_ASC(order_ASC),orderby_col_name(std::move(orderby_col_name))
-	{}
-};
-
-class ExistsSubqueryAST final :public SimpleExprAST
-{
-	std::unique_ptr<SubqueryAST> subquery;
-public:
-	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
-};
-
-
-
 
 class StatementAST
 {
 public:
-	virtual ~StatementAST() = default;
+	std::unique_ptr<CreateAST> create;
+	std::unique_ptr<SelectAST> select;
+	std::unique_ptr<DropAST> drop;
+	std::unique_ptr<InsertAST> insert;
+	std::unique_ptr<DeleteAST> dele;
+	StatementAST() = default;
+	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select,
+		std::unique_ptr<DropAST> drop, std::unique_ptr<InsertAST> insert, std::unique_ptr<DeleteAST> dele):
+		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),insert(std::move(insert)),dele(std::move(dele)){}
 };
 
-
-
-class CreateAST :public StatementAST
+class CreateAST
 {
-	;
-};
-
-class CreateTableAST :public CreateAST
-{
-	;
-};
-
-
-
-class CreateTableSimpleAST :public CreateTableAST
-{
-	std::string table_name; 
-	std::vector<std::unique_ptr<ColdefAST>> create_defs;
 public:
-	CreateTableSimpleAST(const std::string table_name,std::vector<std::unique_ptr<ColdefAST>> create_defs) :
-		table_name(table_name), create_defs(std::move(create_defs)) {}
-	~CreateTableSimpleAST() = default;
+	std::unique_ptr<CreateTableAST> ctable;
+	std::unique_ptr<CreateIndexAST> cindex;
+	CreateAST() = default;
+	CreateAST(std::unique_ptr<CreateTableAST> ctable, std::unique_ptr<CreateIndexAST> cindex):
+		ctable(std::move(ctable)),cindex(std::move(cindex)){}
 };
 
-class CreateTableSelectAST :public CreateTableAST
+class CreateTableAST
 {
-	std::string table_name;
 public:
-	CreateTableSelectAST(const std::string& table_name) :
-		table_name(table_name) {}
+	std::unique_ptr< CreateTableSimpleAST> simplecreate;
+	std::unique_ptr<CreateTableSelectAST> selectcreate;
+	std::unique_ptr<CreateTableLikeAST> likecreate;
+	CreateTableAST() = default;
+	CreateTableAST(std::unique_ptr< CreateTableSimpleAST> simplecreate,
+		std::unique_ptr<CreateTableSelectAST> selectcreate, std::unique_ptr<CreateTableLikeAST> likecreate):
+		simplecreate(std::move(simplecreate)),selectcreate(std::move(selectcreate)),likecreate(std::move(likecreate)){}
 };
 
-class CreateTableLikeAST :public CreateTableAST
+class CreateTableSimpleAST
 {
-	std::string table_name;
-	std::string old_name;
 public:
-	CreateTableLikeAST(const std::string& table_name, const std::string& old_name) :
-		table_name(table_name), old_name(old_name) {}
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
+	CreateTableSimpleAST(std::unique_ptr<IdAST> table_name,std::vector<std::unique_ptr<CreatedefAST>> create_defs) :
+		table_name(std::move(table_name)), create_defs(std::move(create_defs)) {}
 };
 
-class CreateIndexAST :public CreateAST
+class CreateTableSelectAST
 {
-	std::string index_name;
-	std::string table_name;
-	std::string col_name;
 public:
-	CreateIndexAST(const std::string& index_name, const std::string& table_name, const std::string& col_name) :
-		index_name(index_name), table_name(table_name), col_name(col_name) {}
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<SelectExprAST> select;
+	CreateTableSelectAST(std::unique_ptr<std::string> table_name, std::unique_ptr<SelectExprAST> select) :
+		table_name(std::move(table_name)),select(std::move(select)) {}
 };
 
-class DropAST :public StatementAST {};
-
-class DropTableAST :public DropAST
+class CreateTableLikeAST
 {
-	std::vector<std::string> table_list;
-
 public:
-	DropTableAST(std::vector<std::string> table_list) : table_list(std::move(table_list)) {}
+	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<std::string> old_name;
+	CreateTableLikeAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> old_name) :
+		table_name(std::move(table_name)), old_name(std::move(old_name)) {}
 };
 
-class DropIndexAST :public DropAST
+class CreatedefAST
 {
-	std::string index_name;
-	std::string table_name;
 public:
-	DropIndexAST(const std::string& index_name, const std::string& table_name) :
-		index_name(std::move(index_name)), table_name(std::move(table_name)) {}
+	std::unique_ptr<IdAST> colname;
+	std::unique_ptr<ColdefAST> coldef;
+	std::unique_ptr<PrimaryAST> prim;
+	std::unique_ptr<UniqueAST> uni;
+	std::unique_ptr<ForeignAST> forei;
+	std::unique_ptr<ExprAST> check;
+	CreatedefAST(std::unique_ptr<IdAST> colname, std::unique_ptr<ColdefAST> coldef,
+		std::unique_ptr<PrimaryAST> prim, std::unique_ptr<UniqueAST> uni,
+		std::unique_ptr<ForeignAST> forei, std::unique_ptr<ExprAST> check) :
+		colname(std::move(colname)), coldef(std::move(coldef)), prim(std::move(prim)),
+		uni(std::move(uni)), forei(std::move(forei)), check(std::move(check)) {}
 };
 
-class InsertAST :public StatementAST
+class RefdefAST
 {
-	std::string table_name;
-	std::vector<std::string> col_name;
+public:
+	std::unique_ptr<IdAST> tbname;
+	std::vector<std::unique_ptr<IdAST>> colname;
+	int deleteop = 0;
+	int updateop = 0;
+	RefdefAST(std::unique_ptr<IdAST> tbname, std::vector<std::unique_ptr<IdAST>> colname, int deleteop,int updateop):
+		tbname(std::move(tbname)),colname(std::move(colname)),deleteop(deleteop),updateop(updateop){}
+};
+
+class ColdefAST
+{
+public:
+	std::unique_ptr<DatatypeAST> dtype;
+	bool null_flag = true;
+	std::unique_ptr<ExprAST> default_value;
+	bool unique_flag = false;
+	bool primary_flag = false;
+	std::unique_ptr<RefdefAST> refdef;
+	ColdefAST(std::unique_ptr<DatatypeAST> dtype, bool null_flag, std::unique_ptr<ExprAST> default_value,
+	bool unique_flag, bool primary_flag, std::unique_ptr<RefdefAST> refdef):
+		dtype(std::move(dtype)),null_flag(null_flag),default_value(std::move(default_value)),
+		unique_flag(unique_flag),primary_flag(primary_flag),refdef(std::move(refdef)){}
+};
+
+class DatatypeAST
+{
+public:
+	int dtype = 0;
+	int n = 0;
+	DatatypeAST(int dtype, int n) :dtype(dtype), n(n) {}
+};
+
+class ForeignAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	std::unique_ptr<RefdefAST> refdef;
+	ForeignAST(std::vector<std::unique_ptr<IdAST>> cols, std::unique_ptr<RefdefAST> refdef) :
+		cols(std::move(cols)),refdef(std::move(refdef)){}
+};
+
+class UniqueAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	UniqueAST(std::vector<std::unique_ptr<IdAST>> cols) :cols(std::move(cols)) {}
+};
+
+class PrimaryAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> cols;
+	PrimaryAST(std::vector<std::unique_ptr<IdAST>> cols):cols(std::move(cols)){}
+};
+
+class CreateIndexAST
+{
+public:
+	std::unique_ptr<IdAST> index_name;
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
+	CreateIndexAST(std::unique_ptr<IdAST> index_name,
+		std::unique_ptr<IdAST> table_name, std::vector<std::unique_ptr<IdAST>> col_names) :
+		index_name(std::move(index_name)), table_name(std::move(table_name)), col_names(std::move(col_names)) {}
+};
+
+class DropAST
+{
+public:
+	std::unique_ptr<DropTableAST> droptb;
+	std::unique_ptr<DropIndexAST> dropindex;
+	DropAST() = default;
+	DropAST(std::unique_ptr<DropTableAST> droptb, std::unique_ptr<DropIndexAST> dropindex):
+		droptb(std::move(droptb)),dropindex(std::move(dropindex)){}
+};
+
+class DropTableAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> table_list;
+	DropTableAST(std::vector<std::unique_ptr<IdAST>> table_list) : table_list(std::move(table_list)) {}
+};
+
+class DropIndexAST
+{
+public:
+	std::vector<std::unique_ptr<IdAST>> index_list;
+	DropIndexAST(std::vector<std::unique_ptr<IdAST>> index_list):index_list(std::move(index_list)){}
+};
+
+class InsertAST
+{
+public:
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
 	std::vector<std::unique_ptr<ExprAST>> value_list;
-public:
-	InsertAST(const std::string& table_name, std::vector<std::string>col_name, std::vector<std::unique_ptr<ExprAST>> value_list) :
-		table_name(table_name), col_name(std::move(col_name)), value_list(std::move(value_list)) {}
+	InsertAST(std::unique_ptr<IdAST> table_name,
+		std::vector<std::unique_ptr<IdAST>> col_names, std::vector<std::unique_ptr<ExprAST>> value_list) :
+		table_name(std::move(table_name)), col_names(std::move(col_names)), value_list(std::move(value_list)) {}
 };
 
-class DeleteAST :public StatementAST
+class DeleteAST
 {
-	std::string table_name;
+public:
+	std::unique_ptr<IdAST> table_name;
 	std::unique_ptr< ExprAST> where_condition;
-public:
-	DeleteAST(const std::string& table_name, std::unique_ptr<ExprAST>where_condition) :
-		table_name(table_name), where_condition(std::move(where_condition)) {}
+	DeleteAST(std::unique_ptr<IdAST> table_name, std::unique_ptr< ExprAST> where_condition) :
+		table_name(std::move(table_name)), where_condition(std::move(where_condition)) {}
 };
 
-class SelectAST :public StatementAST
+class SelectAST
 {
+public:
 	std::unique_ptr<SubqueryAST> subquery;
+	SelectAST(std::unique_ptr<SubqueryAST> subquery):
+		subquery(std::move(subquery)){}
 };
-
-
-void init_scanner();
-
-
-
-std::unique_ptr<ExprAST> ParseExprAST();
-std::unique_ptr<ExpAST> ParseExpAST();
-std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
-std::unique_ptr<PredicateAST> ParsePredicateAST();
-std::unique_ptr<BitExprAST> ParseBitExprAST();
-std::unique_ptr<BitExpAST> ParseBitExpAST();
-std::unique_ptr<BitExAST> ParseBitExAST();
-std::unique_ptr<SimpleExprAST> ParseSEAST();
-std::unique_ptr<LiteralAST> ParseLiteralAST();
-std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
-std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
-std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
-std::unique_ptr<TablecolAST> ParseTablecolAST();
-std::unique_ptr<ParenExprAST> ParseParenExprAST();
-std::unique_ptr<IdAST> ParseIdAST();
-std::unique_ptr<CallAST> ParseCallAST();
-std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
-std::unique_ptr<SubqueryAST> ParseSubqueryAST();
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
-std::unique_ptr<ColdefAST> ParseColdefAST();
-std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
-std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
-
-
-
-
 
 #endif // !llvmsql_h
-
-
-

@@ -76,22 +76,20 @@ subquery:
 select_expr:
     expr [AS alias]
 
+
 table_references:
-    table_reference [, table_reference ... ]
+    table_reference [, table_reference] ...
 
 table_reference:
     table_factor
-  | join_table
-
-table_factor:
-    tbl_name 
-  | table_subquery [AS] alias
-  | ( table_references )
-
-join_table:
-    table_reference [INNER | CROSS] JOIN table_factor [join_condition]
+  | table_reference [INNER | CROSS] JOIN table_factor [join_condition]
   | table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
   | table_reference NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
+
+table_factor:
+    tbl_name [[AS] alias]
+  | table_subquery AS alias
+  | ( table_references )
 
 join_condition:
     ON conditional_expr
