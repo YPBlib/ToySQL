@@ -1312,11 +1312,11 @@ public:
 	std::unique_ptr<SelectAST> select;
 	std::unique_ptr<DropAST> drop;
 	std::unique_ptr<InsertAST> insert;
+	std::unique_ptr<DeleteAST> dele;
 	StatementAST() = default;
 	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select,
-		std::unique_ptr<DropAST> drop, std::unique_ptr<InsertAST> insert):
-		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),insert(std::move(insert)){}
-	virtual ~StatementAST() = default;
+		std::unique_ptr<DropAST> drop, std::unique_ptr<InsertAST> insert, std::unique_ptr<DeleteAST> dele):
+		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),insert(std::move(insert)),dele(std::move(dele)){}
 };
 
 class CreateAST
@@ -1444,12 +1444,12 @@ public:
 class CreateIndexAST
 {
 public:
-	std::unique_ptr<std::string> index_name;
-	std::unique_ptr<std::string> table_name;
-	std::unique_ptr<std::string> col_name;
-	CreateIndexAST(std::unique_ptr<std::string> index_name,
-		std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name) :
-		index_name(std::move(index_name)), table_name(std::move(table_name)), col_name(std::move(col_name)) {}
+	std::unique_ptr<IdAST> index_name;
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
+	CreateIndexAST(std::unique_ptr<IdAST> index_name,
+		std::unique_ptr<IdAST> table_name, std::vector<std::unique_ptr<IdAST>> col_names) :
+		index_name(std::move(index_name)), table_name(std::move(table_name)), col_names(std::move(col_names)) {}
 };
 
 class DropAST
@@ -1465,36 +1465,34 @@ public:
 class DropTableAST
 {
 public:
-	std::vector<std::string> table_list;
-	DropTableAST(std::vector<std::string> table_list) : table_list(std::move(table_list)) {}
+	std::vector<std::unique_ptr<IdAST>> table_list;
+	DropTableAST(std::vector<std::unique_ptr<IdAST>> table_list) : table_list(std::move(table_list)) {}
 };
 
 class DropIndexAST
 {
 public:
-	std::unique_ptr<std::string> index_name;
-	std::unique_ptr<std::string> table_name;
-	DropIndexAST(std::unique_ptr<std::string> index_name, std::unique_ptr<std::string> table_name) :
-		index_name(std::move(index_name)), table_name(std::move(table_name)) {}
+	std::vector<std::unique_ptr<IdAST>> index_list;
+	DropIndexAST(std::vector<std::unique_ptr<IdAST>> index_list):index_list(std::move(index_list)){}
 };
 
 class InsertAST
 {
 public:
-	std::unique_ptr<std::string> table_name;
-	std::vector<std::string> col_name;
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
 	std::vector<std::unique_ptr<ExprAST>> value_list;
-	InsertAST(std::unique_ptr<std::string> table_name,
-		std::vector<std::string> col_name, std::vector<std::unique_ptr<ExprAST>> value_list) :
-		table_name(std::move(table_name)), col_name(std::move(col_name)), value_list(std::move(value_list)) {}
+	InsertAST(std::unique_ptr<IdAST> table_name,
+		std::vector<std::unique_ptr<IdAST>> col_names, std::vector<std::unique_ptr<ExprAST>> value_list) :
+		table_name(std::move(table_name)), col_names(std::move(col_names)), value_list(std::move(value_list)) {}
 };
 
 class DeleteAST
 {
 public:
-	std::unique_ptr<std::string> table_name;
+	std::unique_ptr<IdAST> table_name;
 	std::unique_ptr< ExprAST> where_condition;
-	DeleteAST(std::unique_ptr<std::string> table_name, std::unique_ptr< ExprAST> where_condition) :
+	DeleteAST(std::unique_ptr<IdAST> table_name, std::unique_ptr< ExprAST> where_condition) :
 		table_name(std::move(table_name)), where_condition(std::move(where_condition)) {}
 };
 

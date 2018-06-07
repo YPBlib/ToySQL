@@ -967,7 +967,7 @@ std::unique_ptr<ColdefAST> ParseColdefAST()
 
 std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 {
-	consumeit({ tok_CREATE }, "expect `CREATE`\n");
+	//consumeit({ tok_CREATE }, "expect `CREATE`\n");
 	consumeit({ tok_TABLE }, "expect `TABLE`\n");
 	auto Id = ParseIdAST();
 	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
@@ -990,19 +990,201 @@ std::unique_ptr<SelectAST> ParseSelectAST()
 	return llvm::make_unique<SelectAST>(std::move(subq));
 }
 
+std::unique_ptr<StatementAST> ParseStatementAST()
+{
+	std::unique_ptr<CreateAST> create;
+	std::unique_ptr<SelectAST> select;
+	std::unique_ptr<DropAST> drop;
+	std::unique_ptr<InsertAST> insert;
+	std::unique_ptr<DeleteAST> dele;
+	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET || 
+	currtoken.token_value.symbol_mark == tok_INSERT ||currtoken.token_value.symbol_mark == tok_SELECT || 
+		currtoken.token_value.symbol_mark == tok_CREATE ||currtoken.token_value.symbol_mark == tok_DROP || 
+		currtoken.token_value.symbol_mark == tok_DELETE|| currtoken.token_value.symbol_mark == semicolon_mark))
+	{
+		if (currtoken.token_value.symbol_mark == tok_SET)
+		{
+			;
+		} 
+		else if (currtoken.token_value.symbol_mark == tok_INSERT)
+		{
+			insert = ParseInsertAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_SELECT)
+		{
+			select = ParseSelectAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_CREATE)
+		{
+			create = ParseCreateAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_DROP)
+		{
+			drop = ParseDropAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_DELETE)
+		{
+			dele = ParseDeleteAST();
+		}
+		else if (currtoken.token_value.symbol_mark == semicolon_mark)
+		{
+			;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("statement sentence can only begin with SET/INSERT/SELECT/CREATE/DROP/INSERT/DELETE/; \n");
+		return nullptr;
+	}
+	return llvm::make_unique<StatementAST>(std::move(create), std::move(select),
+		std::move(drop), std::move(insert), std::move(dele));
+}
 
+std::unique_ptr<CreateAST> ParseCreateAST()
+{
+	std::unique_ptr<CreateTableAST> ctable;
+	std::unique_ptr<CreateIndexAST> cindex; 
+	consumeit({ tok_CREATE }, "expect CREATE\n");
+	if (currtoken.token_kind == symbol)
+	{
+		if (currtoken.token_value.symbol_mark == tok_TABLE)
+		{
+			ctable = ParseCreateTableAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_INDEX)
+		{
+			cindex = ParseCreateIndexAST();
+		}
+		else
+		{
+			throw std::runtime_error("can only create TABLE/INDEX\n");
+		}
+	}
+	else
+	{
+		throw std::runtime_error("can only create TABLE/INDEX\n");
+	}
+	return llvm::make_unique<CreateAST>(std::move(ctable), std::move(cindex));
+}
 
-std::unique_ptr<StatementAST> ParseStatementAST();
-std::unique_ptr<CreateAST> ParseCreateAST();
-std::unique_ptr<CreateTableAST> ParseCreateTableAST();
+std::unique_ptr<CreateTableAST> ParseCreateTableAST()
+{
+	std::unique_ptr< CreateTableSimpleAST> simplecreate;
+	std::unique_ptr<CreateTableSelectAST> selectcreate;
+	std::unique_ptr<CreateTableLikeAST> likecreate;
+	simplecreate = ParseCreateTableSimpleAST();
+	return llvm::make_unique<CreateTableAST>(std::move(simplecreate), std::move(selectcreate), std::move(likecreate));
+}
+
+std::unique_ptr<CreateIndexAST> ParseCreateIndexAST()
+{
+	std::unique_ptr<IdAST> index_name;
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
+	consumeit({ tok_INDEX }, "expect INDEX\n");
+	index_name = ParseIdAST();
+	consumeit({ tok_ON }, "expect ON\n");
+	table_name = ParseIdAST();
+	consumeit({ left_bracket_mark }, "expect '('\n");
+	col_names.push_back(ParseIdAST());
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+	{
+		consumeit({ comma_mark }, "expect ','");
+		col_names.push_back(ParseIdAST());
+	}
+	consumeit({ right_bracket_mark }, "expect ')'\n");
+	consumeit({ delimiter }, "expect delimiter \n");
+	return llvm::make_unique<CreateIndexAST>(std::move(index_name),std::move( table_name), std::move(col_names));
+}
+
+std::unique_ptr<DropAST> ParseDropAST()
+{
+	std::unique_ptr<DropTableAST> droptb;
+	std::unique_ptr<DropIndexAST> dropindex;
+	consumeit({ tok_DROP }, "expect DROP \n");
+	if (currtoken.token_kind == symbol)
+	{
+		if (currtoken.token_value.symbol_mark == tok_TABLE)
+		{
+			droptb = ParseDropTableAST();
+		}
+		else if (currtoken.token_value.symbol_mark == tok_INDEX)
+		{
+			dropindex = ParseDropIndexAST();
+		}
+		else
+		{
+			throw std::runtime_error("can only drop TABLE/INDEX \n");
+			return nullptr;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("can only drop TABLE/INDEX \n");
+		return nullptr;
+	}
+	return llvm::make_unique<DropAST>(std::move(droptb), std::move(dropindex));
+}
+
+std::unique_ptr<DropTableAST> ParseDropTableAST()
+{
+	consumeit({ tok_TABLE }, "expect TABLE \n");
+	std::vector<std::unique_ptr<IdAST>> table_list;
+	table_list.push_back(ParseIdAST());
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+	{
+		consumeit({ comma_mark }, "expect ','\n");
+		table_list.push_back(ParseIdAST());
+	}
+	return llvm::make_unique<DropTableAST>(std::move(table_list));
+}
+
+std::unique_ptr<DropIndexAST> ParseDropIndexAST()
+{
+	consumeit({ tok_INDEX }, "expect INDEX \n");
+	std::vector<std::unique_ptr<IdAST>> table_list;
+	table_list.push_back(ParseIdAST());
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+	{
+		consumeit({ comma_mark }, "expect ','\n");
+		table_list.push_back(ParseIdAST());
+	}
+	return llvm::make_unique<DropIndexAST>(std::move(table_list));
+}
+
+std::unique_ptr<InsertAST> ParseInsertAST()
+{
+	std::unique_ptr<IdAST> table_name;
+	std::vector<std::unique_ptr<IdAST>> col_names;
+	std::vector<std::unique_ptr<ExprAST>> value_list;
+	consumeit({ tok_INSERT }, "expect INSERT\n");
+	consumeit({ tok_INTO }, "expect INTO\n");
+	table_name = ParseIdAST();
+	consumeit({ tok_VALUES,tok_VALUE }, "expect VALUES/VALUE \n");
+	consumeit({ left_bracket_mark }, "expect '(' \n");
+	value_list.push_back(ParseExprAST());
+	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
+	{
+		consumeit({ comma_mark }, "expect ',' \n");
+		value_list.push_back(ParseExprAST());
+	}
+	return llvm::make_unique<InsertAST>(std::move(table_name), std::move(col_names),std::move( value_list));
+}
+
+std::unique_ptr<DeleteAST> ParseDeleteAST()
+{
+	std::unique_ptr<IdAST> table_name;
+	std::unique_ptr< ExprAST> where_condition;
+	consumeit({ tok_DELETE }, "expect DELETE\n");
+	consumeit({ tok_FROM }, "expect FROM\n");
+	table_name = ParseIdAST();
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_WHERE)
+	{
+		consumeit({ tok_FROM }, "expect WHERE\n");
+		where_condition = ParseExprAST();
+	}
+	return llvm::make_unique<DeleteAST>(std::move(table_name), std::move(where_condition));
+}
+
 std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
 std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
-std::unique_ptr<CreateIndexAST> ParseCreateIndexAST();
-std::unique_ptr<DropAST> ParseDropAST();
-std::unique_ptr<DropTableAST> ParseDropTableAST();
-std::unique_ptr<DropIndexAST> ParseDropIndexAST();
-std::unique_ptr<InsertAST> ParseInsertAST();
-std::unique_ptr<DeleteAST> ParseDeleteAST();
-
-
-
