@@ -979,7 +979,6 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 		create_defs.push_back(ParseCreatedefAST());
 	}
 	consumeit({ right_bracket_mark }, "expect `)`\n");
-	consumeit({ delimiter }, "expect delimiter \n");
 	return llvm::make_unique<CreateTableSimpleAST>(std::move(Id),std::move(create_defs));
 }
 
@@ -997,6 +996,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 	std::unique_ptr<DropAST> drop;
 	std::unique_ptr<InsertAST> insert;
 	std::unique_ptr<DeleteAST> dele;
+	std::unique_ptr<SetAST> setvar;
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET || 
 	currtoken.token_value.symbol_mark == tok_INSERT ||currtoken.token_value.symbol_mark == tok_SELECT || 
 		currtoken.token_value.symbol_mark == tok_CREATE ||currtoken.token_value.symbol_mark == tok_DROP || 
@@ -1004,7 +1004,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 	{
 		if (currtoken.token_value.symbol_mark == tok_SET)
 		{
-			;
+			setvar = ParseSetAST();
 		} 
 		else if (currtoken.token_value.symbol_mark == tok_INSERT)
 		{
@@ -1030,6 +1030,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 		{
 			;
 		}
+		consumeit({ delimiter }, "expect delimiter\n");
 	}
 	else
 	{
@@ -1037,7 +1038,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 		return nullptr;
 	}
 	return llvm::make_unique<StatementAST>(std::move(create), std::move(select),
-		std::move(drop), std::move(insert), std::move(dele));
+		std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
 }
 
 std::unique_ptr<CreateAST> ParseCreateAST()
@@ -1184,6 +1185,16 @@ std::unique_ptr<DeleteAST> ParseDeleteAST()
 		where_condition = ParseExprAST();
 	}
 	return llvm::make_unique<DeleteAST>(std::move(table_name), std::move(where_condition));
+}
+
+std::unique_ptr<SetAST> ParseSetAST()
+{
+	consumeit({ at_mark }, "expect `@` \n");
+	unique_ptr<IdAST> id;
+	unique_ptr<ExprAST> expr;
+	id = ParseIdAST();
+	expr = ParseExprAST();
+	return llvm::make_unique<SetAST>(std::move(id), std::move(expr));
 }
 
 std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();

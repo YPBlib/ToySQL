@@ -25,6 +25,8 @@
 #include <vector>
 #include<exception>
 #define LL_LRLen 6
+using std::unique_ptr;
+
 
 enum reserved_token_value
 {
@@ -908,6 +910,8 @@ class DatatypeAST;
 class PrimaryAST;
 class UniqueAST;
 class ForeignAST;
+class SetAST;
+
 
 
 std::unique_ptr<ExprAST> ParseExprAST();
@@ -964,7 +968,7 @@ std::unique_ptr<DatatypeAST> ParseDatatypeAST();
 std::unique_ptr<PrimaryAST> ParsePrimaryAST();
 std::unique_ptr<UniqueAST> ParseUniqueAST();
 std::unique_ptr<ForeignAST> ParseForeignAST();
-
+std::unique_ptr<SetAST> ParseSetAST();
 
 token gettok();
 void init_scanner();
@@ -1305,6 +1309,8 @@ public:
 		ref(std::move(ref)), factor(std::move(factor)),lr(lr) {}
 };
 
+
+
 class StatementAST
 {
 public:
@@ -1313,10 +1319,12 @@ public:
 	std::unique_ptr<DropAST> drop;
 	std::unique_ptr<InsertAST> insert;
 	std::unique_ptr<DeleteAST> dele;
+	std::unique_ptr<SetAST> setvar;
 	StatementAST() = default;
-	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select,
-		std::unique_ptr<DropAST> drop, std::unique_ptr<InsertAST> insert, std::unique_ptr<DeleteAST> dele):
-		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),insert(std::move(insert)),dele(std::move(dele)){}
+	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select, std::unique_ptr<DropAST> drop,
+		std::unique_ptr<InsertAST> insert, std::unique_ptr<DeleteAST> dele, std::unique_ptr<SetAST> setvar):
+		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),
+		insert(std::move(insert)),dele(std::move(dele)),setvar(std::move(setvar)){}
 };
 
 class CreateAST
@@ -1502,6 +1510,15 @@ public:
 	std::unique_ptr<SubqueryAST> subquery;
 	SelectAST(std::unique_ptr<SubqueryAST> subquery):
 		subquery(std::move(subquery)){}
+};
+
+class SetAST
+{
+public:
+	unique_ptr<IdAST> id;
+	unique_ptr<ExprAST> expr;
+	SetAST(unique_ptr<IdAST> id, unique_ptr<ExprAST> expr) :id(std::move(id)), expr(std::move(expr)) {}
+	llvm::Value* codegen();
 };
 
 #endif // !llvmsql_h

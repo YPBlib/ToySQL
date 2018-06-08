@@ -451,6 +451,15 @@ Value *LogErrorV(const char *Str)
 	return nullptr;
 }
 
+Value* SetAST::codegen()
+{
+	std::string Name = *(id->id.get());
+	Value *V = NamedValues[Name];
+	if (!V)
+		return LogErrorV("Unknown variable name");
+	return V;
+}
+
 Value *doubleLiteralAST::codegen()
 {
 	return ConstantFP::get(TheContext, APFloat(Val));
