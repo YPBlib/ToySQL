@@ -3,7 +3,7 @@ class Statement
 public:
     int whichtype;   //  1 <= type <= 9 according below
     virtual ~Statement()=default;
-    virtual Statement* APIParse()=0;
+    virtual Statement* APIParse(unique_ptr<StatementAST> s)=0;
 };
 
 9 subclasses:
@@ -18,7 +18,7 @@ $3: string indexname
 3. select
 $1: vector<string tablename, string colname>
 $2: vector<string> tablesets
-$3: ExprAST wherecond>
+$3: unique_ptr<ExprAST> wherecond>
 4. insert
 $1: string tablename
 $2: vector<int[2]> values
