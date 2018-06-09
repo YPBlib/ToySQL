@@ -1053,6 +1053,7 @@ public:
 	int mark;
 	std::unique_ptr<BitExAST> bitex;
 	std::unique_ptr<SimpleExprAST> SE;
+	llvm::Value* codegen();
 	BitExAST() = default;
 	BitExAST(int mark, std::unique_ptr<BitExAST> bitex, std::unique_ptr<SimpleExprAST> SE) :
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
@@ -1068,7 +1069,7 @@ public:
 	std::unique_ptr<SubqueryAST> sub;
 	std::unique_ptr<ExistsSubqueryAST> exists;
 	std::unique_ptr<LiteralAST> lit;
-
+	llvm::Value* codegen();
 	SimpleExprAST() = default;
 	SimpleExprAST(std::unique_ptr<IdAST> id):id(std::move(id)){}
 	SimpleExprAST(std::unique_ptr<CallAST> call) :call(std::move(call)) {}
@@ -1083,6 +1084,7 @@ class IdAST final
 {
 public:
 	std::unique_ptr<std::string> id=nullptr;
+	llvm::Value* codegen();
 	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
 };
 
@@ -1100,6 +1102,7 @@ class CallAST
 public:
 	std::unique_ptr<IdAST> callee;
 	std::vector<std::unique_ptr<ExprAST>> args;
+	llvm::Value* codegen();
 	CallAST(std::unique_ptr<IdAST> callee, std::vector<std::unique_ptr<ExprAST>> args)
 		: callee(std::move(callee) ), args(std::move(args)) {}
 };
@@ -1110,6 +1113,7 @@ public:
 	std::unique_ptr<IntLiteralAST> intvalue;
 	std::unique_ptr<DoubleLiteralAST> doublevalue;
 	std::unique_ptr<StringLiteralAST> stringvalue ;
+	llvm::Value* codegen();
 	LiteralAST() = default;
 	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
 	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
@@ -1121,6 +1125,7 @@ class IntLiteralAST
 public:
 	std::unique_ptr<int> value = nullptr;
 	IntLiteralAST(std::unique_ptr<int> value) :value(std::move(value)) {}
+	llvm::Value* codegen();
 };
 
 class DoubleLiteralAST
@@ -1128,12 +1133,14 @@ class DoubleLiteralAST
 public:
 	std::unique_ptr<double> value = nullptr;
 	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
+	llvm::Value* codegen();
 };
 
 class StringLiteralAST
 {
 public:
 	std::unique_ptr<std::string> value;
+	llvm::Value* codegen();
 	StringLiteralAST(std::unique_ptr<std::string> value) :value(std::move(value)) {}
 	
 };
@@ -1142,12 +1149,14 @@ class ParenExprAST
 {
 public:
 	std::unique_ptr<ExprAST> expr;
+	llvm::Value* codegen();
 	ParenExprAST(std::unique_ptr<ExprAST> expr) :
 		expr(std::move(expr)) {}
 };
 
 class SubqueryAST
 {
+public:
 	//	handle select * from CASE
 	bool distinct_flag = false;
 	std::vector<std::unique_ptr<SelectExprAST>> exprs;
@@ -1166,8 +1175,9 @@ class SubqueryAST
 
 	bool order_flag = false;
 	std::vector<std::unique_ptr<ExprAST>> orderby_exprs;
+	llvm::Value* codegen();
 
-public:
+
 	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
 		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
 		bool where_flag, std::unique_ptr<ExprAST> wherecond,		

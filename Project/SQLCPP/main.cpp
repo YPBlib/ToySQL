@@ -1,4 +1,5 @@
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -451,14 +452,6 @@ Value *LogErrorV(const char *Str)
 	return nullptr;
 }
 
-Value* SetAST::codegen()
-{
-	std::string Name = *(id->id.get());
-	Value *V = NamedValues[Name];
-	if (!V)
-		return LogErrorV("Unknown variable name");
-	return V;
-}
 
 Value *doubleLiteralAST::codegen()
 {
@@ -572,6 +565,62 @@ Function *FunctionAST::codegen()
 	TheFunction->eraseFromParent();
 	return nullptr;
 }
+//===----------------------------------------------------------------------===//
+// hack begin
+//===----------------------------------------------------------------------===//
+
+static LLVMContext SQLContext;	// owns a lot of core LLVM data structures, such as the type and constant value tables
+static IRBuilder<> SQLBuilder(SQLContext);	// keep track of the current place to insert instructions and has methods to create new instructions
+static std::unique_ptr<Module> SQLModule;	//top-level structure, own the memory for all of the IR that we generate
+static std::map<std::string, Value*> VarValues;	// symbol table
+
+Value* LogErrorG(const char* e)
+{
+	throw std::runtime_error(e);
+	return nullptr;
+}
+
+Value* IntLiteralAST::codegen()
+{
+	return ConstantInt::get(SQLContext, APInt(32,*value.get()));
+}
+
+Value* DoubleLiteralAST::codegen()
+{
+	return ConstantFP::get(SQLContext, APFloat(*value.get()));
+}
+
+Value* LiteralAST::codegen()
+{
+	if (intvalue != nullptr)
+	{
+		return intvalue->codegen();
+	}
+	if (doublevalue != nullptr)
+	{
+		return doublevalue->codegen();
+	}
+	return stringvalue->codegen();
+}
+
+
+Value* StringLiteralAST::codegen()
+{
+	return nullptr;
+}
+
+Value* SetAST::codegen()
+{
+	std::string name = *(id->id.get());
+	Value *V = VarValues[name];
+	if (!V)
+		return LogErrorG("Unknown variable name");
+	return V;
+}
+
+//===----------------------------------------------------------------------===//
+// hack end
+//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 // Top-Level parsing and JIT Driver
@@ -667,6 +716,7 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	init_parser();
+	/**
 	try
 	{
 		auto z = ParseSelectAST();
@@ -687,6 +737,7 @@ int main()
 	
 	
 	ParseLiteralAST();
+	*/
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;
