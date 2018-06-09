@@ -580,6 +580,32 @@ Value* LogErrorG(std::string e)
 	return nullptr;
 }
 
+/*
+Value* IdAST::codegen()
+{
+	return ArrayType::get();
+	
+}
+*/
+
+Value* TablecolAST::codegen()
+{
+	;
+}
+
+Function* function_body_codegen()
+{
+	BasicBlock* x;	// entry
+}
+
+Function* codegen_for_future_use()
+{
+	std::vector<Type*> Doubles(3u, Type::getDoubleTy(SQLContext));
+	FunctionType* ft= FunctionType::get(Type::getDoubleTy(SQLContext), Doubles, false);
+	Function* f = Function::Create(ft, Function::ExternalLinkage, "anonymous", SQLModule.get());
+	return f;
+}
+
 Value* CallAST::codegen()
 {
 	Function* calleeF = SQLModule->getFunction(*(callee->id.get()));
@@ -616,7 +642,7 @@ Value* BitExpAST::codegen()
 		}
 		case mod_mark:
 		{
-			return Builder.CreateSub(bitexp->codegen(), Builder.CreateMul(bitexp->codegen(), bitex->codegen()));
+			return Builder.CreateSRem(bitexp->codegen(), bitex->codegen());
 		}
 		default:
 			return nullptr;
