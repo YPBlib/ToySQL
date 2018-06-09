@@ -981,7 +981,7 @@ public:
 	std::unique_ptr<ExpAST> lhs;
 	int op;
 	std::unique_ptr<ExprAST> rhs;
-	virtual ~ExprAST() = default;
+	llvm::Value* codegen();
 	ExprAST() = default;
 	ExprAST(std::unique_ptr<ExpAST> lhs, int op, std::unique_ptr<ExprAST> rhs):
 		lhs(std::move(lhs)),op(op) ,rhs(std::move(rhs)){}
@@ -992,6 +992,7 @@ class ExpAST
 public:
 	std::unique_ptr<ExprAST> expr;
 	std::unique_ptr<BooleanPrimaryAST> bp;
+	llvm::Value* codegen();
 	ExpAST() = default;
 	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp) :
 		expr(std::move(expr)),bp(std::move(bp)){}
@@ -1005,6 +1006,7 @@ public:
 	int flag = 0;
 	int op = 0;
 	std::unique_ptr<SubqueryAST> sub;
+	llvm::Value* codegen();
 	BooleanPrimaryAST() = default;
 	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<PredicateAST> p, 
 		int flag, int op,	std::unique_ptr<SubqueryAST> sub):
@@ -1019,6 +1021,7 @@ public:
 	std::unique_ptr<BitExprAST> rhs;
 	std::unique_ptr<SubqueryAST> sub;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
+	llvm::Value* codegen();
 	PredicateAST() = default;
 	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, bool flag, 
 		std::unique_ptr<BitExprAST> rhs, std::unique_ptr<SubqueryAST> sub,std::vector<std::unique_ptr<ExprAST>> exprs) :
@@ -1031,6 +1034,7 @@ public:
 	std::unique_ptr<BitExprAST> bitexpr; 
 	int op;
 	std::unique_ptr<BitExpAST> bitexp;
+	llvm::Value* codegen();
 	BitExprAST() = default;
 	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op, std::unique_ptr<BitExpAST> bitexp) :
 		bitexpr(std::move(bitexpr)),op(op),bitexp(std::move(bitexp)){}
@@ -1042,6 +1046,7 @@ public:
 	std::unique_ptr<BitExpAST> bitexp;
 	int op;
 	std::unique_ptr<BitExAST> bitex;
+	llvm::Value* codegen();
 	BitExpAST() = default;
 	BitExpAST(std::unique_ptr<BitExpAST> bitexp, int op, std::unique_ptr<BitExAST> bitex) :
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
@@ -1050,7 +1055,7 @@ public:
 class BitExAST
 {
 public:
-	int mark;
+	int mark = 0;
 	std::unique_ptr<BitExAST> bitex;
 	std::unique_ptr<SimpleExprAST> SE;
 	llvm::Value* codegen();

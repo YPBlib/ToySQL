@@ -574,20 +574,77 @@ static IRBuilder<> SQLBuilder(SQLContext);	// keep track of the current place to
 static std::unique_ptr<Module> SQLModule;	//top-level structure, own the memory for all of the IR that we generate
 static std::map<std::string, Value*> VarValues;	// symbol table
 
-Value* LogErrorG(const char* e)
+Value* LogErrorG(std::string e)
 {
 	throw std::runtime_error(e);
 	return nullptr;
 }
 
-Value* IntLiteralAST::codegen()
+Value* CallAST::codegen()
 {
-	return ConstantInt::get(SQLContext, APInt(32,*value.get()));
+	Function* calleeF = SQLModule->getFunction(*(callee->id.get()));
+	if (calleeF->arg_size() != args.size())
+	{
+		return LogErrorG("Incorrect args passed \n");
+	}
+	std::vector<Value*> vec;
+	for (auto e = args.size(), i = 0u; i != e; ++i)
+	{
+		vec.push_back(args[i]->codegen());
+		if (!vec.back())return nullptr;
+	}
+	return Builder.CreateCall(calleeF, vec, "tempcall");
 }
 
-Value* DoubleLiteralAST::codegen()
+Value* BitExpAST::codegen()
 {
-	return ConstantFP::get(SQLContext, APFloat(*value.get()));
+	if (bitexp == nullptr&&op == 0)
+	{
+		return bitex->codegen();
+	}
+	else
+	{
+		switch (op)
+		{
+		case mult_mark:
+		{
+			return Builder.CreateFMul(bitexp->codegen(), bitex->codegen());
+		}
+		case div_mark:
+		{
+			return Builder.CreateFDiv(bitexp->codegen(), bitex->codegen());
+		}
+		case mod_mark:
+		{
+			return Builder.CreateSub(bitexp->codegen(), Builder.CreateMul(bitexp->codegen(), bitex->codegen()));
+		}
+		default:
+			return nullptr;
+		}
+	}
+}
+
+Value* BitExAST::codegen()
+{
+	if (SE != nullptr&&mark==0)
+		return SE->codegen();
+	else if (mark == plus_mark)
+	{
+		return bitex->codegen();
+	}
+	else if (mark == minus_mark)
+	{
+		return Builder.CreateNeg(bitex->codegen());
+	}
+	else return LogErrorG("mark in BitExAST can only be 0/+/- \n");
+}
+
+Value* SimpleExprAST::codegen()
+{
+	if (lit != nullptr)
+	{
+		return lit->codegen();
+	}
 }
 
 Value* LiteralAST::codegen()
@@ -603,6 +660,15 @@ Value* LiteralAST::codegen()
 	return stringvalue->codegen();
 }
 
+Value* IntLiteralAST::codegen()
+{
+	return ConstantInt::get(SQLContext, APInt(32,*value.get()));
+}
+
+Value* DoubleLiteralAST::codegen()
+{
+	return ConstantFP::get(SQLContext, APFloat(*value.get()));
+}
 
 Value* StringLiteralAST::codegen()
 {
