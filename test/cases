@@ -1,3 +1,13 @@
+class Statement
+{
+public:
+    int whichtype;   //  1 <= type <= 9 according below
+    virtual ~Statement()=default;
+    virtual Statement* APIParse()=0;
+};
+
+9 subclasses:
+
 1. create table
 $1: string tablename
 $2: vector<string colname,int[2] datatype,bool unique,bool primary>
