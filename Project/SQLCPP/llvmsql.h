@@ -1098,6 +1098,7 @@ class TablecolAST
 public:
 	std::unique_ptr<std::string> table_name;
 	std::unique_ptr<std::string> col_name;
+	llvm::Value* codegen();
 	TablecolAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name):
 		table_name(std::move(table_name)), col_name(std::move(col_name)) {}
 };
