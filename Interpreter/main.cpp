@@ -1,4 +1,5 @@
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -451,6 +452,7 @@ Value *LogErrorV(const char *Str)
 	return nullptr;
 }
 
+
 Value *doubleLiteralAST::codegen()
 {
 	return ConstantFP::get(TheContext, APFloat(Val));
@@ -563,6 +565,155 @@ Function *FunctionAST::codegen()
 	TheFunction->eraseFromParent();
 	return nullptr;
 }
+//===----------------------------------------------------------------------===//
+// hack begin
+//===----------------------------------------------------------------------===//
+/*
+static LLVMContext SQLContext;	// owns a lot of core LLVM data structures, such as the type and constant value tables
+static IRBuilder<> SQLBuilder(SQLContext);	// keep track of the current place to insert instructions and has methods to create new instructions
+static std::unique_ptr<Module> SQLModule;	//top-level structure, own the memory for all of the IR that we generate
+static std::map<std::string, Value*> VarValues;	// symbol table
+
+Value* LogErrorG(std::string e)
+{
+	throw std::runtime_error(e);
+	return nullptr;
+}
+*/
+/*
+Value* IdAST::codegen()
+{
+	return ArrayType::get();
+	
+}
+*/
+/*
+Value* TablecolAST::codegen()
+{
+	;
+}
+*/
+/*
+Function* function_body_codegen()
+{
+	BasicBlock* x;	// entry
+}
+
+Function* codegen_for_future_use()
+{
+	std::vector<Type*> Doubles(3u, Type::getDoubleTy(SQLContext));
+	FunctionType* ft= FunctionType::get(Type::getDoubleTy(SQLContext), Doubles, false);
+	Function* f = Function::Create(ft, Function::ExternalLinkage, "anonymous", SQLModule.get());
+	return f;
+}
+
+Value* CallAST::codegen()
+{
+	Function* calleeF = SQLModule->getFunction(*(callee->id.get()));
+	if (calleeF->arg_size() != args.size())
+	{
+		return LogErrorG("Incorrect args passed \n");
+	}
+	std::vector<Value*> vec;
+	for (auto e = args.size(), i = 0u; i != e; ++i)
+	{
+		vec.push_back(args[i]->codegen());
+		if (!vec.back())return nullptr;
+	}
+	return Builder.CreateCall(calleeF, vec, "tempcall");
+}
+
+Value* BitExpAST::codegen()
+{
+	if (bitexp == nullptr&&op == 0)
+	{
+		return bitex->codegen();
+	}
+	else
+	{
+		switch (op)
+		{
+		case mult_mark:
+		{
+			return Builder.CreateFMul(bitexp->codegen(), bitex->codegen());
+		}
+		case div_mark:
+		{
+			return Builder.CreateFDiv(bitexp->codegen(), bitex->codegen());
+		}
+		case mod_mark:
+		{
+			return Builder.CreateSRem(bitexp->codegen(), bitex->codegen());
+		}
+		default:
+			return nullptr;
+		}
+	}
+}
+
+Value* BitExAST::codegen()
+{
+	if (SE != nullptr&&mark==0)
+		return SE->codegen();
+	else if (mark == plus_mark)
+	{
+		return bitex->codegen();
+	}
+	else if (mark == minus_mark)
+	{
+		return Builder.CreateNeg(bitex->codegen());
+	}
+	else return LogErrorG("mark in BitExAST can only be 0/+/- \n");
+}
+
+Value* SimpleExprAST::codegen()
+{
+	if (lit != nullptr)
+	{
+		return lit->codegen();
+	}
+}
+
+Value* LiteralAST::codegen()
+{
+	if (intvalue != nullptr)
+	{
+		return intvalue->codegen();
+	}
+	if (doublevalue != nullptr)
+	{
+		return doublevalue->codegen();
+	}
+	return stringvalue->codegen();
+}
+
+Value* IntLiteralAST::codegen()
+{
+	return ConstantInt::get(SQLContext, APInt(32,*value.get()));
+}
+
+Value* DoubleLiteralAST::codegen()
+{
+	return ConstantFP::get(SQLContext, APFloat(*value.get()));
+}
+
+Value* StringLiteralAST::codegen()
+{
+	return nullptr;
+}
+
+Value* SetAST::codegen()
+{
+	std::string name = *(id->id.get());
+	Value *V = VarValues[name];
+	if (!V)
+		return LogErrorG("Unknown variable name");
+	return V;
+}
+*/
+//===----------------------------------------------------------------------===//
+// hack end
+//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 // Top-Level parsing and JIT Driver
@@ -658,26 +809,25 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	init_parser();
+	
 	try
 	{
-		auto z = ParseSelectAST();
+		auto z = ParseStatementAST();
+		int qwexqy = 0;
+		qwexqy++;
+		while (qwexqy)
+		{
+			z = ParseStatementAST();
+			qwexqy++;
+		}
+		
+		int ty = qwexqy;
 	}
 	catch (std::runtime_error& s)
 	{
 		std::cout << s.what() << std::endl;
 	}
-	try
-	{
-		auto y = ParseCreateTableSimpleAST();
-	}
-	catch (std::runtime_error& s)
-	{
-		std::cout << s.what() << std::endl;
-	}
- 	
 	
-	
-	ParseLiteralAST();
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;

@@ -333,7 +333,7 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 
 std::unique_ptr<ParenExprAST> ParseParenExprAST()
 {
-	currtoken = gettok();	// consume '('
+	consumeit({ left_bracket_mark }, "expect '('\n");
 	auto e = ParseExprAST();
 	consumeit({ right_bracket_mark }, "expect ')'\n");
 	return llvm::make_unique<ParenExprAST>(std::move(e));
@@ -457,7 +457,6 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 	else
 	{
 		currtoken = gettok();	// consume '*'
-		
 	}
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_FROM)
 	{
@@ -563,26 +562,30 @@ std::unique_ptr<TableRefAST> ParseTableRefAST()
 	std::unique_ptr<TRNLROJAST> trnlroj;
 	std::unique_ptr<TableRefAST> ref;
 	tbfactor = ParseTableFactorAST();
-	while (currtoken.token_kind == symbol&&(currtoken.token_value.symbol_mark == tok_INNER|| currtoken.token_value.symbol_mark == tok_CROSS
-		||currtoken.token_value.symbol_mark == tok_JOIN|| currtoken.token_value.symbol_mark == tok_INNER
+	ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+	while (currtoken.token_kind == symbol&&
+		(currtoken.token_value.symbol_mark == tok_INNER|| currtoken.token_value.symbol_mark == tok_CROSS
+		||currtoken.token_value.symbol_mark == tok_JOIN
 		|| currtoken.token_value.symbol_mark == tok_LEFT|| currtoken.token_value.symbol_mark == tok_RIGHT
 		|| currtoken.token_value.symbol_mark == tok_NATURAL))
 	{
-		ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		if (currtoken.token_value.symbol_mark == tok_NATURAL)
 		{
 			trnlroj = ParseTRNLROJAST(std::move(ref));
+			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
-		if (currtoken.token_value.symbol_mark == tok_LEFT || currtoken.token_value.symbol_mark == tok_RIGHT)
+		else if (currtoken.token_value.symbol_mark == tok_LEFT || currtoken.token_value.symbol_mark == tok_RIGHT)
 		{
 			trlroj = ParseTRLROJAST(std::move(ref));
+			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
 		else
 		{
 			trij = ParseTRIJAST(std::move(ref));
+			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
 	}
-	return llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+	return std::move(ref);
 }
 
 std::unique_ptr<TRIJAST> ParseTRIJAST(std::unique_ptr<TableRefAST> ref)
@@ -624,8 +627,8 @@ std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs)
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
+		lr = currtoken.token_value.symbol_mark; 
 		currtoken = gettok();	// consume  LEFT/RIGHT
-		lr = currtoken.token_value.symbol_mark;
 	}
 	else
 	{
@@ -654,9 +657,10 @@ std::unique_ptr<TRNLROJAST> ParseTRNLROJAST(std::unique_ptr<TableRefAST> ref)
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
+		lr = currtoken.token_value.symbol_mark; 
 		currtoken = gettok();	// consume  LEFT/RIGHT
-		lr = currtoken.token_value.symbol_mark;
 	}
+	
 	if (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark == tok_OUTER)
 	{
 		currtoken = gettok();	// consume OUTER
@@ -814,7 +818,11 @@ std::unique_ptr<RefdefAST> ParseRefdefAST()
 std::unique_ptr<PrimaryAST> ParsePrimaryAST()
 {
 	std::vector<std::unique_ptr<IdAST>> cols;
-	consumeit({ tok_PRIMARY }, "expect keyword PRIMARY \n");
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_PRIMARY)
+	{
+		consumeit({ tok_PRIMARY }, "expect ' PRIMARY' \n");
+	}
+	//consumeit({ tok_PRIMARY }, "expect keyword PRIMARY \n");
 	consumeit({ tok_KEY }, "expect keyword KEY \n");
 	consumeit({ left_bracket_mark }, "expect '(' \n");
 	cols.push_back(ParseIdAST());
@@ -823,6 +831,7 @@ std::unique_ptr<PrimaryAST> ParsePrimaryAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		cols.push_back(ParseIdAST());
 	}
+	consumeit({ right_bracket_mark }, "expect ')' \n");
 	return llvm::make_unique<PrimaryAST>(std::move(cols));
 }
 
@@ -873,7 +882,7 @@ std::unique_ptr<CreatedefAST> ParseCreatedefAST()
 	}
 	else if (currtoken.token_kind == symbol)
 	{
-		if (currtoken.token_value.symbol_mark == tok_PRIMARY)
+		if (currtoken.token_value.symbol_mark == tok_PRIMARY|| currtoken.token_value.symbol_mark == tok_KEY)
 		{
 			prim = ParsePrimaryAST();
 		}
@@ -979,7 +988,6 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 		create_defs.push_back(ParseCreatedefAST());
 	}
 	consumeit({ right_bracket_mark }, "expect `)`\n");
-	consumeit({ delimiter }, "expect delimiter \n");
 	return llvm::make_unique<CreateTableSimpleAST>(std::move(Id),std::move(create_defs));
 }
 
@@ -997,6 +1005,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 	std::unique_ptr<DropAST> drop;
 	std::unique_ptr<InsertAST> insert;
 	std::unique_ptr<DeleteAST> dele;
+	std::unique_ptr<SetAST> setvar;
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET || 
 	currtoken.token_value.symbol_mark == tok_INSERT ||currtoken.token_value.symbol_mark == tok_SELECT || 
 		currtoken.token_value.symbol_mark == tok_CREATE ||currtoken.token_value.symbol_mark == tok_DROP || 
@@ -1004,7 +1013,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 	{
 		if (currtoken.token_value.symbol_mark == tok_SET)
 		{
-			;
+			setvar = ParseSetAST();
 		} 
 		else if (currtoken.token_value.symbol_mark == tok_INSERT)
 		{
@@ -1030,6 +1039,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 		{
 			;
 		}
+		consumeit({ delimiter }, "expect delimiter\n");
 	}
 	else
 	{
@@ -1037,7 +1047,7 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 		return nullptr;
 	}
 	return llvm::make_unique<StatementAST>(std::move(create), std::move(select),
-		std::move(drop), std::move(insert), std::move(dele));
+		std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
 }
 
 std::unique_ptr<CreateAST> ParseCreateAST()
@@ -1184,6 +1194,16 @@ std::unique_ptr<DeleteAST> ParseDeleteAST()
 		where_condition = ParseExprAST();
 	}
 	return llvm::make_unique<DeleteAST>(std::move(table_name), std::move(where_condition));
+}
+
+std::unique_ptr<SetAST> ParseSetAST()
+{
+	consumeit({ at_mark }, "expect `@` \n");
+	unique_ptr<IdAST> id;
+	unique_ptr<ExprAST> expr;
+	id = ParseIdAST();
+	expr = ParseExprAST();
+	return llvm::make_unique<SetAST>(std::move(id), std::move(expr));
 }
 
 std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
