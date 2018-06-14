@@ -813,6 +813,9 @@ int main()
 	try
 	{
 		auto z = ParseSelectAST();
+		int qwexqy = 0;
+		qwexqy++;
+		int ty = qwexqy;
 	}
 	catch (std::runtime_error& s)
 	{
