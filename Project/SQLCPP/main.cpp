@@ -568,7 +568,7 @@ Function *FunctionAST::codegen()
 //===----------------------------------------------------------------------===//
 // hack begin
 //===----------------------------------------------------------------------===//
-
+/*
 static LLVMContext SQLContext;	// owns a lot of core LLVM data structures, such as the type and constant value tables
 static IRBuilder<> SQLBuilder(SQLContext);	// keep track of the current place to insert instructions and has methods to create new instructions
 static std::unique_ptr<Module> SQLModule;	//top-level structure, own the memory for all of the IR that we generate
@@ -579,7 +579,7 @@ Value* LogErrorG(std::string e)
 	throw std::runtime_error(e);
 	return nullptr;
 }
-
+*/
 /*
 Value* IdAST::codegen()
 {
@@ -587,12 +587,13 @@ Value* IdAST::codegen()
 	
 }
 */
-
+/*
 Value* TablecolAST::codegen()
 {
 	;
 }
-
+*/
+/*
 Function* function_body_codegen()
 {
 	BasicBlock* x;	// entry
@@ -709,7 +710,7 @@ Value* SetAST::codegen()
 		return LogErrorG("Unknown variable name");
 	return V;
 }
-
+*/
 //===----------------------------------------------------------------------===//
 // hack end
 //===----------------------------------------------------------------------===//
@@ -808,7 +809,7 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	init_parser();
-	/**
+	
 	try
 	{
 		auto z = ParseSelectAST();
@@ -817,6 +818,7 @@ int main()
 	{
 		std::cout << s.what() << std::endl;
 	}
+	/**
 	try
 	{
 		auto y = ParseCreateTableSimpleAST();
