@@ -47,7 +47,7 @@ create table tb2
     c6 char(127),
     c7 char(255),
     primary key(c7)
-);
+);;;;;;;;;;;;;;;;;;;;;;;;;
 
 create table tb3
 (
@@ -59,7 +59,8 @@ create table tb3
     c6 char(127),
     c7 char(255),
     key(c7)
-);
+);;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 create table tb4
 (
