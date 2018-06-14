@@ -457,7 +457,6 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 	else
 	{
 		currtoken = gettok();	// consume '*'
-		
 	}
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_FROM)
 	{
@@ -563,8 +562,9 @@ std::unique_ptr<TableRefAST> ParseTableRefAST()
 	std::unique_ptr<TRNLROJAST> trnlroj;
 	std::unique_ptr<TableRefAST> ref;
 	tbfactor = ParseTableFactorAST();
-	while (currtoken.token_kind == symbol&&(currtoken.token_value.symbol_mark == tok_INNER|| currtoken.token_value.symbol_mark == tok_CROSS
-		||currtoken.token_value.symbol_mark == tok_JOIN|| currtoken.token_value.symbol_mark == tok_INNER
+	if (currtoken.token_kind == symbol&&
+		(currtoken.token_value.symbol_mark == tok_INNER|| currtoken.token_value.symbol_mark == tok_CROSS
+		||currtoken.token_value.symbol_mark == tok_JOIN
 		|| currtoken.token_value.symbol_mark == tok_LEFT|| currtoken.token_value.symbol_mark == tok_RIGHT
 		|| currtoken.token_value.symbol_mark == tok_NATURAL))
 	{
@@ -624,8 +624,8 @@ std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs)
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
+		lr = currtoken.token_value.symbol_mark; 
 		currtoken = gettok();	// consume  LEFT/RIGHT
-		lr = currtoken.token_value.symbol_mark;
 	}
 	else
 	{
@@ -654,9 +654,10 @@ std::unique_ptr<TRNLROJAST> ParseTRNLROJAST(std::unique_ptr<TableRefAST> ref)
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
+		lr = currtoken.token_value.symbol_mark; 
 		currtoken = gettok();	// consume  LEFT/RIGHT
-		lr = currtoken.token_value.symbol_mark;
 	}
+	
 	if (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark == tok_OUTER)
 	{
 		currtoken = gettok();	// consume OUTER

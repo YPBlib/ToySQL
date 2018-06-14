@@ -815,6 +815,12 @@ int main()
 		auto z = ParseSelectAST();
 		int qwexqy = 0;
 		qwexqy++;
+		while (qwexqy)
+		{
+			z = ParseSelectAST();
+			qwexqy++;
+		}
+		
 		int ty = qwexqy;
 	}
 	catch (std::runtime_error& s)

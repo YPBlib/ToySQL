@@ -1230,7 +1230,7 @@ public:
 	std::unique_ptr<TRIJAST> trij;
 	std::unique_ptr<TRLROJAST> trlroj;
 	std::unique_ptr<TRNLROJAST> trnlroj;
-	TableRefAST() = default;
+	//TableRefAST() = default;
 	TableRefAST(std::unique_ptr<TableFactorAST> tbfactor, std::unique_ptr<TRIJAST> trij,
 	std::unique_ptr<TRLROJAST> trlroj, std::unique_ptr<TRNLROJAST> trnlroj):
 		tbfactor(std::move(tbfactor)),trij(std::move(trij)),trlroj(std::move(trlroj)),trnlroj(std::move(trnlroj)){}
@@ -1262,7 +1262,7 @@ class TableNameAST
 {
 public:
 	std::unique_ptr<IdAST> tbname;
-	std::unique_ptr<IdAST> alias;
+	std::unique_ptr<IdAST> alias;	// optional
 	TableNameAST(std::unique_ptr<IdAST> tbname, std::unique_ptr<IdAST> alias) :
 		tbname(std::move(tbname)),alias(std::move(alias)) {}
 };
@@ -1271,9 +1271,13 @@ class TableQueryAST
 {
 public:
 	std::unique_ptr<SubqueryAST> subq;
-	std::unique_ptr<IdAST> alias;
+	std::unique_ptr<IdAST> alias;	// necessary
 	TableQueryAST(std::unique_ptr<SubqueryAST> subq, std::unique_ptr<IdAST> alias) :
-		subq(std::move(subq)), alias(std::move(alias)) {}
+		subq(std::move(subq)), alias(std::move(alias))
+	{
+		if (alias == nullptr)
+			throw std::runtime_error("missing query-table ailas when constructing TableQueryAST\n");
+	}
 };
 
 
@@ -1298,7 +1302,7 @@ class TRIJAST
 public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
-	std::unique_ptr<JoinCondAST> cond;
+	std::unique_ptr<JoinCondAST> cond;	// optional
 	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,
 		std::unique_ptr<JoinCondAST> cond) :
 		ref(std::move(ref)), factor(std::move(factor)), cond(std::move(cond)) {}
@@ -1309,10 +1313,15 @@ class TRLROJAST
 public:
 	std::unique_ptr<TableRefAST> lhs;
 	std::unique_ptr<TableRefAST> rhs;
-	std::unique_ptr<JoinCondAST> cond;
-	int lr;
+	std::unique_ptr<JoinCondAST> cond;	// necessary
+	int lr = 0;
 	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
-		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)),lr(lr) {}
+		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)), lr(lr)
+	{
+		if (cond == nullptr)
+			throw std::runtime_error
+			(R"(miss join-condition when constructing TRLROJAST\n)");
+	}
 };
 
 class TRNLROJAST
@@ -1320,7 +1329,7 @@ class TRNLROJAST
 public:
 	std::unique_ptr<TableRefAST> ref;
 	std::unique_ptr<TableFactorAST> factor;
-	int lr;
+	int lr = 0;
 	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
 		ref(std::move(ref)), factor(std::move(factor)),lr(lr) {}
 };
