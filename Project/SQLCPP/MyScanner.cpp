@@ -909,7 +909,8 @@ void scroll_Char(int* ahead)
 					continue;
 				}
 
-				if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
+				if (LookAhead[0] == match_char)
+				//if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
 				{
 					auto t = token();
 					t.token_kind = literal_string;

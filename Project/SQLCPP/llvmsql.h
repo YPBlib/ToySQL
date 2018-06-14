@@ -1275,7 +1275,7 @@ public:
 	TableQueryAST(std::unique_ptr<SubqueryAST> subq, std::unique_ptr<IdAST> alias) :
 		subq(std::move(subq)), alias(std::move(alias))
 	{
-		if (alias == nullptr)
+		if (this->alias == nullptr)
 			throw std::runtime_error("missing query-table ailas when constructing TableQueryAST\n");
 	}
 };
@@ -1318,7 +1318,7 @@ public:
 	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
 		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)), lr(lr)
 	{
-		if (cond == nullptr)
+		if (this->cond == nullptr)
 			throw std::runtime_error
 			(R"(miss join-condition when constructing TRLROJAST\n)");
 	}

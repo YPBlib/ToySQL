@@ -812,12 +812,12 @@ int main()
 	
 	try
 	{
-		auto z = ParseSelectAST();
+		auto z = ParseStatementAST();
 		int qwexqy = 0;
 		qwexqy++;
 		while (qwexqy)
 		{
-			z = ParseSelectAST();
+			z = ParseStatementAST();
 			qwexqy++;
 		}
 		
@@ -827,20 +827,7 @@ int main()
 	{
 		std::cout << s.what() << std::endl;
 	}
-	/**
-	try
-	{
-		auto y = ParseCreateTableSimpleAST();
-	}
-	catch (std::runtime_error& s)
-	{
-		std::cout << s.what() << std::endl;
-	}
- 	
 	
-	
-	ParseLiteralAST();
-	*/
 	// Install standard binary operators.
 	// 1 is lowest precedence.
 	BinopPrecedence['<'] = 10;
