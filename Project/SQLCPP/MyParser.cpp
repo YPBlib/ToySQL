@@ -181,21 +181,30 @@ std::unique_ptr<PredicateAST> ParsePredicateAST()
 	auto bitexpr = ParseBitExprAST();
 	bool flag = true;
 	std::unique_ptr<BitExprAST> rhs;
+	std::unique_ptr<PredicateAST> p;
 	std::unique_ptr<SubqueryAST> sub;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
 	if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == tok_NOT ||
-			currtoken.token_value.symbol_mark == tok_REGEXP || currtoken.token_value.symbol_mark == tok_IN))
+			currtoken.token_value.symbol_mark == tok_BETWEEN || currtoken.token_value.symbol_mark == tok_IN))
 	{
 		if (currtoken.token_value.symbol_mark == tok_NOT)
 		{
+			flag = false; 
 			currtoken = gettok();	//consum NOT
-			flag = false;
+			if (!(currtoken.token_kind == symbol &&
+				(currtoken.token_value.symbol_mark == tok_IN || currtoken.token_value.symbol_mark == tok_BETWEEN)))
+			{
+				throw std::runtime_error("IN/BETWEEN should follow BOT when parsing predicate \n");
+			}
+
 		}
-		else if (currtoken.token_value.symbol_mark == tok_REGEXP)
+		if (currtoken.token_value.symbol_mark == tok_BETWEEN)
 		{
-				currtoken = gettok();	//consume REGEXP
+				currtoken = gettok();	//consume BETWEEN
 				rhs = ParseBitExprAST();
+				consumeit({ tok_AND }, "BETWEEN AND mismatches \n");
+				p = ParsePredicateAST();
 		}
 		else if (currtoken.token_value.symbol_mark == tok_IN)
 		{
@@ -219,7 +228,8 @@ std::unique_ptr<PredicateAST> ParsePredicateAST()
 			}
 		}
 	}
-	return llvm::make_unique<PredicateAST>(std::move(bitexpr), flag, std::move(rhs), std::move(sub), std::move(exprs));
+	return llvm::make_unique<PredicateAST>(std::move(bitexpr), flag, std::move(rhs),
+		std::move(p), std::move(sub), std::move(exprs));
 }
 
 std::unique_ptr<BitExprAST> ParseBitExprAST()

@@ -1019,13 +1019,15 @@ public:
 	std::unique_ptr<BitExprAST> bitexpr;
 	bool flag;
 	std::unique_ptr<BitExprAST> rhs;
+	std::unique_ptr<PredicateAST> p;
 	std::unique_ptr<SubqueryAST> sub;
 	std::vector<std::unique_ptr<ExprAST>> exprs;
 	llvm::Value* codegen();
-	PredicateAST() = default;
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, bool flag, 
-		std::unique_ptr<BitExprAST> rhs, std::unique_ptr<SubqueryAST> sub,std::vector<std::unique_ptr<ExprAST>> exprs) :
-			bitexpr(std::move(bitexpr)),flag(flag),rhs(std::move(rhs)),sub(std::move(sub)),exprs(std::move(exprs)){}
+
+	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, bool flag, std::unique_ptr<BitExprAST> rhs,
+		std::unique_ptr<PredicateAST> p, std::unique_ptr<SubqueryAST> sub,std::vector<std::unique_ptr<ExprAST>> exprs) :
+			bitexpr(std::move(bitexpr)),flag(flag),rhs(std::move(rhs)),p(std::move(p)),
+		sub(std::move(sub)),exprs(std::move(exprs)){}
 };
 
 class BitExprAST
@@ -1052,6 +1054,25 @@ public:
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
 
+std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>)
+{
+	return nullptr;
+}
+std::shared_ptr<SimpleExprAST> aux_unit_op(std::shared_ptr<SimpleExprAST>)
+{
+	return nullptr;
+}
+
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> SE, decltype(aux_unit_op) op)
+{
+	return op(SE);
+}
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> lhs, 
+	std::shared_ptr<SimpleExprAST> rhs,decltype(aux_binary_op) op)
+{
+	return op(lhs, rhs);
+}
+
 class BitExAST
 {
 public:
@@ -1062,6 +1083,16 @@ public:
 	BitExAST() = default;
 	BitExAST(int mark, std::unique_ptr<BitExAST> bitex, std::unique_ptr<SimpleExprAST> SE) :
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		if (SE|| mark == plus_mark)
+			return std::make_shared<SimpleExprAST>(*SE.get());
+		else if (mark == minus_mark)
+		{
+			return;
+		}
+		
+	}
 };
 
 class SimpleExprAST
@@ -1091,6 +1122,7 @@ public:
 	std::unique_ptr<std::string> id=nullptr;
 	llvm::Value* codegen();
 	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
+
 };
 
 class TablecolAST
