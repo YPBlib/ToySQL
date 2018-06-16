@@ -25,7 +25,7 @@
 #include <vector>
 #include<exception>
 #define LL_LRLen 6
-using std::unique_ptr;
+using std::shared_ptr;
 
 
 enum reserved_token_value
@@ -660,7 +660,7 @@ enum reserved_token_value
 	tok_UNICODE = -580,
 	tok_UNINSTALL = -581,
 	tok_UNION = -582,
-	tok_UNIQUE = -583,
+	tok_shared = -583,
 	tok_UNKNOWN = -584,
 	tok_UNLOCK = -585,
 	tok_UNSIGNED = -586,
@@ -750,7 +750,7 @@ class blank_value :public value
 	friend val;
 	char ch = ' ';
 public:
-	blank_value(char ch):ch(ch){}
+	blank_value(char ch) :ch(ch) {}
 };
 
 class int_value :public value
@@ -807,7 +807,7 @@ struct val
 	std::string IdentifierStr;
 	char ch = ' ';
 	val() = default;
-	val(eof_value ev):ch(EOF){}
+	val(eof_value ev) :ch(EOF) {}
 	val& operator=(const string_value& s)
 	{
 		string_literal = s.s;
@@ -854,7 +854,7 @@ public:
 		token_value = b.token_value;
 		return *this;
 	}
-	
+
 };
 
 
@@ -879,7 +879,7 @@ class ParenExprAST;
 class SubqueryAST;
 class ExistsSubqueryAST;
 class SelectExprAST;
-class TableRefsAST; 
+class TableRefsAST;
 class TableRefAST;
 class TableFactorAST;
 class JoinCondAST;
@@ -908,67 +908,67 @@ class CreatedefAST;
 class RefdefAST;
 class DatatypeAST;
 class PrimaryAST;
-class UniqueAST;
+class unicAST;
 class ForeignAST;
 class SetAST;
 
 
 
-std::unique_ptr<ExprAST> ParseExprAST();
-std::unique_ptr<ExpAST> ParseExpAST();
-std::unique_ptr<BooleanPrimaryAST> ParseBPAST();
-std::unique_ptr<PredicateAST> ParsePredicateAST();
-std::unique_ptr<BitExprAST> ParseBitExprAST();
-std::unique_ptr<BitExpAST> ParseBitExpAST();
-std::unique_ptr<BitExAST> ParseBitExAST();
-std::unique_ptr<SimpleExprAST> ParseSEAST();
-std::unique_ptr<IdAST> ParseIdAST();
-std::unique_ptr<ColdefAST> ParseColdefAST();
-std::unique_ptr<TablecolAST> ParseTablecolAST();
-std::unique_ptr<CallAST> ParseCallAST();
-std::unique_ptr<CallAST> ParseCallAST(std::unique_ptr<IdAST> callee);
-std::unique_ptr<LiteralAST> ParseLiteralAST();
-std::unique_ptr<IntLiteralAST> ParseIntLiteralAST();
-std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
-std::unique_ptr<StringLiteralAST> ParseStringLiteralAST();
-std::unique_ptr<ParenExprAST> ParseParenExprAST();
-std::unique_ptr<SubqueryAST> ParseSubqueryAST();
-std::unique_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
-std::unique_ptr<SelectExprAST> ParseSelectExprAST();
-std::unique_ptr<TableRefsAST> ParseTableRefsAST();
-std::unique_ptr<TableRefAST> ParseTableRefAST();
-std::unique_ptr<TableFactorAST> ParseTableFactorAST();
-std::unique_ptr<JoinCondAST> ParseJoinCondAST();
-std::unique_ptr<TableNameAST> ParseTableNameAST();
-std::unique_ptr<TableQueryAST> ParseTableQueryAST();
-std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST();
-std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
-std::unique_ptr<TRIJAST> ParseTRIJAST();
-std::unique_ptr<TRLROJAST> ParseTRLROJAST();
-std::unique_ptr<TRNLROJAST> ParseTRNLROJAST();
-std::unique_ptr<TRNLROJAST> ParseTRNLROJAST(std::unique_ptr<TableRefAST> ref);
-std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs);
-std::unique_ptr<TRIJAST> ParseTRIJAST(std::unique_ptr<TableRefAST> ref);
-std::unique_ptr<StatementAST> ParseStatementAST();
-std::unique_ptr<CreateAST> ParseCreateAST();
-std::unique_ptr<CreateTableAST> ParseCreateTableAST();
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
-std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
-std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
-std::unique_ptr<CreateIndexAST> ParseCreateIndexAST();
-std::unique_ptr<DropAST> ParseDropAST();
-std::unique_ptr<DropTableAST> ParseDropTableAST();
-std::unique_ptr<DropIndexAST> ParseDropIndexAST();
-std::unique_ptr<InsertAST> ParseInsertAST();
-std::unique_ptr<DeleteAST> ParseDeleteAST();
-std::unique_ptr<SelectAST> ParseSelectAST();
-std::unique_ptr<CreatedefAST> ParseCreatedefAST();
-std::unique_ptr<RefdefAST> ParseRefdefAST();
-std::unique_ptr<DatatypeAST> ParseDatatypeAST();
-std::unique_ptr<PrimaryAST> ParsePrimaryAST();
-std::unique_ptr<UniqueAST> ParseUniqueAST();
-std::unique_ptr<ForeignAST> ParseForeignAST();
-std::unique_ptr<SetAST> ParseSetAST();
+std::shared_ptr<ExprAST> ParseExprAST();
+std::shared_ptr<ExpAST> ParseExpAST();
+std::shared_ptr<BooleanPrimaryAST> ParseBPAST();
+std::shared_ptr<PredicateAST> ParsePredicateAST();
+std::shared_ptr<BitExprAST> ParseBitExprAST();
+std::shared_ptr<BitExpAST> ParseBitExpAST();
+std::shared_ptr<BitExAST> ParseBitExAST();
+std::shared_ptr<SimpleExprAST> ParseSEAST();
+std::shared_ptr<IdAST> ParseIdAST();
+std::shared_ptr<ColdefAST> ParseColdefAST();
+std::shared_ptr<TablecolAST> ParseTablecolAST();
+std::shared_ptr<CallAST> ParseCallAST();
+std::shared_ptr<CallAST> ParseCallAST(std::shared_ptr<IdAST> callee);
+std::shared_ptr<LiteralAST> ParseLiteralAST();
+std::shared_ptr<IntLiteralAST> ParseIntLiteralAST();
+std::shared_ptr<DoubleLiteralAST> ParseDoubleLiteralAST();
+std::shared_ptr<StringLiteralAST> ParseStringLiteralAST();
+std::shared_ptr<ParenExprAST> ParseParenExprAST();
+std::shared_ptr<SubqueryAST> ParseSubqueryAST();
+std::shared_ptr<ExistsSubqueryAST> ParseExistsSubqueryAST();
+std::shared_ptr<SelectExprAST> ParseSelectExprAST();
+std::shared_ptr<TableRefsAST> ParseTableRefsAST();
+std::shared_ptr<TableRefAST> ParseTableRefAST();
+std::shared_ptr<TableFactorAST> ParseTableFactorAST();
+std::shared_ptr<JoinCondAST> ParseJoinCondAST();
+std::shared_ptr<TableNameAST> ParseTableNameAST();
+std::shared_ptr<TableQueryAST> ParseTableQueryAST();
+std::shared_ptr<OnJoinCondAST> ParseOnJoinCondAST();
+std::shared_ptr<UsingJoinCondAST> ParseUsingJoinCondAST();
+std::shared_ptr<TRIJAST> ParseTRIJAST();
+std::shared_ptr<TRLROJAST> ParseTRLROJAST();
+std::shared_ptr<TRNLROJAST> ParseTRNLROJAST();
+std::shared_ptr<TRNLROJAST> ParseTRNLROJAST(std::shared_ptr<TableRefAST> ref);
+std::shared_ptr<TRLROJAST> ParseTRLROJAST(std::shared_ptr<TableRefAST> lhs);
+std::shared_ptr<TRIJAST> ParseTRIJAST(std::shared_ptr<TableRefAST> ref);
+std::shared_ptr<StatementAST> ParseStatementAST();
+std::shared_ptr<CreateAST> ParseCreateAST();
+std::shared_ptr<CreateTableAST> ParseCreateTableAST();
+std::shared_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST();
+std::shared_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
+std::shared_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+std::shared_ptr<CreateIndexAST> ParseCreateIndexAST();
+std::shared_ptr<DropAST> ParseDropAST();
+std::shared_ptr<DropTableAST> ParseDropTableAST();
+std::shared_ptr<DropIndexAST> ParseDropIndexAST();
+std::shared_ptr<InsertAST> ParseInsertAST();
+std::shared_ptr<DeleteAST> ParseDeleteAST();
+std::shared_ptr<SelectAST> ParseSelectAST();
+std::shared_ptr<CreatedefAST> ParseCreatedefAST();
+std::shared_ptr<RefdefAST> ParseRefdefAST();
+std::shared_ptr<DatatypeAST> ParseDatatypeAST();
+std::shared_ptr<PrimaryAST> ParsePrimaryAST();
+std::shared_ptr<unicAST> ParseunicAST();
+std::shared_ptr<ForeignAST> ParseForeignAST();
+std::shared_ptr<SetAST> ParseSetAST();
 
 token gettok();
 void init_scanner();
@@ -978,217 +978,256 @@ void init_parser();
 class ExprAST
 {
 public:
-	std::unique_ptr<ExpAST> lhs;
+	std::shared_ptr<ExpAST> lhs;
 	int op;
-	std::unique_ptr<ExprAST> rhs;
+	std::shared_ptr<ExprAST> rhs;
 	llvm::Value* codegen();
 	ExprAST() = default;
-	ExprAST(std::unique_ptr<ExpAST> lhs, int op, std::unique_ptr<ExprAST> rhs):
-		lhs(std::move(lhs)),op(op) ,rhs(std::move(rhs)){}
+	ExprAST(std::shared_ptr<ExpAST> lhs, int op, std::shared_ptr<ExprAST> rhs) :
+		lhs(std::move(lhs)), op(op), rhs(std::move(rhs)) {}
 };
 
 class ExpAST
 {
 public:
-	std::unique_ptr<ExprAST> expr;
-	std::unique_ptr<BooleanPrimaryAST> bp;
+	std::shared_ptr<ExprAST> expr;
+	std::shared_ptr<BooleanPrimaryAST> bp;
 	llvm::Value* codegen();
 	ExpAST() = default;
-	ExpAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<BooleanPrimaryAST> bp) :
-		expr(std::move(expr)),bp(std::move(bp)){}
+	ExpAST(std::shared_ptr<ExprAST> expr, std::shared_ptr<BooleanPrimaryAST> bp) :
+		expr(std::move(expr)), bp(std::move(bp)) {}
 };
 
 class BooleanPrimaryAST
 {
 public:
-	std::unique_ptr<BooleanPrimaryAST> bp;
-	std::unique_ptr<PredicateAST> p;
+	std::shared_ptr<BooleanPrimaryAST> bp;
+	std::shared_ptr<PredicateAST> p;
 	int flag = 0;
 	int op = 0;
-	std::unique_ptr<SubqueryAST> sub;
+	std::shared_ptr<SubqueryAST> sub;
 	llvm::Value* codegen();
 	BooleanPrimaryAST() = default;
-	BooleanPrimaryAST(std::unique_ptr<BooleanPrimaryAST> bp, std::unique_ptr<PredicateAST> p, 
-		int flag, int op,	std::unique_ptr<SubqueryAST> sub):
-		bp(std::move(bp)),p(std::move(p)),flag(flag),op(op),sub(std::move(sub)) {}
+	BooleanPrimaryAST(std::shared_ptr<BooleanPrimaryAST> bp, std::shared_ptr<PredicateAST> p,
+		int flag, int op, std::shared_ptr<SubqueryAST> sub) :
+		bp(std::move(bp)), p(std::move(p)), flag(flag), op(op), sub(std::move(sub)) {}
 };
 
 class PredicateAST
 {
 public:
-	std::unique_ptr<BitExprAST> bitexpr;
+	std::shared_ptr<BitExprAST> bitexpr;
 	bool flag;
-	std::unique_ptr<BitExprAST> rhs;
-	std::unique_ptr<PredicateAST> p;
-	std::unique_ptr<SubqueryAST> sub;
-	std::vector<std::unique_ptr<ExprAST>> exprs;
+	std::shared_ptr<BitExprAST> rhs;
+	std::shared_ptr<PredicateAST> p;
+	std::shared_ptr<SubqueryAST> sub;
+	std::vector<std::shared_ptr<ExprAST>> exprs;
 	llvm::Value* codegen();
 
-	PredicateAST(std::unique_ptr<BitExprAST> bitexpr, bool flag, std::unique_ptr<BitExprAST> rhs,
-		std::unique_ptr<PredicateAST> p, std::unique_ptr<SubqueryAST> sub,std::vector<std::unique_ptr<ExprAST>> exprs) :
-			bitexpr(std::move(bitexpr)),flag(flag),rhs(std::move(rhs)),p(std::move(p)),
-		sub(std::move(sub)),exprs(std::move(exprs)){}
+	PredicateAST(std::shared_ptr<BitExprAST> bitexpr, bool flag, std::shared_ptr<BitExprAST> rhs,
+		std::shared_ptr<PredicateAST> p, std::shared_ptr<SubqueryAST> sub, std::vector<std::shared_ptr<ExprAST>> exprs) :
+		bitexpr(std::move(bitexpr)), flag(flag), rhs(std::move(rhs)), p(std::move(p)),
+		sub(std::move(sub)), exprs(std::move(exprs)) {}
 };
 
 class BitExprAST
 {
 public:
-	std::unique_ptr<BitExprAST> bitexpr; 
+	std::shared_ptr<BitExprAST> bitexpr;
 	int op;
-	std::unique_ptr<BitExpAST> bitexp;
+	std::shared_ptr<BitExpAST> bitexp;
 	llvm::Value* codegen();
 	BitExprAST() = default;
-	BitExprAST(std::unique_ptr<BitExprAST> bitexpr,int op, std::unique_ptr<BitExpAST> bitexp) :
-		bitexpr(std::move(bitexpr)),op(op),bitexp(std::move(bitexp)){}
+	BitExprAST(std::shared_ptr<BitExprAST> bitexpr, int op, std::shared_ptr<BitExpAST> bitexp) :
+		bitexpr(std::move(bitexpr)), op(op), bitexp(std::move(bitexp)) {}
 };
 
 class BitExpAST
 {
 public:
-	std::unique_ptr<BitExpAST> bitexp;
+	std::shared_ptr<BitExpAST> bitexp;
 	int op;
-	std::unique_ptr<BitExAST> bitex;
+	std::shared_ptr<BitExAST> bitex;
 	llvm::Value* codegen();
 	BitExpAST() = default;
-	BitExpAST(std::unique_ptr<BitExpAST> bitexp, int op, std::unique_ptr<BitExAST> bitex) :
+	BitExpAST(std::shared_ptr<BitExpAST> bitexp, int op, std::shared_ptr<BitExAST> bitex) :
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
 };
 
-std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>)
-{
-	return nullptr;
-}
-std::shared_ptr<SimpleExprAST> aux_unit_op(std::shared_ptr<SimpleExprAST>)
-{
-	return nullptr;
-}
+std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>);
+std::shared_ptr<SimpleExprAST> aux_unit_op(std::shared_ptr<SimpleExprAST>);
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> SE, decltype(aux_unit_op) op);
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> lhs,
+	std::shared_ptr<SimpleExprAST> rhs, decltype(aux_binary_op) op);
 
-std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> SE, decltype(aux_unit_op) op)
-{
-	return op(SE);
-}
-std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> lhs, 
-	std::shared_ptr<SimpleExprAST> rhs,decltype(aux_binary_op) op)
-{
-	return op(lhs, rhs);
-}
+
 
 class BitExAST
 {
 public:
 	int mark = 0;
-	std::unique_ptr<BitExAST> bitex;
-	std::unique_ptr<SimpleExprAST> SE;
+	std::shared_ptr<BitExAST> bitex;
+	std::shared_ptr<SimpleExprAST> SE;
 	llvm::Value* codegen();
 	BitExAST() = default;
-	BitExAST(int mark, std::unique_ptr<BitExAST> bitex, std::unique_ptr<SimpleExprAST> SE) :
+	BitExAST(int mark, std::shared_ptr<BitExAST> bitex, std::shared_ptr<SimpleExprAST> SE) :
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
-	std::shared_ptr<SimpleExprAST> traitValue()
+	/*std::shared_ptr<SimpleExprAST> traitValue()
 	{
-		if (SE|| mark == plus_mark)
-			return std::make_shared<SimpleExprAST>(*SE.get());
-		else if (mark == minus_mark)
-		{
-			return;
-		}
-		
+	if (SE|| mark == plus_mark)
+	return std::make_shared<SimpleExprAST>(*SE.get());
+	else if (mark == minus_mark)
+	{
+	return;
 	}
+
+	}*/
 };
 
 class SimpleExprAST
 {
 public:
-	std::unique_ptr<IdAST> id;
-	std::unique_ptr<CallAST> call;
-	std::unique_ptr<TablecolAST> tablecol;
-	std::unique_ptr<ExprAST> expr;
-	std::unique_ptr<SubqueryAST> sub;
-	std::unique_ptr<ExistsSubqueryAST> exists;
-	std::unique_ptr<LiteralAST> lit;
-	llvm::Value* codegen();
+	std::shared_ptr<IdAST> id;
+	std::shared_ptr<CallAST> call;
+	std::shared_ptr<TablecolAST> tablecol;
+	std::shared_ptr<ExprAST> expr;
+	std::shared_ptr<SubqueryAST> sub;
+	std::shared_ptr<ExistsSubqueryAST> exists;
+	std::shared_ptr<LiteralAST> lit;
 	SimpleExprAST() = default;
-	SimpleExprAST(std::unique_ptr<IdAST> id):id(std::move(id)){}
-	SimpleExprAST(std::unique_ptr<CallAST> call) :call(std::move(call)) {}
-	SimpleExprAST(std::unique_ptr<TablecolAST> tablecol) :tablecol(std::move(tablecol)) {}
-	SimpleExprAST(std::unique_ptr<ExprAST> expr) :expr(std::move(expr)) {}
-	SimpleExprAST(std::unique_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
-	SimpleExprAST(std::unique_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
-	SimpleExprAST(std::unique_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
+	SimpleExprAST(std::shared_ptr<IdAST> id) :id(std::move(id)) {}
+	SimpleExprAST(std::shared_ptr<CallAST> call) :call(std::move(call)) {}
+	SimpleExprAST(std::shared_ptr<TablecolAST> tablecol) :tablecol(std::move(tablecol)) {}
+	SimpleExprAST(std::shared_ptr<ExprAST> expr) :expr(std::move(expr)) {}
+	SimpleExprAST(std::shared_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
+	SimpleExprAST(std::shared_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
+	SimpleExprAST(std::shared_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		if (id) return id->traitValue();
+		if (call) return call->traitValue();
+		if (tablecol) return tablecol->traitValue();
+		//if(expr)return expr->
+		//if(sub)return sub->
+		//if(exists)return exists->
+		if (lit) return lit->traitValue();
+		return nullptr;
+	}
+	llvm::Value* codegen();
 };
 
 class IdAST final
 {
 public:
-	std::unique_ptr<std::string> id=nullptr;
+	std::shared_ptr<std::string> id = nullptr;
+	IdAST(std::shared_ptr<std::string> id) :id(std::move(id)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<IdAST> idast = std::make_shared<IdAST>(id);
+		return std::make_shared<SimpleExprAST>(std::move(idast));
+	}
 	llvm::Value* codegen();
-	IdAST(std::unique_ptr<std::string> id) :id(std::move(id)) {}
 
 };
 
 class TablecolAST
 {
 public:
-	std::unique_ptr<std::string> table_name;
-	std::unique_ptr<std::string> col_name;
-	llvm::Value* codegen();
-	TablecolAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> col_name):
+	std::shared_ptr<std::string> table_name;
+	std::shared_ptr<std::string> col_name;
+	TablecolAST(std::shared_ptr<std::string> table_name, std::shared_ptr<std::string> col_name) :
 		table_name(std::move(table_name)), col_name(std::move(col_name)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<TablecolAST> table_col = std::make_shared<TablecolAST>(table_name, col_name);
+		return std::make_shared<SimpleExprAST>(std::move(table_col));
+	}
+	llvm::Value* codegen();
 };
 
 class CallAST
 {
 public:
-	std::unique_ptr<IdAST> callee;
-	std::vector<std::unique_ptr<ExprAST>> args;
+	std::shared_ptr<IdAST> callee;
+	std::vector<std::shared_ptr<ExprAST>> args;
+	CallAST(std::shared_ptr<IdAST> callee, std::vector<std::shared_ptr<ExprAST>> args)
+		: callee(std::move(callee)), args(std::move(args)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<IdAST> cc = std::make_shared<IdAST>(callee,args);	
+		return std::make_shared<SimpleExprAST>(std::move(cc));
+	}
 	llvm::Value* codegen();
-	CallAST(std::unique_ptr<IdAST> callee, std::vector<std::unique_ptr<ExprAST>> args)
-		: callee(std::move(callee) ), args(std::move(args)) {}
 };
 
 class LiteralAST
 {
 public:
-	std::unique_ptr<IntLiteralAST> intvalue;
-	std::unique_ptr<DoubleLiteralAST> doublevalue;
-	std::unique_ptr<StringLiteralAST> stringvalue ;
-	llvm::Value* codegen();
+	std::shared_ptr<IntLiteralAST> intvalue;
+	std::shared_ptr<DoubleLiteralAST> doublevalue;
+	std::shared_ptr<StringLiteralAST> stringvalue;
 	LiteralAST() = default;
-	LiteralAST(std::unique_ptr<IntLiteralAST> intvalue):intvalue(std::move(intvalue)){}
-	LiteralAST(std::unique_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
-	LiteralAST(std::unique_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
+	LiteralAST(std::shared_ptr<IntLiteralAST> intvalue) :intvalue(std::move(intvalue)) {}
+	LiteralAST(std::shared_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
+	LiteralAST(std::shared_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		if (intvalue) return intvalue->traitValue();
+		if (doublevalue) return doublevalue->traitValue();
+		if (stringvalue) return stringvalue->traitValue();
+		return nullptr;
+	}
+	llvm::Value* codegen();
 };
 
 class IntLiteralAST
 {
 public:
-	std::unique_ptr<int> value = nullptr;
-	IntLiteralAST(std::unique_ptr<int> value) :value(std::move(value)) {}
+	std::shared_ptr<int> value = nullptr;
+	IntLiteralAST(std::shared_ptr<int> value) :value(std::move(value)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<IntLiteralAST> ii = std::make_shared<IntLiteralAST>(value);
+		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(ii));
+		return std::make_shared<SimpleExprAST>(std::move(ll));
+	}
 	llvm::Value* codegen();
 };
 
 class DoubleLiteralAST
 {
 public:
-	std::unique_ptr<double> value = nullptr;
-	DoubleLiteralAST(std::unique_ptr<double> value) :value(std::move(value)) {}
+	std::shared_ptr<double> value = nullptr;
+	DoubleLiteralAST(std::shared_ptr<double> value) :value(std::move(value)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<DoubleLiteralAST> dd = std::make_shared<DoubleLiteralAST>(value);
+		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(dd));
+		return std::make_shared<SimpleExprAST>(std::move(ll));
+	}
 	llvm::Value* codegen();
 };
 
 class StringLiteralAST
 {
 public:
-	std::unique_ptr<std::string> value;
+	std::shared_ptr<std::string> value;
+	StringLiteralAST(std::shared_ptr<std::string> value) :value(std::move(value)) {}
+	std::shared_ptr<SimpleExprAST> traitValue()
+	{
+		std::shared_ptr<StringLiteralAST> ss = std::make_shared<StringLiteralAST>(value);
+		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(ss));
+		return std::make_shared<SimpleExprAST>(std::move(ll));
+	}
 	llvm::Value* codegen();
-	StringLiteralAST(std::unique_ptr<std::string> value) :value(std::move(value)) {}
-	
 };
 
 class ParenExprAST
 {
 public:
-	std::unique_ptr<ExprAST> expr;
+	std::shared_ptr<ExprAST> expr;
 	llvm::Value* codegen();
-	ParenExprAST(std::unique_ptr<ExprAST> expr) :
+	ParenExprAST(std::shared_ptr<ExprAST> expr) :
 		expr(std::move(expr)) {}
 };
 
@@ -1197,53 +1236,52 @@ class SubqueryAST
 public:
 	//	handle select * from CASE
 	bool distinct_flag = false;
-	std::vector<std::unique_ptr<SelectExprAST>> exprs;
+	std::vector<std::shared_ptr<SelectExprAST>> exprs;
 
 	bool from_flag = false;
-	std::unique_ptr<TableRefsAST> tbrefs;
+	std::shared_ptr<TableRefsAST> tbrefs;
 
 	bool where_flag = false;
-	std::unique_ptr<ExprAST> wherecond;
+	std::shared_ptr<ExprAST> wherecond;
 
 	bool group_flag = false;
-	std::vector<std::unique_ptr<ExprAST>> groupby_exprs;
+	std::vector<std::shared_ptr<ExprAST>> groupby_exprs;
 
 	bool having_flag = false;
-	std::unique_ptr<ExprAST> havingcond;
+	std::shared_ptr<ExprAST> havingcond;
 
 	bool order_flag = false;
-	std::vector<std::unique_ptr<ExprAST>> orderby_exprs;
+	std::vector<std::shared_ptr<ExprAST>> orderby_exprs;
 	llvm::Value* codegen();
 
 
-	SubqueryAST(bool distinct_flag, std::vector<std::unique_ptr<SelectExprAST>> exprs,
-		bool from_flag, std::unique_ptr<TableRefsAST> tbrefs,
-		bool where_flag, std::unique_ptr<ExprAST> wherecond,		
-		bool group_flag, std::vector<std::unique_ptr<ExprAST>> groupby_exprs,
-		bool having_flag, std::unique_ptr<ExprAST> havingcond,
-		bool order_flag, std::vector<std::unique_ptr<ExprAST>> orderby_exprs):
+	SubqueryAST(bool distinct_flag, std::vector<std::shared_ptr<SelectExprAST>> exprs,
+		bool from_flag, std::shared_ptr<TableRefsAST> tbrefs,
+		bool where_flag, std::shared_ptr<ExprAST> wherecond,
+		bool group_flag, std::vector<std::shared_ptr<ExprAST>> groupby_exprs,
+		bool having_flag, std::shared_ptr<ExprAST> havingcond,
+		bool order_flag, std::vector<std::shared_ptr<ExprAST>> orderby_exprs) :
 		distinct_flag(distinct_flag), exprs(std::move(exprs)),
 		from_flag(from_flag), tbrefs(std::move(tbrefs)),
 		where_flag(where_flag), wherecond(std::move(wherecond)),
 		group_flag(group_flag), groupby_exprs(std::move(groupby_exprs)),
 		having_flag(having_flag), havingcond(std::move(havingcond)),
-		order_flag(order_flag), orderby_exprs(std::move(orderby_exprs))
-	{}
+		order_flag(order_flag), orderby_exprs(std::move(orderby_exprs)){}
 };
 
 class ExistsSubqueryAST
 {
-	std::unique_ptr<SubqueryAST> subquery;
+	std::shared_ptr<SubqueryAST> subquery;
 public:
-	ExistsSubqueryAST(std::unique_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
+	ExistsSubqueryAST(std::shared_ptr<SubqueryAST> subquery) :subquery(std::move(subquery)) {}
 };
 
 class SelectExprAST
 {
 public:
-	std::unique_ptr<ExprAST> expr;
-	std::unique_ptr<IdAST> alias;
-	SelectExprAST(std::unique_ptr<ExprAST> expr, std::unique_ptr<IdAST> alias) :
+	std::shared_ptr<ExprAST> expr;
+	std::shared_ptr<IdAST> alias;
+	SelectExprAST(std::shared_ptr<ExprAST> expr, std::shared_ptr<IdAST> alias) :
 		expr(std::move(expr)), alias(std::move(alias)) {}
 
 };
@@ -1251,60 +1289,60 @@ public:
 class TableRefsAST
 {
 public:
-	std::vector<std::unique_ptr<TableRefAST>> refs;
-	TableRefsAST(std::vector<std::unique_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
+	std::vector<std::shared_ptr<TableRefAST>> refs;
+	TableRefsAST(std::vector<std::shared_ptr<TableRefAST>> refs) :refs(std::move(refs)) {}
 };
 
 class TableRefAST
 {
 public:
-	std::unique_ptr<TableFactorAST> tbfactor;
-	std::unique_ptr<TRIJAST> trij;
-	std::unique_ptr<TRLROJAST> trlroj;
-	std::unique_ptr<TRNLROJAST> trnlroj;
+	std::shared_ptr<TableFactorAST> tbfactor;
+	std::shared_ptr<TRIJAST> trij;
+	std::shared_ptr<TRLROJAST> trlroj;
+	std::shared_ptr<TRNLROJAST> trnlroj;
 	//TableRefAST() = default;
-	TableRefAST(std::unique_ptr<TableFactorAST> tbfactor, std::unique_ptr<TRIJAST> trij,
-	std::unique_ptr<TRLROJAST> trlroj, std::unique_ptr<TRNLROJAST> trnlroj):
-		tbfactor(std::move(tbfactor)),trij(std::move(trij)),trlroj(std::move(trlroj)),trnlroj(std::move(trnlroj)){}
+	TableRefAST(std::shared_ptr<TableFactorAST> tbfactor, std::shared_ptr<TRIJAST> trij,
+		std::shared_ptr<TRLROJAST> trlroj, std::shared_ptr<TRNLROJAST> trnlroj) :
+		tbfactor(std::move(tbfactor)), trij(std::move(trij)), trlroj(std::move(trlroj)), trnlroj(std::move(trnlroj)) {}
 };
 
 class TableFactorAST
 {
 public:
-	std::unique_ptr<TableNameAST> tbname;
-	std::unique_ptr<TableQueryAST> tbsub;
-	std::unique_ptr<TableRefsAST> tbrefs;
+	std::shared_ptr<TableNameAST> tbname;
+	std::shared_ptr<TableQueryAST> tbsub;
+	std::shared_ptr<TableRefsAST> tbrefs;
 	TableFactorAST() = default;
-	TableFactorAST(std::unique_ptr<TableNameAST> tbname,std::unique_ptr<TableQueryAST> tbsub,
-		std::unique_ptr<TableRefsAST> tbrefs):
-		tbname(std::move(tbname)),tbsub(std::move(tbsub)),tbrefs(std::move(tbrefs)){}
+	TableFactorAST(std::shared_ptr<TableNameAST> tbname, std::shared_ptr<TableQueryAST> tbsub,
+		std::shared_ptr<TableRefsAST> tbrefs) :
+		tbname(std::move(tbname)), tbsub(std::move(tbsub)), tbrefs(std::move(tbrefs)) {}
 };
 
 class JoinCondAST
 {
 public:
-	std::unique_ptr<OnJoinCondAST> oncond;
-	std::unique_ptr<UsingJoinCondAST> uselist;
+	std::shared_ptr<OnJoinCondAST> oncond;
+	std::shared_ptr<UsingJoinCondAST> uselist;
 	JoinCondAST() = default;
-	JoinCondAST(std::unique_ptr<OnJoinCondAST> oncond, std::unique_ptr<UsingJoinCondAST> uselist):
-		oncond(std::move(oncond)),uselist(std::move(uselist)){}
+	JoinCondAST(std::shared_ptr<OnJoinCondAST> oncond, std::shared_ptr<UsingJoinCondAST> uselist) :
+		oncond(std::move(oncond)), uselist(std::move(uselist)) {}
 };
 
 class TableNameAST
 {
 public:
-	std::unique_ptr<IdAST> tbname;
-	std::unique_ptr<IdAST> alias;	// optional
-	TableNameAST(std::unique_ptr<IdAST> tbname, std::unique_ptr<IdAST> alias) :
-		tbname(std::move(tbname)),alias(std::move(alias)) {}
+	std::shared_ptr<IdAST> tbname;
+	std::shared_ptr<IdAST> alias;	// optional
+	TableNameAST(std::shared_ptr<IdAST> tbname, std::shared_ptr<IdAST> alias) :
+		tbname(std::move(tbname)), alias(std::move(alias)) {}
 };
 
 class TableQueryAST
 {
 public:
-	std::unique_ptr<SubqueryAST> subq;
-	std::unique_ptr<IdAST> alias;	// necessary
-	TableQueryAST(std::unique_ptr<SubqueryAST> subq, std::unique_ptr<IdAST> alias) :
+	std::shared_ptr<SubqueryAST> subq;
+	std::shared_ptr<IdAST> alias;	// necessary
+	TableQueryAST(std::shared_ptr<SubqueryAST> subq, std::shared_ptr<IdAST> alias) :
 		subq(std::move(subq)), alias(std::move(alias))
 	{
 		if (this->alias == nullptr)
@@ -1316,38 +1354,38 @@ public:
 class OnJoinCondAST
 {
 public:
-	std::unique_ptr<ExprAST> cond;
-	OnJoinCondAST(std::unique_ptr<ExprAST> cond) :
+	std::shared_ptr<ExprAST> cond;
+	OnJoinCondAST(std::shared_ptr<ExprAST> cond) :
 		cond(std::move(cond)) {}
 };
 
 class UsingJoinCondAST
 {
 public:
-	std::vector<std::unique_ptr<TablecolAST>> cols;
-	UsingJoinCondAST(std::vector<std::unique_ptr<TablecolAST>> cols) :
+	std::vector<std::shared_ptr<TablecolAST>> cols;
+	UsingJoinCondAST(std::vector<std::shared_ptr<TablecolAST>> cols) :
 		cols(std::move(cols)) {}
 };
 
 class TRIJAST
 {
 public:
-	std::unique_ptr<TableRefAST> ref;
-	std::unique_ptr<TableFactorAST> factor;
-	std::unique_ptr<JoinCondAST> cond;	// optional
-	TRIJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,
-		std::unique_ptr<JoinCondAST> cond) :
+	std::shared_ptr<TableRefAST> ref;
+	std::shared_ptr<TableFactorAST> factor;
+	std::shared_ptr<JoinCondAST> cond;	// optional
+	TRIJAST(std::shared_ptr<TableRefAST> ref, std::shared_ptr<TableFactorAST> factor,
+		std::shared_ptr<JoinCondAST> cond) :
 		ref(std::move(ref)), factor(std::move(factor)), cond(std::move(cond)) {}
 };
 
 class TRLROJAST
 {
 public:
-	std::unique_ptr<TableRefAST> lhs;
-	std::unique_ptr<TableRefAST> rhs;
-	std::unique_ptr<JoinCondAST> cond;	// necessary
+	std::shared_ptr<TableRefAST> lhs;
+	std::shared_ptr<TableRefAST> rhs;
+	std::shared_ptr<JoinCondAST> cond;	// necessary
 	int lr = 0;
-	TRLROJAST(std::unique_ptr<TableRefAST> lhs, std::unique_ptr<TableRefAST> rhs, std::unique_ptr<JoinCondAST> cond, int lr) :
+	TRLROJAST(std::shared_ptr<TableRefAST> lhs, std::shared_ptr<TableRefAST> rhs, std::shared_ptr<JoinCondAST> cond, int lr) :
 		lhs(std::move(lhs)), rhs(std::move(rhs)), cond(std::move(cond)), lr(lr)
 	{
 		if (this->cond == nullptr)
@@ -1359,11 +1397,11 @@ public:
 class TRNLROJAST
 {
 public:
-	std::unique_ptr<TableRefAST> ref;
-	std::unique_ptr<TableFactorAST> factor;
+	std::shared_ptr<TableRefAST> ref;
+	std::shared_ptr<TableFactorAST> factor;
 	int lr = 0;
-	TRNLROJAST(std::unique_ptr<TableRefAST> ref, std::unique_ptr<TableFactorAST> factor,int lr) :
-		ref(std::move(ref)), factor(std::move(factor)),lr(lr) {}
+	TRNLROJAST(std::shared_ptr<TableRefAST> ref, std::shared_ptr<TableFactorAST> factor, int lr) :
+		ref(std::move(ref)), factor(std::move(factor)), lr(lr) {}
 };
 
 
@@ -1371,80 +1409,80 @@ public:
 class StatementAST
 {
 public:
-	std::unique_ptr<CreateAST> create;
-	std::unique_ptr<SelectAST> select;
-	std::unique_ptr<DropAST> drop;
-	std::unique_ptr<InsertAST> insert;
-	std::unique_ptr<DeleteAST> dele;
-	std::unique_ptr<SetAST> setvar;
+	std::shared_ptr<CreateAST> create;
+	std::shared_ptr<SelectAST> select;
+	std::shared_ptr<DropAST> drop;
+	std::shared_ptr<InsertAST> insert;
+	std::shared_ptr<DeleteAST> dele;
+	std::shared_ptr<SetAST> setvar;
 	StatementAST() = default;
-	StatementAST(std::unique_ptr<CreateAST> create, std::unique_ptr<SelectAST> select, std::unique_ptr<DropAST> drop,
-		std::unique_ptr<InsertAST> insert, std::unique_ptr<DeleteAST> dele, std::unique_ptr<SetAST> setvar):
-		create(std::move(create)),select(std::move(select)),drop(std::move(drop)),
-		insert(std::move(insert)),dele(std::move(dele)),setvar(std::move(setvar)){}
+	StatementAST(std::shared_ptr<CreateAST> create, std::shared_ptr<SelectAST> select, std::shared_ptr<DropAST> drop,
+		std::shared_ptr<InsertAST> insert, std::shared_ptr<DeleteAST> dele, std::shared_ptr<SetAST> setvar) :
+		create(std::move(create)), select(std::move(select)), drop(std::move(drop)),
+		insert(std::move(insert)), dele(std::move(dele)), setvar(std::move(setvar)) {}
 };
 
 class CreateAST
 {
 public:
-	std::unique_ptr<CreateTableAST> ctable;
-	std::unique_ptr<CreateIndexAST> cindex;
+	std::shared_ptr<CreateTableAST> ctable;
+	std::shared_ptr<CreateIndexAST> cindex;
 	CreateAST() = default;
-	CreateAST(std::unique_ptr<CreateTableAST> ctable, std::unique_ptr<CreateIndexAST> cindex):
-		ctable(std::move(ctable)),cindex(std::move(cindex)){}
+	CreateAST(std::shared_ptr<CreateTableAST> ctable, std::shared_ptr<CreateIndexAST> cindex) :
+		ctable(std::move(ctable)), cindex(std::move(cindex)) {}
 };
 
 class CreateTableAST
 {
 public:
-	std::unique_ptr< CreateTableSimpleAST> simplecreate;
-	std::unique_ptr<CreateTableSelectAST> selectcreate;
-	std::unique_ptr<CreateTableLikeAST> likecreate;
+	std::shared_ptr< CreateTableSimpleAST> simplecreate;
+	std::shared_ptr<CreateTableSelectAST> selectcreate;
+	std::shared_ptr<CreateTableLikeAST> likecreate;
 	CreateTableAST() = default;
-	CreateTableAST(std::unique_ptr< CreateTableSimpleAST> simplecreate,
-		std::unique_ptr<CreateTableSelectAST> selectcreate, std::unique_ptr<CreateTableLikeAST> likecreate):
-		simplecreate(std::move(simplecreate)),selectcreate(std::move(selectcreate)),likecreate(std::move(likecreate)){}
+	CreateTableAST(std::shared_ptr< CreateTableSimpleAST> simplecreate,
+		std::shared_ptr<CreateTableSelectAST> selectcreate, std::shared_ptr<CreateTableLikeAST> likecreate) :
+		simplecreate(std::move(simplecreate)), selectcreate(std::move(selectcreate)), likecreate(std::move(likecreate)) {}
 };
 
 class CreateTableSimpleAST
 {
 public:
-	std::unique_ptr<IdAST> table_name;
-	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
-	CreateTableSimpleAST(std::unique_ptr<IdAST> table_name,std::vector<std::unique_ptr<CreatedefAST>> create_defs) :
+	std::shared_ptr<IdAST> table_name;
+	std::vector<std::shared_ptr<CreatedefAST>> create_defs;
+	CreateTableSimpleAST(std::shared_ptr<IdAST> table_name, std::vector<std::shared_ptr<CreatedefAST>> create_defs) :
 		table_name(std::move(table_name)), create_defs(std::move(create_defs)) {}
 };
 
 class CreateTableSelectAST
 {
 public:
-	std::unique_ptr<std::string> table_name;
-	std::unique_ptr<SelectExprAST> select;
-	CreateTableSelectAST(std::unique_ptr<std::string> table_name, std::unique_ptr<SelectExprAST> select) :
-		table_name(std::move(table_name)),select(std::move(select)) {}
+	std::shared_ptr<std::string> table_name;
+	std::shared_ptr<SelectExprAST> select;
+	CreateTableSelectAST(std::shared_ptr<std::string> table_name, std::shared_ptr<SelectExprAST> select) :
+		table_name(std::move(table_name)), select(std::move(select)) {}
 };
 
 class CreateTableLikeAST
 {
 public:
-	std::unique_ptr<std::string> table_name;
-	std::unique_ptr<std::string> old_name;
-	CreateTableLikeAST(std::unique_ptr<std::string> table_name, std::unique_ptr<std::string> old_name) :
+	std::shared_ptr<std::string> table_name;
+	std::shared_ptr<std::string> old_name;
+	CreateTableLikeAST(std::shared_ptr<std::string> table_name, std::shared_ptr<std::string> old_name) :
 		table_name(std::move(table_name)), old_name(std::move(old_name)) {}
 };
 
 class CreatedefAST
 {
 public:
-	std::unique_ptr<IdAST> colname;
-	std::unique_ptr<ColdefAST> coldef;
-	std::unique_ptr<PrimaryAST> prim;
-	std::unique_ptr<UniqueAST> uni;
-	std::unique_ptr<ForeignAST> forei;
-	std::unique_ptr<ExprAST> check;
-	CreatedefAST(std::unique_ptr<IdAST> colname, std::unique_ptr<ColdefAST> coldef,
-		std::unique_ptr<PrimaryAST> prim, std::unique_ptr<UniqueAST> uni,
-		std::unique_ptr<ForeignAST> forei, std::unique_ptr<ExprAST> check) :
+	std::shared_ptr<IdAST> colname;
+	std::shared_ptr<ColdefAST> coldef;
+	std::shared_ptr<PrimaryAST> prim;
+	std::shared_ptr<unicAST> uni;
+	std::shared_ptr<ForeignAST> forei;
+	std::shared_ptr<ExprAST> check;
+	CreatedefAST(std::shared_ptr<IdAST> colname, std::shared_ptr<ColdefAST> coldef,
+		std::shared_ptr<PrimaryAST> prim, std::shared_ptr<unicAST> uni,
+		std::shared_ptr<ForeignAST> forei, std::shared_ptr<ExprAST> check) :
 		colname(std::move(colname)), coldef(std::move(coldef)), prim(std::move(prim)),
 		uni(std::move(uni)), forei(std::move(forei)), check(std::move(check)) {}
 };
@@ -1452,27 +1490,27 @@ public:
 class RefdefAST
 {
 public:
-	std::unique_ptr<IdAST> tbname;
-	std::vector<std::unique_ptr<IdAST>> colname;
+	std::shared_ptr<IdAST> tbname;
+	std::vector<std::shared_ptr<IdAST>> colname;
 	int deleteop = 0;
 	int updateop = 0;
-	RefdefAST(std::unique_ptr<IdAST> tbname, std::vector<std::unique_ptr<IdAST>> colname, int deleteop,int updateop):
-		tbname(std::move(tbname)),colname(std::move(colname)),deleteop(deleteop),updateop(updateop){}
+	RefdefAST(std::shared_ptr<IdAST> tbname, std::vector<std::shared_ptr<IdAST>> colname, int deleteop, int updateop) :
+		tbname(std::move(tbname)), colname(std::move(colname)), deleteop(deleteop), updateop(updateop) {}
 };
 
 class ColdefAST
 {
 public:
-	std::unique_ptr<DatatypeAST> dtype;
+	std::shared_ptr<DatatypeAST> dtype;
 	bool null_flag = true;
-	std::unique_ptr<ExprAST> default_value;
-	bool unique_flag = false;
+	std::shared_ptr<ExprAST> default_value;
+	bool shared_flag = false;
 	bool primary_flag = false;
-	std::unique_ptr<RefdefAST> refdef;
-	ColdefAST(std::unique_ptr<DatatypeAST> dtype, bool null_flag, std::unique_ptr<ExprAST> default_value,
-	bool unique_flag, bool primary_flag, std::unique_ptr<RefdefAST> refdef):
-		dtype(std::move(dtype)),null_flag(null_flag),default_value(std::move(default_value)),
-		unique_flag(unique_flag),primary_flag(primary_flag),refdef(std::move(refdef)){}
+	std::shared_ptr<RefdefAST> refdef;
+	ColdefAST(std::shared_ptr<DatatypeAST> dtype, bool null_flag, std::shared_ptr<ExprAST> default_value,
+		bool shared_flag, bool primary_flag, std::shared_ptr<RefdefAST> refdef) :
+		dtype(std::move(dtype)), null_flag(null_flag), default_value(std::move(default_value)),
+		shared_flag(shared_flag), primary_flag(primary_flag), refdef(std::move(refdef)) {}
 };
 
 class DatatypeAST
@@ -1486,95 +1524,95 @@ public:
 class ForeignAST
 {
 public:
-	std::vector<std::unique_ptr<IdAST>> cols;
-	std::unique_ptr<RefdefAST> refdef;
-	ForeignAST(std::vector<std::unique_ptr<IdAST>> cols, std::unique_ptr<RefdefAST> refdef) :
-		cols(std::move(cols)),refdef(std::move(refdef)){}
+	std::vector<std::shared_ptr<IdAST>> cols;
+	std::shared_ptr<RefdefAST> refdef;
+	ForeignAST(std::vector<std::shared_ptr<IdAST>> cols, std::shared_ptr<RefdefAST> refdef) :
+		cols(std::move(cols)), refdef(std::move(refdef)) {}
 };
 
-class UniqueAST
+class unicAST
 {
 public:
-	std::vector<std::unique_ptr<IdAST>> cols;
-	UniqueAST(std::vector<std::unique_ptr<IdAST>> cols) :cols(std::move(cols)) {}
+	std::vector<std::shared_ptr<IdAST>> cols;
+	unicAST(std::vector<std::shared_ptr<IdAST>> cols) :cols(std::move(cols)) {}
 };
 
 class PrimaryAST
 {
 public:
-	std::vector<std::unique_ptr<IdAST>> cols;
-	PrimaryAST(std::vector<std::unique_ptr<IdAST>> cols):cols(std::move(cols)){}
+	std::vector<std::shared_ptr<IdAST>> cols;
+	PrimaryAST(std::vector<std::shared_ptr<IdAST>> cols) :cols(std::move(cols)) {}
 };
 
 class CreateIndexAST
 {
 public:
-	std::unique_ptr<IdAST> index_name;
-	std::unique_ptr<IdAST> table_name;
-	std::vector<std::unique_ptr<IdAST>> col_names;
-	CreateIndexAST(std::unique_ptr<IdAST> index_name,
-		std::unique_ptr<IdAST> table_name, std::vector<std::unique_ptr<IdAST>> col_names) :
+	std::shared_ptr<IdAST> index_name;
+	std::shared_ptr<IdAST> table_name;
+	std::vector<std::shared_ptr<IdAST>> col_names;
+	CreateIndexAST(std::shared_ptr<IdAST> index_name,
+		std::shared_ptr<IdAST> table_name, std::vector<std::shared_ptr<IdAST>> col_names) :
 		index_name(std::move(index_name)), table_name(std::move(table_name)), col_names(std::move(col_names)) {}
 };
 
 class DropAST
 {
 public:
-	std::unique_ptr<DropTableAST> droptb;
-	std::unique_ptr<DropIndexAST> dropindex;
+	std::shared_ptr<DropTableAST> droptb;
+	std::shared_ptr<DropIndexAST> dropindex;
 	DropAST() = default;
-	DropAST(std::unique_ptr<DropTableAST> droptb, std::unique_ptr<DropIndexAST> dropindex):
-		droptb(std::move(droptb)),dropindex(std::move(dropindex)){}
+	DropAST(std::shared_ptr<DropTableAST> droptb, std::shared_ptr<DropIndexAST> dropindex) :
+		droptb(std::move(droptb)), dropindex(std::move(dropindex)) {}
 };
 
 class DropTableAST
 {
 public:
-	std::vector<std::unique_ptr<IdAST>> table_list;
-	DropTableAST(std::vector<std::unique_ptr<IdAST>> table_list) : table_list(std::move(table_list)) {}
+	std::vector<std::shared_ptr<IdAST>> table_list;
+	DropTableAST(std::vector<std::shared_ptr<IdAST>> table_list) : table_list(std::move(table_list)) {}
 };
 
 class DropIndexAST
 {
 public:
-	std::vector<std::unique_ptr<IdAST>> index_list;
-	DropIndexAST(std::vector<std::unique_ptr<IdAST>> index_list):index_list(std::move(index_list)){}
+	std::vector<std::shared_ptr<IdAST>> index_list;
+	DropIndexAST(std::vector<std::shared_ptr<IdAST>> index_list) :index_list(std::move(index_list)) {}
 };
 
 class InsertAST
 {
 public:
-	std::unique_ptr<IdAST> table_name;
-	std::vector<std::unique_ptr<IdAST>> col_names;
-	std::vector<std::unique_ptr<ExprAST>> value_list;
-	InsertAST(std::unique_ptr<IdAST> table_name,
-		std::vector<std::unique_ptr<IdAST>> col_names, std::vector<std::unique_ptr<ExprAST>> value_list) :
+	std::shared_ptr<IdAST> table_name;
+	std::vector<std::shared_ptr<IdAST>> col_names;
+	std::vector<std::shared_ptr<ExprAST>> value_list;
+	InsertAST(std::shared_ptr<IdAST> table_name,
+		std::vector<std::shared_ptr<IdAST>> col_names, std::vector<std::shared_ptr<ExprAST>> value_list) :
 		table_name(std::move(table_name)), col_names(std::move(col_names)), value_list(std::move(value_list)) {}
 };
 
 class DeleteAST
 {
 public:
-	std::unique_ptr<IdAST> table_name;
-	std::unique_ptr< ExprAST> where_condition;
-	DeleteAST(std::unique_ptr<IdAST> table_name, std::unique_ptr< ExprAST> where_condition) :
+	std::shared_ptr<IdAST> table_name;
+	std::shared_ptr< ExprAST> where_condition;
+	DeleteAST(std::shared_ptr<IdAST> table_name, std::shared_ptr< ExprAST> where_condition) :
 		table_name(std::move(table_name)), where_condition(std::move(where_condition)) {}
 };
 
 class SelectAST
 {
 public:
-	std::unique_ptr<SubqueryAST> subquery;
-	SelectAST(std::unique_ptr<SubqueryAST> subquery):
-		subquery(std::move(subquery)){}
+	std::shared_ptr<SubqueryAST> subquery;
+	SelectAST(std::shared_ptr<SubqueryAST> subquery) :
+		subquery(std::move(subquery)) {}
 };
 
 class SetAST
 {
 public:
-	unique_ptr<IdAST> id;
-	unique_ptr<ExprAST> expr;
-	SetAST(unique_ptr<IdAST> id, unique_ptr<ExprAST> expr) :id(std::move(id)), expr(std::move(expr)) {}
+	shared_ptr<IdAST> id;
+	shared_ptr<ExprAST> expr;
+	SetAST(shared_ptr<IdAST> id, shared_ptr<ExprAST> expr) :id(std::move(id)), expr(std::move(expr)) {}
 	llvm::Value* codegen();
 };
 
