@@ -970,6 +970,24 @@ std::shared_ptr<unicAST> ParseunicAST();
 std::shared_ptr<ForeignAST> ParseForeignAST();
 std::shared_ptr<SetAST> ParseSetAST();
 
+std::shared_ptr<SimpleExprAST> negative_SE(std::shared_ptr<SimpleExprAST> se);
+std::shared_ptr<SimpleExprAST> plus_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> minus_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> mul_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> div_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> mod_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> in_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> eq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> lt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> lteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gtlt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> noteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> not_SE(std::shared_ptr<SimpleExprAST> se);
+std::shared_ptr<SimpleExprAST> and_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+
 token gettok();
 void init_scanner();
 void init_parser();
