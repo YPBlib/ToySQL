@@ -1,0 +1,64 @@
+数据类型：
+
+int
+double
+string
+
+var
+table_col
+function
+
+query exists
+
+
+-----------------------------------------------------------------------
+
+
+expr: or and || &&
+exp: not !
+boolean_primary: is null ,= , >= , > , <= , < , <> , !=,all/any subquery
+predicate: in, between and
+bit_expr: +-
+bit_exp: */%
+bit_ex: +-
+simple_expr:  id, table_col, function_call, literal, (), query, exists
+
+
+
+subquery:
+  SELECT
+    [ DISTINCT ]
+    select_expr [, select_expr ...]
+    [   FROM table_references
+		[WHERE where_condition] 
+		[GROUP BY {col_name | expr , ...} [ASC | DESC]] 
+		[HAVING where_condition]
+		[ORDER BY {col_name | expr , ...} [ASC | DESC]]
+    ]
+
+select_expr:
+    expr [AS alias]
+
+
+table_references:
+    table_reference [, table_reference] ...
+
+table_reference:
+    table_reference [INNER | CROSS] JOIN table_factor [join_condition]
+  | table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
+  | table_reference NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
+  | table_factor
+table_factor:
+    tbl_name [[AS] alias]
+  | table_subquery AS alias
+  | ( table_references )
+
+join_condition:
+    ON conditional_expr
+  | USING (column_list)
+
+//===----------------------------------------------------------------------===//
+// expr end
+//===----------------------------------------------------------------------===//
+
+

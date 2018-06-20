@@ -31,16 +31,16 @@ using namespace llvm;
 token currtoken;
 int delimiter = semicolon_mark;
 
-using LR = std::vector<std::unique_ptr<ExprAST>> ;
-using LL = std::vector<std::unique_ptr<ExprAST>> ;
+using LR = std::vector<std::shared_ptr<ExprAST>>;
+using LL = std::vector<std::shared_ptr<ExprAST>>;
 void consumeit(std::vector<int> v, std::string s);
 
 void consumeit(std::vector<int> v, std::string s)
 {
 	if (currtoken.token_kind == symbol)
 	{
-		int m = currtoken.token_value.symbol_mark; 
-		if (std::find(v.cbegin(),v.cend(),m)!=v.cend())
+		int m = currtoken.token_value.symbol_mark;
+		if (std::find(v.cbegin(), v.cend(), m) != v.cend())
 		{
 			currtoken = gettok();
 			return;
@@ -59,10 +59,10 @@ bool iscompop(const int& i)
 	return i == eq_mark || i == gteq_mark || i == gt_mark || i == lteq_mark || i == lt_mark || i == ltgt_mark || i == noteq_mark;
 }
 
-std::unique_ptr<ExprAST> ParseExprAST()
+std::shared_ptr<ExprAST> ParseExprAST()
 {
 	auto lhs = ParseExpAST();
-	std::unique_ptr<ExprAST> rhs;
+	std::shared_ptr<ExprAST> rhs;
 	int op;
 	if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == and_mark ||
@@ -74,16 +74,16 @@ std::unique_ptr<ExprAST> ParseExprAST()
 		op = currtoken.token_value.symbol_mark;
 		currtoken = gettok();	// consume op
 		rhs = ParseExprAST();
-		return llvm::make_unique<ExprAST>(std::move(lhs), op, std::move(rhs));
+		return std::make_shared<ExprAST>(std::move(lhs), op, std::move(rhs));
 	}
 	else
-		return llvm::make_unique<ExprAST>(std::move(lhs),0,nullptr);
+		return std::make_shared<ExprAST>(std::move(lhs), 0, nullptr);
 }
 
-std::unique_ptr<ExpAST> ParseExpAST()
+std::shared_ptr<ExpAST> ParseExpAST()
 {
-	std::unique_ptr<ExprAST> expr ;
-	std::unique_ptr<BooleanPrimaryAST> bp ;
+	std::shared_ptr<ExprAST> expr;
+	std::shared_ptr<BooleanPrimaryAST> bp;
 	if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == tok_NOT || currtoken.token_value.symbol_mark == not_mark))
 	{
@@ -94,14 +94,14 @@ std::unique_ptr<ExpAST> ParseExpAST()
 	{
 		bp = ParseBPAST();
 	}
-	return llvm::make_unique<ExpAST>(std::move(expr), std::move(bp));
+	return std::make_shared<ExpAST>(std::move(expr), std::move(bp));
 }
 
-std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
+std::shared_ptr<BooleanPrimaryAST> ParseBPAST()
 {
-	
+
 	auto p = ParsePredicateAST();
-	auto bp = llvm::make_unique<BooleanPrimaryAST>(nullptr, std::move(p), 0, 0, nullptr);
+	auto bp = std::make_shared<BooleanPrimaryAST>(nullptr, std::move(p), 0, 0, nullptr);
 	while (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == tok_IS || iscompop(currtoken.token_value.symbol_mark))
 		)
@@ -123,13 +123,13 @@ std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
 				{
 					throw std::runtime_error(R"( parse error, do you mean "NOT NULL"?\n)");
 				}
-				bp=llvm::make_unique<BooleanPrimaryAST>(std::move(bp),nullptr, flag,0,nullptr);
+				bp = std::make_shared<BooleanPrimaryAST>(std::move(bp), nullptr, flag, 0, nullptr);
 			}
 			else if (currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == tok_NULL)
 			{
 				flag = tok_NULL;
 				currtoken = gettok();	// consume NULL
-				bp = llvm::make_unique<BooleanPrimaryAST>(std::move(bp), nullptr, flag, 0, nullptr);
+				bp = std::make_shared<BooleanPrimaryAST>(std::move(bp), nullptr, flag, 0, nullptr);
 			}
 			else
 			{
@@ -146,7 +146,7 @@ std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
 			{
 				int flag = currtoken.token_value.symbol_mark;
 				currtoken = gettok();	// consume all/any
-				if(currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == left_bracket_mark)
+				if (currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == left_bracket_mark)
 				{
 					currtoken = gettok();	// consume '('
 				}
@@ -163,39 +163,48 @@ std::unique_ptr<BooleanPrimaryAST> ParseBPAST()
 				{
 					throw std::runtime_error("expext '( subquery)' pattern\n");
 				}
-				bp = llvm::make_unique<BooleanPrimaryAST>(std::move(bp), std::move(p), flag, op, std::move(sub));
+				bp = std::make_shared<BooleanPrimaryAST>(std::move(bp), std::move(p), flag, op, std::move(sub));
 			}
 			else
 			{
-				p= ParsePredicateAST();
-				bp = llvm::make_unique<BooleanPrimaryAST>(std::move(bp), std::move(p), 0, op, nullptr);
+				p = ParsePredicateAST();
+				bp = std::make_shared<BooleanPrimaryAST>(std::move(bp), std::move(p), 0, op, nullptr);
 			}
 		}
 	}
 	return std::move(bp);
-	//return llvm::make_unique<BooleanPrimaryAST>(std::move(bp), nullptr, 0, 0, nullptr);
+	//return std::make_shared<BooleanPrimaryAST>(std::move(bp), nullptr, 0, 0, nullptr);
 }
 
-std::unique_ptr<PredicateAST> ParsePredicateAST()
+std::shared_ptr<PredicateAST> ParsePredicateAST()
 {
 	auto bitexpr = ParseBitExprAST();
 	bool flag = true;
-	std::unique_ptr<BitExprAST> rhs;
-	std::unique_ptr<SubqueryAST> sub;
-	std::vector<std::unique_ptr<ExprAST>> exprs;
+	std::shared_ptr<BitExprAST> rhs;
+	std::shared_ptr<PredicateAST> p;
+	std::shared_ptr<SubqueryAST> sub;
+	std::vector<std::shared_ptr<ExprAST>> exprs;
 	if (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == tok_NOT ||
-			currtoken.token_value.symbol_mark == tok_REGEXP || currtoken.token_value.symbol_mark == tok_IN))
+			currtoken.token_value.symbol_mark == tok_BETWEEN || currtoken.token_value.symbol_mark == tok_IN))
 	{
 		if (currtoken.token_value.symbol_mark == tok_NOT)
 		{
-			currtoken = gettok();	//consum NOT
 			flag = false;
+			currtoken = gettok();	//consum NOT
+			if (!(currtoken.token_kind == symbol &&
+				(currtoken.token_value.symbol_mark == tok_IN || currtoken.token_value.symbol_mark == tok_BETWEEN)))
+			{
+				throw std::runtime_error("IN/BETWEEN should follow BOT when parsing predicate \n");
+			}
+
 		}
-		else if (currtoken.token_value.symbol_mark == tok_REGEXP)
+		if (currtoken.token_value.symbol_mark == tok_BETWEEN)
 		{
-				currtoken = gettok();	//consume REGEXP
-				rhs = ParseBitExprAST();
+			currtoken = gettok();	//consume BETWEEN
+			rhs = ParseBitExprAST();
+			consumeit({ tok_AND }, "BETWEEN AND mismatches \n");
+			p = ParsePredicateAST();
 		}
 		else if (currtoken.token_value.symbol_mark == tok_IN)
 		{
@@ -219,52 +228,53 @@ std::unique_ptr<PredicateAST> ParsePredicateAST()
 			}
 		}
 	}
-	return llvm::make_unique<PredicateAST>(std::move(bitexpr), flag, std::move(rhs), std::move(sub), std::move(exprs));
+	return std::make_shared<PredicateAST>(std::move(bitexpr), flag, std::move(rhs),
+		std::move(p), std::move(sub), std::move(exprs));
 }
 
-std::unique_ptr<BitExprAST> ParseBitExprAST()
+std::shared_ptr<BitExprAST> ParseBitExprAST()
 {
 	auto bitexp = ParseBitExpAST();
 	int op = 0;
-	std::unique_ptr<BitExprAST> bitexpr;
+	std::shared_ptr<BitExprAST> bitexpr;
 	while (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == plus_mark || currtoken.token_value.symbol_mark == minus_mark))
 	{
 		op = currtoken.token_value.symbol_mark;
-		bitexpr = llvm::make_unique<BitExprAST>(std::move(bitexpr), op, std::move(bitexp));
+		bitexpr = std::make_shared<BitExprAST>(std::move(bitexpr), op, std::move(bitexp));
 		currtoken = gettok();	// consume '-' or  '+ '
 		bitexp = ParseBitExpAST();
 	}
-	return llvm::make_unique<BitExprAST>(std::move(bitexpr),op, std::move(bitexp));
+	return std::make_shared<BitExprAST>(std::move(bitexpr), op, std::move(bitexp));
 }
 
-std::unique_ptr<BitExpAST> ParseBitExpAST()
+std::shared_ptr<BitExpAST> ParseBitExpAST()
 {
 	auto bitex = ParseBitExAST();
 	int op = 0;
-	std::unique_ptr<BitExpAST> bitexp;
+	std::shared_ptr<BitExpAST> bitexp;
 	while (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == mult_mark || currtoken.token_value.symbol_mark == div_mark
 			|| currtoken.token_value.symbol_mark == mod_mark))
 	{
 		op = currtoken.token_value.symbol_mark;
-		bitexp = llvm::make_unique<BitExpAST>(std::move(bitexp), op, std::move(bitex));
+		bitexp = std::make_shared<BitExpAST>(std::move(bitexp), op, std::move(bitex));
 		currtoken = gettok();	// consume '*' or  '/ ' or '%'
 		bitex = ParseBitExAST();
 	}
-	return llvm::make_unique<BitExpAST>(std::move(bitexp),op, std::move(bitex));
+	return std::make_shared<BitExpAST>(std::move(bitexp), op, std::move(bitex));
 }
 
-std::unique_ptr<BitExAST> ParseBitExAST()
+std::shared_ptr<BitExAST> ParseBitExAST()
 {
 	int mark = 0;
-	std::unique_ptr<BitExAST> bitex;
-	std::unique_ptr<SimpleExprAST> SE;
+	std::shared_ptr<BitExAST> bitex;
+	std::shared_ptr<SimpleExprAST> SE;
 	if (!(currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == plus_mark || currtoken.token_value.symbol_mark == minus_mark)))
 	{
 		SE = ParseSEAST();
-		return llvm::make_unique<BitExAST>(mark, std::move(bitex), std::move(SE));
+		return std::make_shared<BitExAST>(mark, std::move(bitex), std::move(SE));
 	}
 	while (currtoken.token_kind == symbol &&
 		(currtoken.token_value.symbol_mark == plus_mark || currtoken.token_value.symbol_mark == minus_mark))
@@ -272,18 +282,18 @@ std::unique_ptr<BitExAST> ParseBitExAST()
 		mark = currtoken.token_value.symbol_mark;
 		currtoken = gettok();	//consume mark
 		bitex = ParseBitExAST();
-		bitex = llvm::make_unique<BitExAST>(mark, std::move(bitex), std::move(SE));
+		bitex = std::make_shared<BitExAST>(mark, std::move(bitex), std::move(SE));
 	}
-	return llvm::make_unique<BitExAST>(mark, std::move(bitex), std::move(SE));
+	return std::make_shared<BitExAST>(mark, std::move(bitex), std::move(SE));
 }
 
-std::unique_ptr<SimpleExprAST> ParseSEAST()
+std::shared_ptr<SimpleExprAST> ParseSEAST()
 {
 	if (currtoken.token_kind == literal_double || currtoken.token_kind == literal_string
 		|| currtoken.token_kind == literal_int)
 	{
 		auto lit = ParseLiteralAST();
-		return llvm::make_unique<SimpleExprAST>(std::move(lit));
+		return std::make_shared<SimpleExprAST>(std::move(lit));
 	}
 	else if (currtoken.token_kind == id)
 	{
@@ -292,18 +302,18 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 		{
 			currtoken = gettok();	//s=consume '.'
 			auto colname = ParseIdAST();
-			auto tbcol=llvm::make_unique<TablecolAST>(std::move(idstr->id),std::move(colname->id));
-			return llvm::make_unique<SimpleExprAST>(std::move(tbcol));
+			auto tbcol = std::make_shared<TablecolAST>(std::move(idstr->id), std::move(colname->id));
+			return std::make_shared<SimpleExprAST>(std::move(tbcol));
 		}
-		else if ( currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == left_bracket_mark)
+		else if (currtoken.token_kind == symbol &&currtoken.token_value.symbol_mark == left_bracket_mark)
 		{
 			currtoken = gettok();	//s=consume '('
 			auto call = ParseCallAST(std::move(idstr));
-			return llvm::make_unique<SimpleExprAST>(std::move(call));
+			return std::make_shared<SimpleExprAST>(std::move(call));
 		}
 		else
 		{
-			return llvm::make_unique<SimpleExprAST>(std::move(idstr));
+			return std::make_shared<SimpleExprAST>(std::move(idstr));
 		}
 	}
 	else if (currtoken.token_kind == symbol)
@@ -311,14 +321,14 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 		if (currtoken.token_value.symbol_mark == tok_EXISTS)
 		{
 			auto exsub = ParseExistsSubqueryAST();
-			return llvm::make_unique<SimpleExprAST>(std::move(exsub));
+			return std::make_shared<SimpleExprAST>(std::move(exsub));
 		}
-		else if(currtoken.token_value.symbol_mark == left_bracket_mark)
+		else if (currtoken.token_value.symbol_mark == left_bracket_mark)
 		{
 			currtoken = gettok();	// consume '('
 			auto sub = ParseSubqueryAST();
 			currtoken = gettok();	// consume '('
-			return llvm::make_unique<SimpleExprAST>(std::move(sub));
+			return std::make_shared<SimpleExprAST>(std::move(sub));
 		}
 		else
 		{
@@ -331,25 +341,25 @@ std::unique_ptr<SimpleExprAST> ParseSEAST()
 	}
 }
 
-std::unique_ptr<ParenExprAST> ParseParenExprAST()
+std::shared_ptr<ParenExprAST> ParseParenExprAST()
 {
 	consumeit({ left_bracket_mark }, "expect '('\n");
 	auto e = ParseExprAST();
 	consumeit({ right_bracket_mark }, "expect ')'\n");
-	return llvm::make_unique<ParenExprAST>(std::move(e));
+	return std::make_shared<ParenExprAST>(std::move(e));
 }
 
-std::unique_ptr<LiteralAST> ParseLiteralAST()
+std::shared_ptr<LiteralAST> ParseLiteralAST()
 {
 	if (currtoken.token_kind == literal_double)
-		return llvm::make_unique<LiteralAST>(ParseDoubleLiteralAST());
+		return std::make_shared<LiteralAST>(ParseDoubleLiteralAST());
 	if (currtoken.token_kind == literal_int)
-		return llvm::make_unique<LiteralAST>(ParseIntLiteralAST());
+		return std::make_shared<LiteralAST>(ParseIntLiteralAST());
 	if (currtoken.token_kind == literal_string)
-		return llvm::make_unique<LiteralAST>(ParseStringLiteralAST());
+		return std::make_shared<LiteralAST>(ParseStringLiteralAST());
 }
 
-std::unique_ptr<StringLiteralAST> ParseStringLiteralAST()
+std::shared_ptr<StringLiteralAST> ParseStringLiteralAST()
 {
 	std::string temps = currtoken.token_value.string_literal;
 	currtoken = gettok(); // consume 1 string token
@@ -359,40 +369,40 @@ std::unique_ptr<StringLiteralAST> ParseStringLiteralAST()
 		temps += currtoken.token_value.string_literal;
 		currtoken = gettok(); // consume 1 string token
 	}
-	auto s = llvm::make_unique<std::string>(temps);
-	auto result = llvm::make_unique<StringLiteralAST>(std::move(s));
+	auto s = std::make_shared<std::string>(temps);
+	auto result = std::make_shared<StringLiteralAST>(std::move(s));
 	return result;
 }
 
-std::unique_ptr<IntLiteralAST> ParseIntLiteralAST()
+std::shared_ptr<IntLiteralAST> ParseIntLiteralAST()
 {
-	auto result = llvm::make_unique<IntLiteralAST>(llvm::make_unique<int>(currtoken.token_value.int_literal));
+	auto result = std::make_shared<IntLiteralAST>(std::make_shared<int>(currtoken.token_value.int_literal));
 	currtoken = gettok(); // consume 1 int token
 	return result;
 }
 
-std::unique_ptr<DoubleLiteralAST> ParseDoubleLiteralAST()
+std::shared_ptr<DoubleLiteralAST> ParseDoubleLiteralAST()
 {
-	auto result = llvm::make_unique<DoubleLiteralAST>(llvm::make_unique<double>(currtoken.token_value.double_literal));
+	auto result = std::make_shared<DoubleLiteralAST>(std::make_shared<double>(currtoken.token_value.double_literal));
 	currtoken = gettok(); // consume 1 double token
 	return result;
 }
 
-std::unique_ptr<IdAST> ParseIdAST()
+std::shared_ptr<IdAST> ParseIdAST()
 {
 	if (currtoken.token_kind != id)
 	{
 		throw std::runtime_error("expect identifier \n)");
 	}
-	auto result = llvm::make_unique<IdAST>(llvm::make_unique<std::string>(currtoken.token_value.IdentifierStr));
+	auto result = std::make_shared<IdAST>(std::make_shared<std::string>(currtoken.token_value.IdentifierStr));
 	currtoken = gettok(); // consume 1 id
 	return result;
 };
 
-std::unique_ptr<CallAST> ParseCallAST(std::unique_ptr<IdAST> callee)
+std::shared_ptr<CallAST> ParseCallAST(std::shared_ptr<IdAST> callee)
 {
 	consumeit({ left_bracket_mark }, "expect '(' when parsing arg list");
-	std::vector<std::unique_ptr<ExprAST>> args;
+	std::vector<std::shared_ptr<ExprAST>> args;
 	args.push_back(ParseExprAST());
 	while (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark != comma_mark)
 	{
@@ -400,18 +410,18 @@ std::unique_ptr<CallAST> ParseCallAST(std::unique_ptr<IdAST> callee)
 		args.push_back(ParseExprAST());
 	}
 	consumeit({ left_bracket_mark }, "expect '(' when parsing arg list");
-	return llvm::make_unique<CallAST>(std::move(callee), std::move(args));
+	return std::make_shared<CallAST>(std::move(callee), std::move(args));
 }
 
-std::unique_ptr<CallAST> ParseCallAST()
+std::shared_ptr<CallAST> ParseCallAST()
 {
 	return ParseCallAST(ParseIdAST());
 }
 
-std::unique_ptr<TablecolAST> ParseTablecolAST()
+std::shared_ptr<TablecolAST> ParseTablecolAST()
 {
-	std::unique_ptr<std::string> table_name;
-	std::unique_ptr<std::string> col_name;
+	std::shared_ptr<std::string> table_name;
+	std::shared_ptr<std::string> col_name;
 	auto temp_name = std::move(ParseIdAST()->id);
 	if (currtoken.token_kind == blank || currtoken.token_kind == dot_mark)
 	{
@@ -419,28 +429,28 @@ std::unique_ptr<TablecolAST> ParseTablecolAST()
 		table_name = std::move(temp_name);
 		col_name = std::move(ParseIdAST()->id);
 	}
-	return llvm::make_unique<TablecolAST>(std::move(table_name), std::move(col_name));
+	return std::make_shared<TablecolAST>(std::move(table_name), std::move(col_name));
 }
 
-std::unique_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
+std::shared_ptr< ExistsSubqueryAST> ParseExistsSubqueryAST()
 {
 	currtoken = gettok();  // consume 'EXISTS' reserved word
 	currtoken = gettok();  // consume '(' reserved word
 	auto subquery = ParseSubqueryAST();
 	currtoken = gettok();  // consume ')' reserved word
-	return llvm::make_unique<ExistsSubqueryAST>(std::move(subquery));
+	return std::make_shared<ExistsSubqueryAST>(std::move(subquery));
 };
 
-std::unique_ptr<SubqueryAST> ParseSubqueryAST()
+std::shared_ptr<SubqueryAST> ParseSubqueryAST()
 {
 	currtoken = gettok();    // consume 'SELECT' reserved word
-	bool distinct_flag=false, from_flag=false, where_flag=false, having_flag=false, group_flag=false, order_flag=false;
-	std::vector<std::unique_ptr<SelectExprAST>> exprs;
-	std::unique_ptr<TableRefsAST> tbrefs;
-	std::unique_ptr<ExprAST> wherecond;
-	std::vector<std::unique_ptr<ExprAST>> groupby_exprs;
-	std::unique_ptr<ExprAST> havingcond;
-	std::vector<std::unique_ptr<ExprAST>> orderby_exprs;
+	bool distinct_flag = false, from_flag = false, where_flag = false, having_flag = false, group_flag = false, order_flag = false;
+	std::vector<std::shared_ptr<SelectExprAST>> exprs;
+	std::shared_ptr<TableRefsAST> tbrefs;
+	std::shared_ptr<ExprAST> wherecond;
+	std::vector<std::shared_ptr<ExprAST>> groupby_exprs;
+	std::shared_ptr<ExprAST> havingcond;
+	std::vector<std::shared_ptr<ExprAST>> orderby_exprs;
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_DISTINCT)
 	{
 		currtoken = gettok();	// consume DISTINCT
@@ -503,22 +513,22 @@ std::unique_ptr<SubqueryAST> ParseSubqueryAST()
 			}
 		}
 	}
-	return llvm::make_unique<SubqueryAST>(distinct_flag, std::move(exprs), from_flag, std::move(tbrefs),
+	return std::make_shared<SubqueryAST>(distinct_flag, std::move(exprs), from_flag, std::move(tbrefs),
 		where_flag, std::move(wherecond), group_flag, std::move(groupby_exprs),
-		having_flag, std::move(havingcond), order_flag, std::move(orderby_exprs) );
+		having_flag, std::move(havingcond), order_flag, std::move(orderby_exprs));
 }
 
-std::unique_ptr<OnJoinCondAST> ParseOnJoinCondAST()
+std::shared_ptr<OnJoinCondAST> ParseOnJoinCondAST()
 {
 	currtoken = gettok();	// consume `ON`
-	return llvm::make_unique<OnJoinCondAST>(ParseExprAST());
+	return std::make_shared<OnJoinCondAST>(ParseExprAST());
 }
 
-std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST()
+std::shared_ptr<UsingJoinCondAST> ParseUsingJoinCondAST()
 {
 	currtoken = gettok();	//	consume `USING`
 	currtoken = gettok();	//	consume `(`
-	std::vector<std::unique_ptr<TablecolAST>> cols;
+	std::vector<std::shared_ptr<TablecolAST>> cols;
 	cols.push_back(ParseTablecolAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
@@ -526,72 +536,72 @@ std::unique_ptr<UsingJoinCondAST> ParseUsingJoinCondAST()
 		cols.push_back(ParseTablecolAST());
 	}
 	consumeit({ right_bracket_mark }, "expect `)`");
-	return llvm::make_unique<UsingJoinCondAST>(std::move(cols));
+	return std::make_shared<UsingJoinCondAST>(std::move(cols));
 }
 
-std::unique_ptr<SelectExprAST> ParseSelectExprAST()
+std::shared_ptr<SelectExprAST> ParseSelectExprAST()
 {
-	std::unique_ptr<ExprAST> expr;
-	std::unique_ptr<IdAST> alias;
+	std::shared_ptr<ExprAST> expr;
+	std::shared_ptr<IdAST> alias;
 	expr = ParseExprAST();
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_AS)
 	{
 		currtoken = gettok();	//consume AS
 		alias = ParseIdAST();
 	}
-	return llvm::make_unique<SelectExprAST>(std::move(expr), std::move(alias));
+	return std::make_shared<SelectExprAST>(std::move(expr), std::move(alias));
 }
 
-std::unique_ptr<TableRefsAST> ParseTableRefsAST()
+std::shared_ptr<TableRefsAST> ParseTableRefsAST()
 {
-	std::vector<std::unique_ptr<TableRefAST>> refs;
+	std::vector<std::shared_ptr<TableRefAST>> refs;
 	refs.push_back(ParseTableRefAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
 		currtoken = gettok();	// consume comma
 		refs.push_back(ParseTableRefAST());
 	}
-	return llvm::make_unique<TableRefsAST>(std::move(refs));
+	return std::make_shared<TableRefsAST>(std::move(refs));
 }
 
-std::unique_ptr<TableRefAST> ParseTableRefAST()
+std::shared_ptr<TableRefAST> ParseTableRefAST()
 {
-	std::unique_ptr<TableFactorAST> tbfactor;
-	std::unique_ptr<TRIJAST> trij;
-	std::unique_ptr<TRLROJAST> trlroj;
-	std::unique_ptr<TRNLROJAST> trnlroj;
-	std::unique_ptr<TableRefAST> ref;
+	std::shared_ptr<TableFactorAST> tbfactor;
+	std::shared_ptr<TRIJAST> trij;
+	std::shared_ptr<TRLROJAST> trlroj;
+	std::shared_ptr<TRNLROJAST> trnlroj;
+	std::shared_ptr<TableRefAST> ref;
 	tbfactor = ParseTableFactorAST();
-	ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
-	while (currtoken.token_kind == symbol&&
-		(currtoken.token_value.symbol_mark == tok_INNER|| currtoken.token_value.symbol_mark == tok_CROSS
-		||currtoken.token_value.symbol_mark == tok_JOIN
-		|| currtoken.token_value.symbol_mark == tok_LEFT|| currtoken.token_value.symbol_mark == tok_RIGHT
-		|| currtoken.token_value.symbol_mark == tok_NATURAL))
+	ref = std::make_shared<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+	while (currtoken.token_kind == symbol &&
+		(currtoken.token_value.symbol_mark == tok_INNER || currtoken.token_value.symbol_mark == tok_CROSS
+			|| currtoken.token_value.symbol_mark == tok_JOIN
+			|| currtoken.token_value.symbol_mark == tok_LEFT || currtoken.token_value.symbol_mark == tok_RIGHT
+			|| currtoken.token_value.symbol_mark == tok_NATURAL))
 	{
 		if (currtoken.token_value.symbol_mark == tok_NATURAL)
 		{
 			trnlroj = ParseTRNLROJAST(std::move(ref));
-			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+			ref = std::make_shared<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
 		else if (currtoken.token_value.symbol_mark == tok_LEFT || currtoken.token_value.symbol_mark == tok_RIGHT)
 		{
 			trlroj = ParseTRLROJAST(std::move(ref));
-			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+			ref = std::make_shared<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
 		else
 		{
 			trij = ParseTRIJAST(std::move(ref));
-			ref = llvm::make_unique<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
+			ref = std::make_shared<TableRefAST>(std::move(tbfactor), std::move(trij), std::move(trlroj), std::move(trnlroj));
 		}
 	}
 	return std::move(ref);
 }
 
-std::unique_ptr<TRIJAST> ParseTRIJAST(std::unique_ptr<TableRefAST> ref)
+std::shared_ptr<TRIJAST> ParseTRIJAST(std::shared_ptr<TableRefAST> ref)
 {
-	std::unique_ptr<TableFactorAST> factor;
-	std::unique_ptr<JoinCondAST> cond;
+	std::shared_ptr<TableFactorAST> factor;
+	std::shared_ptr<JoinCondAST> cond;
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_INNER
 		|| currtoken.token_value.symbol_mark == tok_CROSS || currtoken.token_value.symbol_mark == tok_JOIN))
 	{
@@ -611,23 +621,23 @@ std::unique_ptr<TRIJAST> ParseTRIJAST(std::unique_ptr<TableRefAST> ref)
 	{
 		throw std::runtime_error("expect `INNER/CROSS/JOIN`\n");
 	}
-	return llvm::make_unique<TRIJAST>(std::move(ref), std::move(factor), std::move(cond));
+	return std::make_shared<TRIJAST>(std::move(ref), std::move(factor), std::move(cond));
 }
 
-std::unique_ptr<TRIJAST> ParseTRIJAST()
+std::shared_ptr<TRIJAST> ParseTRIJAST()
 {
 	return ParseTRIJAST(ParseTableRefAST());
 }
 
-std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs)
+std::shared_ptr<TRLROJAST> ParseTRLROJAST(std::shared_ptr<TableRefAST> lhs)
 {
-	std::unique_ptr<TableRefAST> rhs;
-	std::unique_ptr<JoinCondAST> cond;
+	std::shared_ptr<TableRefAST> rhs;
+	std::shared_ptr<JoinCondAST> cond;
 	int lr = 0;
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
-		lr = currtoken.token_value.symbol_mark; 
+		lr = currtoken.token_value.symbol_mark;
 		currtoken = gettok();	// consume  LEFT/RIGHT
 	}
 	else
@@ -641,46 +651,46 @@ std::unique_ptr<TRLROJAST> ParseTRLROJAST(std::unique_ptr<TableRefAST> lhs)
 	consumeit({ tok_JOIN }, "expect `JOIN` \n");
 	rhs = ParseTableRefAST();
 	cond = ParseJoinCondAST();
-	return llvm::make_unique<TRLROJAST>(std::move(lhs), std::move(rhs), std::move(cond), lr);
+	return std::make_shared<TRLROJAST>(std::move(lhs), std::move(rhs), std::move(cond), lr);
 }
 
-std::unique_ptr<TRLROJAST> ParseTRLROJAST()
+std::shared_ptr<TRLROJAST> ParseTRLROJAST()
 {
 	return ParseTRLROJAST(ParseTableRefAST());
 }
 
-std::unique_ptr<TRNLROJAST> ParseTRNLROJAST(std::unique_ptr<TableRefAST> ref)
+std::shared_ptr<TRNLROJAST> ParseTRNLROJAST(std::shared_ptr<TableRefAST> ref)
 {
-	std::unique_ptr<TableFactorAST> factor;
+	std::shared_ptr<TableFactorAST> factor;
 	int lr = 0;
 	consumeit({ tok_NATURAL }, "expect NATURAL\n");
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_LEFT ||
 		currtoken.token_value.symbol_mark == tok_RIGHT))
 	{
-		lr = currtoken.token_value.symbol_mark; 
+		lr = currtoken.token_value.symbol_mark;
 		currtoken = gettok();	// consume  LEFT/RIGHT
 	}
-	
+
 	if (currtoken.token_kind == symbol && currtoken.token_value.symbol_mark == tok_OUTER)
 	{
 		currtoken = gettok();	// consume OUTER
 	}
 	consumeit({ tok_JOIN }, "expect `JOIN` \n");
 	factor = ParseTableFactorAST();
-	return llvm::make_unique<TRNLROJAST>(std::move(ref), std::move(factor),lr);
+	return std::make_shared<TRNLROJAST>(std::move(ref), std::move(factor), lr);
 
 }
 
-std::unique_ptr<TRNLROJAST> ParseTRNLROJAST()
+std::shared_ptr<TRNLROJAST> ParseTRNLROJAST()
 {
 	return  ParseTRNLROJAST(ParseTableRefAST());
 }
 
-std::unique_ptr<TableFactorAST> ParseTableFactorAST()
+std::shared_ptr<TableFactorAST> ParseTableFactorAST()
 {
-	std::unique_ptr<TableNameAST> tbname;
-	std::unique_ptr<TableQueryAST> tbsub;
-	std::unique_ptr<TableRefsAST> tbrefs; 
+	std::shared_ptr<TableNameAST> tbname;
+	std::shared_ptr<TableQueryAST> tbsub;
+	std::shared_ptr<TableRefsAST> tbrefs;
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_SELECT)
 	{
 		tbsub = ParseTableQueryAST();
@@ -695,13 +705,13 @@ std::unique_ptr<TableFactorAST> ParseTableFactorAST()
 	{
 		tbname = ParseTableNameAST();
 	}
-	return llvm::make_unique<TableFactorAST>(std::move(tbname), std::move(tbsub), std::move(tbrefs));
+	return std::make_shared<TableFactorAST>(std::move(tbname), std::move(tbsub), std::move(tbrefs));
 }
 
-std::unique_ptr<JoinCondAST> ParseJoinCondAST()
+std::shared_ptr<JoinCondAST> ParseJoinCondAST()
 {
-	std::unique_ptr<OnJoinCondAST> oncond;
-	std::unique_ptr<UsingJoinCondAST> uselist;
+	std::shared_ptr<OnJoinCondAST> oncond;
+	std::shared_ptr<UsingJoinCondAST> uselist;
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_ON)
 	{
 		oncond = ParseOnJoinCondAST();
@@ -714,33 +724,33 @@ std::unique_ptr<JoinCondAST> ParseJoinCondAST()
 	{
 		throw std::runtime_error("expect ON/USING\n");
 	}
-	return llvm::make_unique<JoinCondAST>(std::move(oncond), std::move(uselist));
+	return std::make_shared<JoinCondAST>(std::move(oncond), std::move(uselist));
 }
 
-std::unique_ptr<TableNameAST> ParseTableNameAST()
+std::shared_ptr<TableNameAST> ParseTableNameAST()
 {
-	std::unique_ptr<IdAST> tbname;
-	std::unique_ptr<IdAST> alias;
+	std::shared_ptr<IdAST> tbname;
+	std::shared_ptr<IdAST> alias;
 	tbname = ParseIdAST();
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_AS)
 	{
 		currtoken = gettok();	// consume AS
 		alias = ParseIdAST();
 	}
-	return llvm::make_unique<TableNameAST>(std::move(tbname), std::move(alias));
+	return std::make_shared<TableNameAST>(std::move(tbname), std::move(alias));
 }
 
-std::unique_ptr<TableQueryAST> ParseTableQueryAST()
+std::shared_ptr<TableQueryAST> ParseTableQueryAST()
 {
-	std::unique_ptr<SubqueryAST> subq;
-	std::unique_ptr<IdAST> alias;
+	std::shared_ptr<SubqueryAST> subq;
+	std::shared_ptr<IdAST> alias;
 	subq = ParseSubqueryAST();
 	consumeit({ tok_AS }, "expect AS");
 	alias = ParseIdAST();
-	return llvm::make_unique<TableQueryAST>(std::move(subq), std::move(alias));
+	return std::make_shared<TableQueryAST>(std::move(subq), std::move(alias));
 }
 
-std::unique_ptr<DatatypeAST> ParseDatatypeAST()
+std::shared_ptr<DatatypeAST> ParseDatatypeAST()
 {
 	int dtype = 0;
 	int n = 0;
@@ -761,15 +771,15 @@ std::unique_ptr<DatatypeAST> ParseDatatypeAST()
 		}
 		consumeit({ right_bracket_mark }, "expect ')'");
 	}
-	return llvm::make_unique<DatatypeAST>(dtype, n);
+	return std::make_shared<DatatypeAST>(dtype, n);
 }
 
-std::unique_ptr<RefdefAST> ParseRefdefAST()
+std::shared_ptr<RefdefAST> ParseRefdefAST()
 {
-	std::unique_ptr<IdAST> tbname;
-	std::vector<std::unique_ptr<IdAST>> colname;
+	std::shared_ptr<IdAST> tbname;
+	std::vector<std::shared_ptr<IdAST>> colname;
 	int deleteop = 0;
-	int updateop = 0; 
+	int updateop = 0;
 	consumeit({ tok_REFERENCES }, "expect REFERENCES \n");
 	tbname = ParseIdAST();
 	consumeit({ left_bracket_mark }, "expect '('\n");
@@ -812,18 +822,18 @@ std::unique_ptr<RefdefAST> ParseRefdefAST()
 			currtoken = gettok();
 		}
 	}
-	return llvm::make_unique<RefdefAST>(std::move(tbname), std::move(colname),deleteop,updateop);
+	return std::make_shared<RefdefAST>(std::move(tbname), std::move(colname), deleteop, updateop);
 }
 
-std::unique_ptr<PrimaryAST> ParsePrimaryAST()
+std::shared_ptr<PrimaryAST> ParsePrimaryAST()
 {
-	std::vector<std::unique_ptr<IdAST>> cols;
+	std::vector<std::shared_ptr<IdAST>> cols;
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_PRIMARY)
 	{
-		consumeit({ tok_PRIMARY }, "expect ' PRIMARY' \n");
+		consumeit({ tok_PRIMARY }, "expect `PRIMARY` \n");
 	}
 	//consumeit({ tok_PRIMARY }, "expect keyword PRIMARY \n");
-	consumeit({ tok_KEY }, "expect keyword KEY \n");
+	consumeit({ tok_KEY }, "expect keyword `KEY` \n");
 	consumeit({ left_bracket_mark }, "expect '(' \n");
 	cols.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
@@ -832,13 +842,13 @@ std::unique_ptr<PrimaryAST> ParsePrimaryAST()
 		cols.push_back(ParseIdAST());
 	}
 	consumeit({ right_bracket_mark }, "expect ')' \n");
-	return llvm::make_unique<PrimaryAST>(std::move(cols));
+	return std::make_shared<PrimaryAST>(std::move(cols));
 }
 
-std::unique_ptr<UniqueAST> ParseUniqueAST()
+std::shared_ptr<unicAST> ParseunicAST()
 {
-	std::vector<std::unique_ptr<IdAST>> cols;
-	consumeit({ tok_UNIQUE }, "expect keyword UNIQUE \n");
+	std::vector<std::shared_ptr<IdAST>> cols;
+	consumeit({ tok_shared }, "expect keyword shared \n");
 	consumeit({ left_bracket_mark }, "expect '(' \n");
 	cols.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
@@ -846,13 +856,13 @@ std::unique_ptr<UniqueAST> ParseUniqueAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		cols.push_back(ParseIdAST());
 	}
-	return llvm::make_unique<UniqueAST>(std::move(cols));
+	return std::make_shared<unicAST>(std::move(cols));
 }
 
-std::unique_ptr<ForeignAST> ParseForeignAST()
+std::shared_ptr<ForeignAST> ParseForeignAST()
 {
-	std::vector<std::unique_ptr<IdAST>> cols;
-	std::unique_ptr<RefdefAST> refdef;
+	std::vector<std::shared_ptr<IdAST>> cols;
+	std::shared_ptr<RefdefAST> refdef;
 	consumeit({ tok_PRIMARY }, "expect keyword PRIMARY \n");
 	consumeit({ tok_KEY }, "expect keyword KEY \n");
 	consumeit({ left_bracket_mark }, "expect '(' \n");
@@ -863,18 +873,18 @@ std::unique_ptr<ForeignAST> ParseForeignAST()
 		cols.push_back(ParseIdAST());
 	}
 	refdef = ParseRefdefAST();
-	return llvm::make_unique<ForeignAST>(std::move(cols), std::move(refdef));
-	
+	return std::make_shared<ForeignAST>(std::move(cols), std::move(refdef));
+
 }
 
-std::unique_ptr<CreatedefAST> ParseCreatedefAST()
+std::shared_ptr<CreatedefAST> ParseCreatedefAST()
 {
-	std::unique_ptr<IdAST> colname;
-	std::unique_ptr<ColdefAST> coldef;
-	std::unique_ptr<PrimaryAST> prim;
-	std::unique_ptr<UniqueAST> uni;
-	std::unique_ptr<ForeignAST> forei;
-	std::unique_ptr<ExprAST> check; 
+	std::shared_ptr<IdAST> colname;
+	std::shared_ptr<ColdefAST> coldef;
+	std::shared_ptr<PrimaryAST> prim;
+	std::shared_ptr<unicAST> uni;
+	std::shared_ptr<ForeignAST> forei;
+	std::shared_ptr<ExprAST> check;
 	if (currtoken.token_kind == id)
 	{
 		colname = ParseIdAST();
@@ -882,13 +892,13 @@ std::unique_ptr<CreatedefAST> ParseCreatedefAST()
 	}
 	else if (currtoken.token_kind == symbol)
 	{
-		if (currtoken.token_value.symbol_mark == tok_PRIMARY|| currtoken.token_value.symbol_mark == tok_KEY)
+		if (currtoken.token_value.symbol_mark == tok_PRIMARY || currtoken.token_value.symbol_mark == tok_KEY)
 		{
 			prim = ParsePrimaryAST();
 		}
-		else if (currtoken.token_value.symbol_mark == tok_UNIQUE)
+		else if (currtoken.token_value.symbol_mark == tok_shared)
 		{
-			uni = ParseUniqueAST();
+			uni = ParseunicAST();
 		}
 		else if (currtoken.token_value.symbol_mark == tok_FOREIGN)
 		{
@@ -901,28 +911,28 @@ std::unique_ptr<CreatedefAST> ParseCreatedefAST()
 		else
 		{
 			throw std::runtime_error("expect table-column-creation beginning with\
- column-name/PRIMARY/UNIQUE/FOREIGN/CHECK\n");
+ column-name/PRIMARY/shared/FOREIGN/CHECK\n");
 			return nullptr;
 		}
 	}
 	else
 	{
 		throw std::runtime_error("expect table-column-creation beginning with\
- column-name/PRIMARY/UNIQUE/FOREIGN/CHECK\n");
+ column-name/PRIMARY/shared/FOREIGN/CHECK\n");
 		return nullptr;
 	}
-	return llvm::make_unique<CreatedefAST>(std::move(colname), std::move(coldef),
+	return std::make_shared<CreatedefAST>(std::move(colname), std::move(coldef),
 		std::move(prim), std::move(uni), std::move(forei), std::move(check));
 }
 
-std::unique_ptr<ColdefAST> ParseColdefAST()
+std::shared_ptr<ColdefAST> ParseColdefAST()
 {
-	std::unique_ptr<DatatypeAST> dtype;
+	std::shared_ptr<DatatypeAST> dtype;
 	bool null_flag = true;
-	std::unique_ptr<ExprAST> default_value;
-	bool unique_flag = false;
+	std::shared_ptr<ExprAST> default_value;
+	bool shared_flag = false;
 	bool primary_flag = false;
-	std::unique_ptr<RefdefAST> refdef;
+	std::shared_ptr<RefdefAST> refdef;
 	dtype = ParseDatatypeAST();
 	while (currtoken.token_kind == symbol)
 	{
@@ -942,16 +952,16 @@ std::unique_ptr<ColdefAST> ParseColdefAST()
 			consumeit({ tok_DEFAULT }, "expect DEFAULT \n");
 			default_value = ParseExprAST();
 		}
-		if (currtoken.token_value.symbol_mark == tok_UNIQUE)
+		if (currtoken.token_value.symbol_mark == tok_shared)
 		{
-			consumeit({ tok_UNIQUE }, "expect UNIQUE \n");
-			unique_flag = true;
+			consumeit({ tok_shared }, "expect shared \n");
+			shared_flag = true;
 			if (currtoken.token_value.symbol_mark == tok_KEY)
 			{
 				consumeit({ tok_KEY }, "expect KEY \n");
 			}
 		}
-		if (currtoken.token_value.symbol_mark == tok_PRIMARY|| currtoken.token_value.symbol_mark == tok_KEY)
+		if (currtoken.token_value.symbol_mark == tok_PRIMARY || currtoken.token_value.symbol_mark == tok_KEY)
 		{
 			if (currtoken.token_value.symbol_mark == tok_PRIMARY)
 			{
@@ -970,16 +980,16 @@ std::unique_ptr<ColdefAST> ParseColdefAST()
 	{
 		refdef = ParseRefdefAST();
 	}
-	return llvm::make_unique<ColdefAST>(std::move(dtype), 
-		null_flag, std::move(default_value), unique_flag, primary_flag, std::move(refdef));
+	return std::make_shared<ColdefAST>(std::move(dtype),
+		null_flag, std::move(default_value), shared_flag, primary_flag, std::move(refdef));
 }
 
-std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
+std::shared_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 {
 	//consumeit({ tok_CREATE }, "expect `CREATE`\n");
 	consumeit({ tok_TABLE }, "expect `TABLE`\n");
 	auto Id = ParseIdAST();
-	std::vector<std::unique_ptr<CreatedefAST>> create_defs;
+	std::vector<std::shared_ptr<CreatedefAST>> create_defs;
 	consumeit({ left_bracket_mark }, "expect `(`\n");
 	create_defs.push_back(ParseCreatedefAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
@@ -988,33 +998,33 @@ std::unique_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 		create_defs.push_back(ParseCreatedefAST());
 	}
 	consumeit({ right_bracket_mark }, "expect `)`\n");
-	return llvm::make_unique<CreateTableSimpleAST>(std::move(Id),std::move(create_defs));
+	return std::make_shared<CreateTableSimpleAST>(std::move(Id), std::move(create_defs));
 }
 
-std::unique_ptr<SelectAST> ParseSelectAST()
+std::shared_ptr<SelectAST> ParseSelectAST()
 {
 	auto subq = ParseSubqueryAST();
 	consumeit({ delimiter }, "expect delimiter \n");
-	return llvm::make_unique<SelectAST>(std::move(subq));
+	return std::make_shared<SelectAST>(std::move(subq));
 }
 
-std::unique_ptr<StatementAST> ParseStatementAST()
+std::shared_ptr<StatementAST> ParseStatementAST()
 {
-	std::unique_ptr<CreateAST> create;
-	std::unique_ptr<SelectAST> select;
-	std::unique_ptr<DropAST> drop;
-	std::unique_ptr<InsertAST> insert;
-	std::unique_ptr<DeleteAST> dele;
-	std::unique_ptr<SetAST> setvar;
-	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET || 
-	currtoken.token_value.symbol_mark == tok_INSERT ||currtoken.token_value.symbol_mark == tok_SELECT || 
-		currtoken.token_value.symbol_mark == tok_CREATE ||currtoken.token_value.symbol_mark == tok_DROP || 
-		currtoken.token_value.symbol_mark == tok_DELETE|| currtoken.token_value.symbol_mark == semicolon_mark))
+	std::shared_ptr<CreateAST> create;
+	std::shared_ptr<SelectAST> select;
+	std::shared_ptr<DropAST> drop;
+	std::shared_ptr<InsertAST> insert;
+	std::shared_ptr<DeleteAST> dele;
+	std::shared_ptr<SetAST> setvar;
+	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET ||
+		currtoken.token_value.symbol_mark == tok_INSERT || currtoken.token_value.symbol_mark == tok_SELECT ||
+		currtoken.token_value.symbol_mark == tok_CREATE || currtoken.token_value.symbol_mark == tok_DROP ||
+		currtoken.token_value.symbol_mark == tok_DELETE || currtoken.token_value.symbol_mark == semicolon_mark))
 	{
 		if (currtoken.token_value.symbol_mark == tok_SET)
 		{
 			setvar = ParseSetAST();
-		} 
+		}
 		else if (currtoken.token_value.symbol_mark == tok_INSERT)
 		{
 			insert = ParseInsertAST();
@@ -1046,14 +1056,14 @@ std::unique_ptr<StatementAST> ParseStatementAST()
 		throw std::runtime_error("statement sentence can only begin with SET/INSERT/SELECT/CREATE/DROP/INSERT/DELETE/; \n");
 		return nullptr;
 	}
-	return llvm::make_unique<StatementAST>(std::move(create), std::move(select),
+	return std::make_shared<StatementAST>(std::move(create), std::move(select),
 		std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
 }
 
-std::unique_ptr<CreateAST> ParseCreateAST()
+std::shared_ptr<CreateAST> ParseCreateAST()
 {
-	std::unique_ptr<CreateTableAST> ctable;
-	std::unique_ptr<CreateIndexAST> cindex; 
+	std::shared_ptr<CreateTableAST> ctable;
+	std::shared_ptr<CreateIndexAST> cindex;
 	consumeit({ tok_CREATE }, "expect CREATE\n");
 	if (currtoken.token_kind == symbol)
 	{
@@ -1074,23 +1084,23 @@ std::unique_ptr<CreateAST> ParseCreateAST()
 	{
 		throw std::runtime_error("can only create TABLE/INDEX\n");
 	}
-	return llvm::make_unique<CreateAST>(std::move(ctable), std::move(cindex));
+	return std::make_shared<CreateAST>(std::move(ctable), std::move(cindex));
 }
 
-std::unique_ptr<CreateTableAST> ParseCreateTableAST()
+std::shared_ptr<CreateTableAST> ParseCreateTableAST()
 {
-	std::unique_ptr< CreateTableSimpleAST> simplecreate;
-	std::unique_ptr<CreateTableSelectAST> selectcreate;
-	std::unique_ptr<CreateTableLikeAST> likecreate;
+	std::shared_ptr< CreateTableSimpleAST> simplecreate;
+	std::shared_ptr<CreateTableSelectAST> selectcreate;
+	std::shared_ptr<CreateTableLikeAST> likecreate;
 	simplecreate = ParseCreateTableSimpleAST();
-	return llvm::make_unique<CreateTableAST>(std::move(simplecreate), std::move(selectcreate), std::move(likecreate));
+	return std::make_shared<CreateTableAST>(std::move(simplecreate), std::move(selectcreate), std::move(likecreate));
 }
 
-std::unique_ptr<CreateIndexAST> ParseCreateIndexAST()
+std::shared_ptr<CreateIndexAST> ParseCreateIndexAST()
 {
-	std::unique_ptr<IdAST> index_name;
-	std::unique_ptr<IdAST> table_name;
-	std::vector<std::unique_ptr<IdAST>> col_names;
+	std::shared_ptr<IdAST> index_name;
+	std::shared_ptr<IdAST> table_name;
+	std::vector<std::shared_ptr<IdAST>> col_names;
 	consumeit({ tok_INDEX }, "expect INDEX\n");
 	index_name = ParseIdAST();
 	consumeit({ tok_ON }, "expect ON\n");
@@ -1104,13 +1114,13 @@ std::unique_ptr<CreateIndexAST> ParseCreateIndexAST()
 	}
 	consumeit({ right_bracket_mark }, "expect ')'\n");
 	consumeit({ delimiter }, "expect delimiter \n");
-	return llvm::make_unique<CreateIndexAST>(std::move(index_name),std::move( table_name), std::move(col_names));
+	return std::make_shared<CreateIndexAST>(std::move(index_name), std::move(table_name), std::move(col_names));
 }
 
-std::unique_ptr<DropAST> ParseDropAST()
+std::shared_ptr<DropAST> ParseDropAST()
 {
-	std::unique_ptr<DropTableAST> droptb;
-	std::unique_ptr<DropIndexAST> dropindex;
+	std::shared_ptr<DropTableAST> droptb;
+	std::shared_ptr<DropIndexAST> dropindex;
 	consumeit({ tok_DROP }, "expect DROP \n");
 	if (currtoken.token_kind == symbol)
 	{
@@ -1133,40 +1143,40 @@ std::unique_ptr<DropAST> ParseDropAST()
 		throw std::runtime_error("can only drop TABLE/INDEX \n");
 		return nullptr;
 	}
-	return llvm::make_unique<DropAST>(std::move(droptb), std::move(dropindex));
+	return std::make_shared<DropAST>(std::move(droptb), std::move(dropindex));
 }
 
-std::unique_ptr<DropTableAST> ParseDropTableAST()
+std::shared_ptr<DropTableAST> ParseDropTableAST()
 {
 	consumeit({ tok_TABLE }, "expect TABLE \n");
-	std::vector<std::unique_ptr<IdAST>> table_list;
+	std::vector<std::shared_ptr<IdAST>> table_list;
 	table_list.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
 		consumeit({ comma_mark }, "expect ','\n");
 		table_list.push_back(ParseIdAST());
 	}
-	return llvm::make_unique<DropTableAST>(std::move(table_list));
+	return std::make_shared<DropTableAST>(std::move(table_list));
 }
 
-std::unique_ptr<DropIndexAST> ParseDropIndexAST()
+std::shared_ptr<DropIndexAST> ParseDropIndexAST()
 {
 	consumeit({ tok_INDEX }, "expect INDEX \n");
-	std::vector<std::unique_ptr<IdAST>> table_list;
+	std::vector<std::shared_ptr<IdAST>> table_list;
 	table_list.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
 		consumeit({ comma_mark }, "expect ','\n");
 		table_list.push_back(ParseIdAST());
 	}
-	return llvm::make_unique<DropIndexAST>(std::move(table_list));
+	return std::make_shared<DropIndexAST>(std::move(table_list));
 }
 
-std::unique_ptr<InsertAST> ParseInsertAST()
+std::shared_ptr<InsertAST> ParseInsertAST()
 {
-	std::unique_ptr<IdAST> table_name;
-	std::vector<std::unique_ptr<IdAST>> col_names;
-	std::vector<std::unique_ptr<ExprAST>> value_list;
+	std::shared_ptr<IdAST> table_name;
+	std::vector<std::shared_ptr<IdAST>> col_names;
+	std::vector<std::shared_ptr<ExprAST>> value_list;
 	consumeit({ tok_INSERT }, "expect INSERT\n");
 	consumeit({ tok_INTO }, "expect INTO\n");
 	table_name = ParseIdAST();
@@ -1178,13 +1188,13 @@ std::unique_ptr<InsertAST> ParseInsertAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		value_list.push_back(ParseExprAST());
 	}
-	return llvm::make_unique<InsertAST>(std::move(table_name), std::move(col_names),std::move( value_list));
+	return std::make_shared<InsertAST>(std::move(table_name), std::move(col_names), std::move(value_list));
 }
 
-std::unique_ptr<DeleteAST> ParseDeleteAST()
+std::shared_ptr<DeleteAST> ParseDeleteAST()
 {
-	std::unique_ptr<IdAST> table_name;
-	std::unique_ptr< ExprAST> where_condition;
+	std::shared_ptr<IdAST> table_name;
+	std::shared_ptr< ExprAST> where_condition;
 	consumeit({ tok_DELETE }, "expect DELETE\n");
 	consumeit({ tok_FROM }, "expect FROM\n");
 	table_name = ParseIdAST();
@@ -1193,18 +1203,63 @@ std::unique_ptr<DeleteAST> ParseDeleteAST()
 		consumeit({ tok_FROM }, "expect WHERE\n");
 		where_condition = ParseExprAST();
 	}
-	return llvm::make_unique<DeleteAST>(std::move(table_name), std::move(where_condition));
+	return std::make_shared<DeleteAST>(std::move(table_name), std::move(where_condition));
 }
 
-std::unique_ptr<SetAST> ParseSetAST()
+std::shared_ptr<SetAST> ParseSetAST()
 {
 	consumeit({ at_mark }, "expect `@` \n");
-	unique_ptr<IdAST> id;
-	unique_ptr<ExprAST> expr;
+	shared_ptr<IdAST> id;
+	shared_ptr<ExprAST> expr;
 	id = ParseIdAST();
 	expr = ParseExprAST();
-	return llvm::make_unique<SetAST>(std::move(id), std::move(expr));
+	return std::make_shared<SetAST>(std::move(id), std::move(expr));
 }
 
-std::unique_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
-std::unique_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+std::shared_ptr<CreateTableSelectAST> ParseCreateTableSelectAST();
+std::shared_ptr<CreateTableLikeAST> ParseCreateTableLikeAST();
+
+std::shared_ptr<SimpleExprAST> negative_SE(std::shared_ptr<SimpleExprAST> se);
+std::shared_ptr<SimpleExprAST> plus_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> minus_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> mul_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> div_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> mod_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> in_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> eq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> lt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> lteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> gtlt_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> noteq_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> not_SE(std::shared_ptr<SimpleExprAST> se);
+std::shared_ptr<SimpleExprAST> and_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+
+
+
+
+
+
+
+std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>)
+{
+	return nullptr;
+}
+
+std::shared_ptr<SimpleExprAST> aux_unit_op(std::shared_ptr<SimpleExprAST>)
+{
+	return nullptr;
+}
+
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> SE, decltype(aux_unit_op) op)
+{
+	return op(SE);
+}
+
+std::shared_ptr<SimpleExprAST> getValue(std::shared_ptr<SimpleExprAST> lhs,
+	std::shared_ptr<SimpleExprAST> rhs, decltype(aux_binary_op) op)
+{
+	return op(lhs, rhs);
+}

@@ -29,7 +29,7 @@ comparison_operator: = , >= , > , <= , < , <> , !=
 predicate:
     bit_expr [NOT] IN (subquery)
   | bit_expr [NOT] IN (expr [, expr] ...)
-  | bit_expr [NOT] REGEXP bit_expr
+  | bit_expr [NOT] BETWEEN bit_expr AND predicate
   | bit_expr
 
 bit_expr:
