@@ -6,7 +6,7 @@
 #define RECORDMANAGER_DATATYPE_H
 
 #include <iostream>
-#include "datatype.h"
+//#include "datatype.h"
 #include "dynamic_memory.h"
 
 using namespace std;
