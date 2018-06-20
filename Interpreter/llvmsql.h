@@ -3,17 +3,7 @@
 #ifndef llvmsql_h
 #define llvmsql_h
 
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -999,7 +989,7 @@ public:
 	std::shared_ptr<ExpAST> lhs;
 	int op;
 	std::shared_ptr<ExprAST> rhs;
-	llvm::Value* codegen();
+
 	ExprAST() = default;
 	ExprAST(std::shared_ptr<ExpAST> lhs, int op, std::shared_ptr<ExprAST> rhs) :
 		lhs(std::move(lhs)), op(op), rhs(std::move(rhs)) {}
@@ -1010,7 +1000,7 @@ class ExpAST
 public:
 	std::shared_ptr<ExprAST> expr;
 	std::shared_ptr<BooleanPrimaryAST> bp;
-	llvm::Value* codegen();
+
 	ExpAST() = default;
 	ExpAST(std::shared_ptr<ExprAST> expr, std::shared_ptr<BooleanPrimaryAST> bp) :
 		expr(std::move(expr)), bp(std::move(bp)) {}
@@ -1024,7 +1014,7 @@ public:
 	int flag = 0;
 	int op = 0;
 	std::shared_ptr<SubqueryAST> sub;
-	llvm::Value* codegen();
+
 	BooleanPrimaryAST() = default;
 	BooleanPrimaryAST(std::shared_ptr<BooleanPrimaryAST> bp, std::shared_ptr<PredicateAST> p,
 		int flag, int op, std::shared_ptr<SubqueryAST> sub) :
@@ -1040,7 +1030,7 @@ public:
 	std::shared_ptr<PredicateAST> p;
 	std::shared_ptr<SubqueryAST> sub;
 	std::vector<std::shared_ptr<ExprAST>> exprs;
-	llvm::Value* codegen();
+
 
 	PredicateAST(std::shared_ptr<BitExprAST> bitexpr, bool flag, std::shared_ptr<BitExprAST> rhs,
 		std::shared_ptr<PredicateAST> p, std::shared_ptr<SubqueryAST> sub, std::vector<std::shared_ptr<ExprAST>> exprs) :
@@ -1054,7 +1044,7 @@ public:
 	std::shared_ptr<BitExprAST> bitexpr;
 	int op;
 	std::shared_ptr<BitExpAST> bitexp;
-	llvm::Value* codegen();
+
 	BitExprAST() = default;
 	BitExprAST(std::shared_ptr<BitExprAST> bitexpr, int op, std::shared_ptr<BitExpAST> bitexp) :
 		bitexpr(std::move(bitexpr)), op(op), bitexp(std::move(bitexp)) {}
@@ -1066,7 +1056,7 @@ public:
 	std::shared_ptr<BitExpAST> bitexp;
 	int op;
 	std::shared_ptr<BitExAST> bitex;
-	llvm::Value* codegen();
+
 	BitExpAST() = default;
 	BitExpAST(std::shared_ptr<BitExpAST> bitexp, int op, std::shared_ptr<BitExAST> bitex) :
 		bitexp(std::move(bitexp)), op(op), bitex(std::move(bitex)) {}
@@ -1086,20 +1076,11 @@ public:
 	int mark = 0;
 	std::shared_ptr<BitExAST> bitex;
 	std::shared_ptr<SimpleExprAST> SE;
-	llvm::Value* codegen();
+
 	BitExAST() = default;
 	BitExAST(int mark, std::shared_ptr<BitExAST> bitex, std::shared_ptr<SimpleExprAST> SE) :
 		mark(mark), bitex(std::move(bitex)), SE(std::move(SE)) {}
-	/*std::shared_ptr<SimpleExprAST> traitValue()
-	{
-	if (SE|| mark == plus_mark)
-	return std::make_shared<SimpleExprAST>(*SE.get());
-	else if (mark == minus_mark)
-	{
-	return;
-	}
 
-	}*/
 };
 
 class SimpleExprAST
@@ -1131,7 +1112,7 @@ public:
 		if (lit) return lit->traitValue();
 		return nullptr;
 	}
-	llvm::Value* codegen();
+
 };
 
 class IdAST final
@@ -1144,7 +1125,6 @@ public:
 		std::shared_ptr<IdAST> idast = std::make_shared<IdAST>(id);
 		return std::make_shared<SimpleExprAST>(std::move(idast));
 	}
-	llvm::Value* codegen();
 
 };
 
@@ -1160,7 +1140,6 @@ public:
 		std::shared_ptr<TablecolAST> table_col = std::make_shared<TablecolAST>(table_name, col_name);
 		return std::make_shared<SimpleExprAST>(std::move(table_col));
 	}
-	llvm::Value* codegen();
 };
 
 class CallAST
@@ -1175,7 +1154,6 @@ public:
 		std::shared_ptr<IdAST> cc = std::make_shared<IdAST>(callee,args);	
 		return std::make_shared<SimpleExprAST>(std::move(cc));
 	}
-	llvm::Value* codegen();
 };
 
 class LiteralAST
@@ -1195,7 +1173,6 @@ public:
 		if (stringvalue) return stringvalue->traitValue();
 		return nullptr;
 	}
-	llvm::Value* codegen();
 };
 
 class IntLiteralAST
@@ -1209,7 +1186,6 @@ public:
 		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(ii));
 		return std::make_shared<SimpleExprAST>(std::move(ll));
 	}
-	llvm::Value* codegen();
 };
 
 class DoubleLiteralAST
@@ -1223,7 +1199,6 @@ public:
 		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(dd));
 		return std::make_shared<SimpleExprAST>(std::move(ll));
 	}
-	llvm::Value* codegen();
 };
 
 class StringLiteralAST
@@ -1237,14 +1212,12 @@ public:
 		std::shared_ptr<LiteralAST> ll = std::make_shared<LiteralAST>(std::move(ss));
 		return std::make_shared<SimpleExprAST>(std::move(ll));
 	}
-	llvm::Value* codegen();
 };
 
 class ParenExprAST
 {
 public:
 	std::shared_ptr<ExprAST> expr;
-	llvm::Value* codegen();
 	ParenExprAST(std::shared_ptr<ExprAST> expr) :
 		expr(std::move(expr)) {}
 };
@@ -1270,7 +1243,6 @@ public:
 
 	bool order_flag = false;
 	std::vector<std::shared_ptr<ExprAST>> orderby_exprs;
-	llvm::Value* codegen();
 
 
 	SubqueryAST(bool distinct_flag, std::vector<std::shared_ptr<SelectExprAST>> exprs,
@@ -1631,7 +1603,6 @@ public:
 	shared_ptr<IdAST> id;
 	shared_ptr<ExprAST> expr;
 	SetAST(shared_ptr<IdAST> id, shared_ptr<ExprAST> expr) :id(std::move(id)), expr(std::move(expr)) {}
-	llvm::Value* codegen();
 };
 
 #endif // !llvmsql_h
