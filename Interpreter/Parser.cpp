@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -13,11 +12,7 @@
 #include"..\catalog\catalog.h"
 
 
-/// SQL begin
 
-
-
-/// SQL end
 token currtoken;
 int delimiter = semicolon_mark;
 
@@ -1252,6 +1247,7 @@ std::shared_ptr<SimpleExprAST> LiteralAST::traitValue()
 	return nullptr;
 }
 */
+
 std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>)
 {
 	return nullptr;
