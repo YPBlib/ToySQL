@@ -39,7 +39,7 @@ void PageManager::requestPage() {
 		}
 		DWORD fileSize = GetFileSize(handle, NULL);
 
-		auto * buffer = (char *)calloc(BLOCK_SIZE, 1);
+		auto * buffer = (char *)calloc(BUFFER_BLOCK_SIZE, 1);
 		/* Init room if file has not been created. */
 		DWORD writtenSize = 0;
 		if (fileSize == 0) {
@@ -51,7 +51,7 @@ void PageManager::requestPage() {
 		}
 		else {
 			DWORD readSize = 0;
-			ReadFile(handle, buffer, BLOCK_SIZE, &readSize, NULL);
+			ReadFile(handle, buffer, BUFFER_BLOCK_SIZE, &readSize, NULL);
 			this->pages.push_back(buffer);
 		}
 		CloseHandle(handle);
@@ -141,7 +141,7 @@ void PageManager::flush() {
 			//TODO HANDLE EXCEPTION
 		}
 		DWORD writtenSize = 0;
-		WriteFile(handle, pages.at(i), BLOCK_SIZE, &writtenSize, NULL);
+		WriteFile(handle, pages.at(i), BUFFER_BLOCK_SIZE, &writtenSize, NULL);
 		CloseHandle(handle);
 	}
 }

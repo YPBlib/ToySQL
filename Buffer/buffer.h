@@ -57,7 +57,3 @@ public:
 };
 
 #endif // !LLVMSQL_BUFFER_H
-
-
-
-

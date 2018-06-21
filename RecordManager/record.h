@@ -1,6 +1,3 @@
-//
-// Created by Aoleo on 2018/6/7.
-//
 
 #ifndef RECORDMANAGER_RECORD_H
 #define RECORDMANAGER_RECORD_H

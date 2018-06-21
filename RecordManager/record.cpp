@@ -1,7 +1,3 @@
-//
-// Created by Aoleo on 2018/6/7.
-//
-
 #include "record.h"
 #include "datatype.h"
 #include <iostream>
@@ -11,15 +7,14 @@
 #include <exception>
 #include <algorithm>
 
-#ifndef _BLOCK_SIZE_
-#define BLOCK_SIZE (4096)
-#endif
+
 
 #ifndef _EMPTY_FLAG_
 #define EMPTY_FLAG (-1)
 #endif
 
-using namespace std;
+using std::vector;
+using std::string;
 
 Table::Table(int id, const char* name, vector<Column> &columns) {
     this->id = id;
