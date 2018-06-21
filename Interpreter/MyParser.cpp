@@ -10,7 +10,7 @@
 #include <vector>
 #include<exception>
 #include"llvmsql.h"
-#include"catalog.h"
+#include"..\catalog\catalog.h"
 
 
 /// SQL begin
