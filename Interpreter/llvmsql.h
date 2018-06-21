@@ -791,9 +791,9 @@ class eof_value :public value
 
 struct val
 {
-	std::string string_literal; // ' ""
-	int int_literal = 0;    // ���ж��Ƿ��� int
-	double double_literal = 0.; // ���ж��Ƿ��� double
+	std::string string_literal; 
+	int int_literal = 0; 
+	double double_literal = 0.;
 	int symbol_mark = 0;
 	std::string IdentifierStr;
 	char ch = ' ';

@@ -1,6 +1,16 @@
 #pragma once
 
 
+
+
+// table (name,col_num,record_size,unic_key,index)
+// col (name,type,prim,unic)
+// index (name,which_table,which_col)
+
+
+
+
+
 #ifndef llvmsql_catalog
 #define llvmsql_catalog
 
