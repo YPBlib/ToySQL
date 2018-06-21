@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include<exception>
+#include"..\env\envir.h"
 #define LL_LRLen 6
 using std::shared_ptr;
 
