@@ -2,8 +2,10 @@
 #ifndef llvmsql_catalog
 #define llvmsql_catalog
 #include"../Interpreter/llvmsql.h"
+#include"../env/envir.h"
 using std::string;
 using std::vector;
+using std::shared_ptr;
 // table (name,col_num,record_size,unic_key,index)
 // col (name,type,prim,unic)
 // index (name,which_table,which_col)
@@ -32,8 +34,10 @@ class SQLcol
 	const unsigned char N = 0;
 };
 
+
+
 }
 
-
+void make_cata(shared_ptr<CreateTableSimpleAST> T);
 
 #endif

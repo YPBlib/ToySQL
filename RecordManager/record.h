@@ -5,6 +5,11 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <cstring>
+#include <windows.h>
+#include <string>
+#include <exception>
+#include <algorithm>
 #include "page.h"
 #include "dynamic_memory.h"
 #include "datatype.h"

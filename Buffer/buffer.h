@@ -29,7 +29,7 @@ public:
 
 
 
-
+/*
 class PageManager {
 public:
 	int id;    ///< ±íID
@@ -55,5 +55,7 @@ public:
 	char* getPosition(int slotIndex);
 	vector<char *> getRePosAll();
 };
+*/
+
 
 #endif // !LLVMSQL_BUFFER_H

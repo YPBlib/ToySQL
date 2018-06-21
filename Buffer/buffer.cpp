@@ -6,14 +6,14 @@
 * Constructor
 * @param id The ID of the table.
 * @param attrSize The size of a slot.
-*/
+
 PageManager::PageManager(int id, int attrSize, int nullBitMapSize) {
 	this->id = id;
 	this->attrSize = attrSize;
 	this->nullBitMapSize = nullBitMapSize;
 	this->recordSize = attrSize + nullBitMapSize;
 	this->isQueryListLoad = false;
-	/* Calculate the maximum number of records stored on a page (head or body). */
+	// Calculate the maximum number of records stored on a page (head or body). 
 	slotsHead = (BLOCK_SIZE - sizeof(int)) / recordSize;
 	slotsBody = (BLOCK_SIZE) / recordSize;
 	requestPage();
@@ -40,7 +40,7 @@ void PageManager::requestPage() {
 		DWORD fileSize = GetFileSize(handle, NULL);
 
 		auto * buffer = (char *)calloc(BUFFER_BLOCK_SIZE, 1);
-		/* Init room if file has not been created. */
+		// Init room if file has not been created. 
 		DWORD writtenSize = 0;
 		if (fileSize == 0) {
 			if (i == 0) {
@@ -96,9 +96,11 @@ void PageManager::initGapList() {
 			break;
 	}
 }
+*/
+
 /**
 * 通过空闲列表获得当前所有记录的slot位置，即初始化查询列表。
-*/
+
 void PageManager::initQueryList() {
 	if (!queryList.empty()) {
 		queryList.clear();
@@ -120,11 +122,11 @@ void PageManager::initQueryList() {
 	//当进行过插入和删除时，要置isQueryListLoad = false;
 	isQueryListLoad = true;
 }
-
+*/
 
 /**
 * Write all buffer pages to disk.
-*/
+
 void PageManager::flush() {
 	for (int i = 0; i < this->pages.size(); i++) {
 		string fileName = to_string(this->id) + "_" + to_string(i) + ".re";
@@ -145,11 +147,13 @@ void PageManager::flush() {
 		CloseHandle(handle);
 	}
 }
-
+*/
 /**
 * 插入一个记录，应该保证当前页面不够时自动产生新页面
 * @param buffer
 */
+
+/*
 void PageManager::insert(DynamicMemory& buffer) {
 	//从空闲列表里找到最后一个元素并弹出
 	int slotIndex = gapList.back();
@@ -172,12 +176,12 @@ void PageManager::insert(DynamicMemory& buffer) {
 	//setSlotEmpty(slotIndex);
 	GET_INT(pages.at(pi) + oi) = EMPTY_FLAG;
 }
-
+*/
 
 /**
 * 擦除指定位置的元素，会重置空闲列表和查询列表
 * @param slotIndex
-*/
+
 void PageManager::erase(int slotIndex) {
 	int preLastSlot = gapList.back();
 	int pi = 0;
@@ -192,13 +196,14 @@ void PageManager::erase(int slotIndex) {
 		gapList.erase(it);
 	}
 }
+*/
 
 /**
 * 通过插槽位获得对其操作的指针
 * @note 没有越界保护！
 * @param slotIndex
 * @return
-*/
+
 char *PageManager::getPosition(int slotIndex) {
 	int pi = 0;
 	int oi = 0;
@@ -206,11 +211,11 @@ char *PageManager::getPosition(int slotIndex) {
 	return (pages.at(pi) + oi);
 }
 
-/**
+
 * 得到所有记录的存放位置(slot)，会视情况重新初始化查询列表。<br>
 * Get the slot for all records. The query list may be re-initialized as appropriate.
 * @return queryList
-*/
+
 vector<int> &PageManager::getQueryList() {
 	if (!isQueryListLoad) {
 		initQueryList();
@@ -218,10 +223,10 @@ vector<int> &PageManager::getQueryList() {
 	return queryList;
 }
 
-/**
+
 * 得到所有记录的首地址。<br>Get the first address of all records.
 * @return 一个记录首地址数组。<br>The vector of record first addresses.
-*/
+
 vector<char *> PageManager::getRePosAll() {
 	vector<char *> pos;
 	auto list = getQueryList();
@@ -231,7 +236,7 @@ vector<char *> PageManager::getRePosAll() {
 	return pos;
 }
 
-
+*/
 
 
 

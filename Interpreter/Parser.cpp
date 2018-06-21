@@ -1,17 +1,4 @@
-#include <algorithm>
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include<exception>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-#include<exception>
-#include"llvmsql.h"
 #include"..\catalog\catalog.h"
-
-
 
 token currtoken;
 int delimiter = semicolon_mark;
@@ -1023,6 +1010,11 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		else if (currtoken.token_value.symbol_mark == tok_CREATE)
 		{
 			create = ParseCreateAST();
+			if (create->ctable)
+			{
+				auto tb_cata = create->ctable->simplecreate;
+				make_cata(tb_cata);
+			}
 		}
 		else if (currtoken.token_value.symbol_mark == tok_DROP)
 		{
