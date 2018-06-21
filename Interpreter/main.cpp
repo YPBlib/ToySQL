@@ -21,25 +21,23 @@ int main()
 	std::unique_ptr<ExprAST> x;
 	init_parser();
 	
-	try
+	//auto z = ParseStatementAST();
+	int qwexqy = 0;
+	qwexqy++;
+	while (qwexqy)
 	{
-		auto z = ParseStatementAST();
-		int qwexqy = 0;
-		qwexqy++;
-		while (qwexqy)
+		try
 		{
-			z = ParseStatementAST();
+			auto z = ParseStatementAST();
 			qwexqy++;
 		}
+		catch (std::runtime_error& s)
+		{
+			std::cout << s.what() << std::endl;
+		}
+	}
 		
-		int ty = qwexqy;
-	}
-	catch (std::runtime_error& s)
-	{
-		std::cout << s.what() << std::endl;
-	}
+	int ty = qwexqy;
 	
-	
-
 	return 0;
 }

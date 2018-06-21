@@ -58,7 +58,9 @@ std::shared_ptr<ExprAST> ParseExprAST()
 		(currtoken.token_value.symbol_mark == and_mark ||
 			currtoken.token_value.symbol_mark == andand_mark ||
 			currtoken.token_value.symbol_mark == or_mark ||
-			currtoken.token_value.symbol_mark == oror_mark)
+			currtoken.token_value.symbol_mark == oror_mark||
+			currtoken.token_value.symbol_mark==tok_AND||
+			currtoken.token_value.symbol_mark==tok_OR)
 		)
 	{
 		op = currtoken.token_value.symbol_mark;
@@ -994,7 +996,7 @@ std::shared_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
 std::shared_ptr<SelectAST> ParseSelectAST()
 {
 	auto subq = ParseSubqueryAST();
-	consumeit({ delimiter }, "expect delimiter \n");
+	//consumeit({ delimiter }, "expect delimiter \n");
 	return std::make_shared<SelectAST>(std::move(subq));
 }
 
@@ -1178,6 +1180,7 @@ std::shared_ptr<InsertAST> ParseInsertAST()
 		consumeit({ comma_mark }, "expect ',' \n");
 		value_list.push_back(ParseExprAST());
 	}
+	consumeit({ right_bracket_mark }, "expect ')' \n");
 	return std::make_shared<InsertAST>(std::move(table_name), std::move(col_names), std::move(value_list));
 }
 
@@ -1190,7 +1193,7 @@ std::shared_ptr<DeleteAST> ParseDeleteAST()
 	table_name = ParseIdAST();
 	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_WHERE)
 	{
-		consumeit({ tok_FROM }, "expect WHERE\n");
+		consumeit({ tok_WHERE }, "expect WHERE\n");
 		where_condition = ParseExprAST();
 	}
 	return std::make_shared<DeleteAST>(std::move(table_name), std::move(where_condition));

@@ -13,8 +13,8 @@
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
 
 std::string string_literal; // ' ""
-int int_literal = 0;    // ÏÈÅÐ¶ÏÊÇ·ñÊÇ int
-double double_literal = 0.; // ºóÅÐ¶ÏÊÇ·ñÊÇ double
+int int_literal = 0;    // ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ int
+double double_literal = 0.; // ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ double
 int symbol_mark = 0;
 std::string IdentifierStr;
 
@@ -61,7 +61,7 @@ std::vector<std::string> reserved_dict
 "MAX_CONNECTIONS_PER_HOUR","MAX_QUERIES_PER_HOUR","MAX_ROWS","MAX_SIZE","MAX_STATEMENT_TIME","MAX_UPDATES_PER_HOUR","MAX_USER_CONNECTIONS","MEDIUM","MEDIUMBLOB","MEDIUMINT",
 "MEDIUMTEXT","MEMORY","MERGE","MESSAGE_TEXT","MICROSECOND","MIDDLEINT","MIGRATE","MINUTE","MINUTE_MICROSECOND","MINUTE_SECOND",
 "MIN_ROWS","MOD","MODE","MODIFIES","MODIFY","MONTH","MULTILINESTRING","MULTIPOINT","MULTIPOLYGON","MUTEX",
-"MYSQL_ERRNO","NAME","NAMES","NATIONAL","NATURAL","NCHAR","NDB","NDBCLUSTER","NEVER","NEW",
+"MYSQL_ERRNO","NATIONAL","NATURAL","NCHAR","NDB","NDBCLUSTER","NEVER","NEW",
 "NEXT","NO","NODEGROUP","NONBLOCKING","NONE","NOT","NO_WAIT","NO_WRITE_TO_BINLOG","NULL","NUMBER",
 "NUMERIC","NVARCHAR","OFFSET","OLD_PASSWORD","ON","ONE","ONLY","OPEN","OPTIMIZE","OPTIMIZER_COSTS",
 "OPTION","OPTIONALLY","OPTIONS","OR","ORDER","OUT","OUTER","OUTFILE","OWNER","PACK_KEYS",
@@ -436,12 +436,12 @@ void init_scanner()
 	reserved_map.insert(std::map<std::string, int>::value_type("MULTIPOLYGON", -339));
 	reserved_map.insert(std::map<std::string, int>::value_type("MUTEX", -340));
 	reserved_map.insert(std::map<std::string, int>::value_type("MYSQL_ERRNO", -341));
-	reserved_map.insert(std::map<std::string, int>::value_type("NAME", -342));
-	reserved_map.insert(std::map<std::string, int>::value_type("NAMES", -343));
+	//reserved_map.insert(std::map<std::string, int>::value_type("NAME", -342));
+	//reserved_map.insert(std::map<std::string, int>::value_type("NAMES", -343));
 	reserved_map.insert(std::map<std::string, int>::value_type("NATIONAL", -344));
 	reserved_map.insert(std::map<std::string, int>::value_type("NATURAL", -345));
 	reserved_map.insert(std::map<std::string, int>::value_type("NCHAR", -346));
-	reserved_map.insert(std::map<std::string, int>::value_type("NDB", -347));
+	//reserved_map.insert(std::map<std::string, int>::value_type("NDB", -347));
 	reserved_map.insert(std::map<std::string, int>::value_type("NDBCLUSTER", -348));
 	reserved_map.insert(std::map<std::string, int>::value_type("NEVER", -349));
 	reserved_map.insert(std::map<std::string, int>::value_type("NEW", -350));
@@ -767,7 +767,7 @@ void scroll_Char(int* ahead)
 	{
 		if (scanner_status != blank)
 		{
-			fprintf(stderr, "scanner_status is not blank£¬but you simply call gettok() \n");
+			fprintf(stderr, "scanner_status is not blankï¿½ï¿½but you simply call gettok() \n");
 		}
 
 		// handle EOF case
@@ -804,7 +804,7 @@ void scroll_Char(int* ahead)
 			scanner_status = blank;
 		}
 
-		// /* */ style comment ×¢Òâ /*/ ²»ÊÇºÏ·¨µÄ×¢ÊÍ
+		// /* */ style comment ×¢ï¿½ï¿½ /*/ ï¿½ï¿½ï¿½ÇºÏ·ï¿½ï¿½ï¿½×¢ï¿½ï¿½
 		if (LookAhead[0] == '/'&& LookAhead[1] == '*')
 		{
 			scanner_status = comment;
@@ -820,9 +820,9 @@ void scroll_Char(int* ahead)
 			scanner_status = blank;
 		}
 
-		// ×Ö·û´®×ÖÃæÁ¿ ·Ê³¦ÖµµÃ×¢Òâ \µÄ×ªÒå
-		// ÏàÁ¬µÄÁ½¸ö'' »ò "" ¿ÉºÏ²¢Îª1¸ö
-		// ÏàÁ¬µÄÁ½¸ö×Ö·û´®µÄÕ³Á¬¶¯×÷½»¸ø parser ´¦Àí
+		// ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê³ï¿½Öµï¿½ï¿½×¢ï¿½ï¿½ \ï¿½ï¿½×ªï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'' ï¿½ï¿½ "" ï¿½ÉºÏ²ï¿½Îª1ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Õ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ parser ï¿½ï¿½ï¿½ï¿½
 		if (LookAhead[0] == '"' || LookAhead[0] == '\'')
 		{
 			scanner_status = literal_string;
@@ -925,7 +925,7 @@ void scroll_Char(int* ahead)
 			}
 		}
 
-		// ÌØÊâÕÕ¹ËÒ»ÏÂ true  false ÕâÁ½¸ö¿´ÆðÀ´Ïñ¹Ø¼ü×ÖµÄ×ÖÃæÁ¿
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½Ò»ï¿½ï¿½ true  false ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
 			tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
 		{
@@ -957,13 +957,13 @@ void scroll_Char(int* ahead)
 			return t;
 		}
 
-		// Ö»´¦Àí[0-9]ºÍÐ¡Êýµã. Õý¸ººÅÁô¸øparser´¦Àí¡£
-		// Ö»´¦Àí10½øÖÆ£¬²»´¦Àí 0x 0b µÈ×ÖÃæÁ¿
-		// 011ÊÓ×÷Ê®½øÖÆ11¶ø²»ÊÇ8½øÖÆ
-		// ÊýÖµ×ÖÃæÁ¿µÄ¼¸ÖÖÄ£Ê½
-		// int¾ÍÊÇ [0-9]+
-		// ³öÏÖÐ¡Êýµã. »òÖ¸Êýe ¾ùÎªdouble
-		// ÒÔÏÂÎªÒ»Ð©²âÊÔ
+		// Ö»ï¿½ï¿½ï¿½ï¿½[0-9]ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½parserï¿½ï¿½ï¿½ï¿½
+		// Ö»ï¿½ï¿½ï¿½ï¿½10ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0x 0b ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// 011ï¿½ï¿½ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½11ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ä£Ê½
+		// intï¿½ï¿½ï¿½ï¿½ [0-9]+
+		// ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Ö¸ï¿½ï¿½e ï¿½ï¿½Îªdouble
+		// ï¿½ï¿½ï¿½ï¿½ÎªÒ»Ð©ï¿½ï¿½ï¿½ï¿½
 		// 0256 2048
 		// 0.36
 		// .345
@@ -1016,9 +1016,9 @@ void scroll_Char(int* ahead)
 			}
 		}
 
-		// ÔËËã·û
-		// Îñ±ØÏÈÅÐ¶Ï³¤µÄÔËËã·û±ÈÈç<=>
-		// ºóÅÐ¶Ï¶ÌµÄÔËËã·û±ÈÈç<=
+		// ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½<=>
+		// ï¿½ï¿½ï¿½Ð¶Ï¶Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½<=
 		if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
 		{
 			scanner_status = symbol;
@@ -1437,7 +1437,7 @@ void scroll_Char(int* ahead)
 			return t;
 		}
 
-		// ±£Áô×ÖÓë±äÁ¿Ãû
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		IdentifierStr.clear();
 		do
 		{

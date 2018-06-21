@@ -409,8 +409,8 @@ enum reserved_token_value
 	tok_MULTIPOLYGON = -339,
 	tok_MUTEX = -340,
 	tok_MYSQL_ERRNO = -341,
-	tok_NAME = -342,
-	tok_NAMES = -343,
+	//tok_NAME = -342,
+	//tok_NAMES = -343,
 	tok_NATIONAL = -344,
 	tok_NATURAL = -345,
 	tok_NCHAR = -346,
@@ -791,8 +791,8 @@ class eof_value :public value
 struct val
 {
 	std::string string_literal; // ' ""
-	int int_literal = 0;    // ÏÈÅÐ¶ÏÊÇ·ñÊÇ int
-	double double_literal = 0.; // ºóÅÐ¶ÏÊÇ·ñÊÇ double
+	int int_literal = 0;    // ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ int
+	double double_literal = 0.; // ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ double
 	int symbol_mark = 0;
 	std::string IdentifierStr;
 	char ch = ' ';
