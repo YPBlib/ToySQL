@@ -1101,19 +1101,11 @@ public:
 	SimpleExprAST(std::shared_ptr<SubqueryAST> sub) :sub(std::move(sub)) {}
 	SimpleExprAST(std::shared_ptr<ExistsSubqueryAST> exists) :exists(std::move(exists)) {}
 	SimpleExprAST(std::shared_ptr<LiteralAST> lit) :lit(std::move(lit)) {}
-	std::shared_ptr<SimpleExprAST> traitValue()
-	{
-		if (id) return id->traitValue();
-		if (call) return call->traitValue();
-		if (tablecol) return tablecol->traitValue();
-		//if(expr)return expr->
-		//if(sub)return sub->
-		//if(exists)return exists->
-		if (lit) return lit->traitValue();
-		return nullptr;
-	}
-
+	std::shared_ptr<SimpleExprAST> traitValue();
 };
+
+
+
 
 class IdAST final
 {
@@ -1125,7 +1117,6 @@ public:
 		std::shared_ptr<IdAST> idast = std::make_shared<IdAST>(id);
 		return std::make_shared<SimpleExprAST>(std::move(idast));
 	}
-
 };
 
 class TablecolAST
@@ -1149,11 +1140,13 @@ public:
 	std::vector<std::shared_ptr<ExprAST>> args;
 	CallAST(std::shared_ptr<IdAST> callee, std::vector<std::shared_ptr<ExprAST>> args)
 		: callee(std::move(callee)), args(std::move(args)) {}
+	/*
 	std::shared_ptr<SimpleExprAST> traitValue()
 	{
 		std::shared_ptr<IdAST> cc = std::make_shared<IdAST>(callee,args);	
 		return std::make_shared<SimpleExprAST>(std::move(cc));
 	}
+	*/
 };
 
 class LiteralAST
@@ -1166,14 +1159,12 @@ public:
 	LiteralAST(std::shared_ptr<IntLiteralAST> intvalue) :intvalue(std::move(intvalue)) {}
 	LiteralAST(std::shared_ptr<DoubleLiteralAST> doublevalue) :doublevalue(std::move(doublevalue)) {}
 	LiteralAST(std::shared_ptr<StringLiteralAST> stringvalue) :stringvalue(std::move(stringvalue)) {}
-	std::shared_ptr<SimpleExprAST> traitValue()
-	{
-		if (intvalue) return intvalue->traitValue();
-		if (doublevalue) return doublevalue->traitValue();
-		if (stringvalue) return stringvalue->traitValue();
-		return nullptr;
-	}
+	std::shared_ptr<SimpleExprAST>traitValue();
+	
 };
+
+
+
 
 class IntLiteralAST
 {

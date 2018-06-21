@@ -1,14 +1,4 @@
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -21,7 +11,7 @@
 #include<exception>
 #include"llvmsql.h"
 #include"catalog.h"
-using namespace llvm;
+
 
 /// SQL begin
 
@@ -1238,11 +1228,27 @@ std::shared_ptr<SimpleExprAST> and_SE(std::shared_ptr<SimpleExprAST> lhs, std::s
 std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
 
 
+/*
+std::shared_ptr<SimpleExprAST> SimpleExprAST::traitValue()
+{
+	if (id) return id->traitValue();
+	if (call) return call->traitValue();
+	if (tablecol) return tablecol->traitValue();
+	//if(expr)return expr->
+	//if(sub)return sub->
+	//if(exists)return exists->
+	if (lit) return lit->traitValue();
+	return nullptr;
+}
 
-
-
-
-
+std::shared_ptr<SimpleExprAST> LiteralAST::traitValue()
+{
+	if (intvalue) return intvalue->traitValue();
+	if (doublevalue) return doublevalue->traitValue();
+	if (stringvalue) return stringvalue->traitValue();
+	return nullptr;
+}
+*/
 std::shared_ptr<SimpleExprAST> aux_binary_op(std::shared_ptr<SimpleExprAST>, std::shared_ptr<SimpleExprAST>)
 {
 	return nullptr;
