@@ -10,7 +10,7 @@ using std::vector;
 
 
 // examine whether no record is larger than a block
-
+// read write conflict
 
 
 // buffer <=> DB files

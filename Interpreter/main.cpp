@@ -5,6 +5,7 @@ int main()
 	init_scanner();
 	std::unique_ptr<ExprAST> x;
 	init_parser();
+	init_cata();
 	int qwexqy = 0;
 	qwexqy++;
 	while (qwexqy)

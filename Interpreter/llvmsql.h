@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include<exception>
+#include<fstream>
 #include"..\env\envir.h"
 #define LL_LRLen 6
 using std::shared_ptr;
@@ -903,7 +904,7 @@ class unicAST;
 class ForeignAST;
 class SetAST;
 
-
+void init_cata();
 
 std::shared_ptr<ExprAST> ParseExprAST();
 std::shared_ptr<ExpAST> ParseExpAST();
@@ -1453,6 +1454,9 @@ public:
 		table_name(std::move(table_name)), old_name(std::move(old_name)) {}
 };
 
+// create table tb(x1 int primary key,x2 int,x3 int,primary key(x1)); not allowed for multiple primary key
+// create table tb(x1 int primary key,x2 int,x3 int,primary key(x2)); not allowed for multiple primary key
+// but multiple unique key is OK
 class CreatedefAST
 {
 public:
@@ -1486,13 +1490,13 @@ public:
 	std::shared_ptr<DatatypeAST> dtype;
 	bool null_flag = true;
 	std::shared_ptr<ExprAST> default_value;
-	bool shared_flag = false;
+	bool unic_flag = false;
 	bool primary_flag = false;
 	std::shared_ptr<RefdefAST> refdef;
 	ColdefAST(std::shared_ptr<DatatypeAST> dtype, bool null_flag, std::shared_ptr<ExprAST> default_value,
-		bool shared_flag, bool primary_flag, std::shared_ptr<RefdefAST> refdef) :
+		bool unic_flag, bool primary_flag, std::shared_ptr<RefdefAST> refdef) :
 		dtype(std::move(dtype)), null_flag(null_flag), default_value(std::move(default_value)),
-		shared_flag(shared_flag), primary_flag(primary_flag), refdef(std::move(refdef)) {}
+		unic_flag(unic_flag), primary_flag(primary_flag), refdef(std::move(refdef)) {}
 };
 
 class DatatypeAST
