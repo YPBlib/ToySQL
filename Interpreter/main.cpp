@@ -3,7 +3,6 @@
 int main()
 {
 	init_scanner();
-	std::unique_ptr<ExprAST> x;
 	init_parser();
 	init_cata();
 	int qwexqy = 0;
@@ -18,6 +17,7 @@ int main()
 		catch (std::runtime_error& s)
 		{
 			std::cout << s.what() << std::endl;
+			skip_exp();
 		}
 	}
 	int ty = qwexqy;

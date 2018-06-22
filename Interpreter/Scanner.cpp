@@ -12,9 +12,10 @@
 #define LookAheadLen 6
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
 
-std::string string_literal; // ' ""
-int int_literal = 0;    // ���ж��Ƿ��� int
-double double_literal = 0.; // ���ж��Ƿ��� double
+
+std::string string_literal;
+int int_literal = 0;
+double double_literal = 0.;
 int symbol_mark = 0;
 std::string IdentifierStr;
 
@@ -739,6 +740,24 @@ void scroll_Char(int* ahead)
 	if (ahead[LookAheadLen - 1] != EOF)
 		ahead[LookAheadLen - 1] = getchar();
 }
+
+extern int delimiter;
+
+int deli2char(int deli)
+{
+	if (deli == semicolon_mark)
+		return (int)';';
+	else throw std::runtime_error("delimiter can only be `;` for now\n");
+}
+
+void skip_exp()
+{
+	while (LookAhead[0] != deli2char(delimiter))
+		scroll_Char(LookAhead);
+	scroll_Char(LookAhead);
+	init_parser();
+}
+
 
 	class scan_error :public std::runtime_error
 	{

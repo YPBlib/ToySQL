@@ -44,7 +44,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 			const unsigned char N = i->coldef->dtype->n;
 			bool isnull = i->coldef->null_flag;
 			bool isunic = i->coldef->unic_flag;
-			bool isprim;
+			bool isprim = false;
 			bool temp_isprim = i->coldef->primary_flag;
 			if (temp_isprim)
 			{

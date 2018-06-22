@@ -1092,7 +1092,6 @@ std::shared_ptr<CreateIndexAST> ParseCreateIndexAST()
 		col_names.push_back(ParseIdAST());
 	}
 	consumeit({ right_bracket_mark }, "expect ')'\n");
-	consumeit({ delimiter }, "expect delimiter \n");
 	return std::make_shared<CreateIndexAST>(std::move(index_name), std::move(table_name), std::move(col_names));
 }
 
@@ -1141,14 +1140,19 @@ std::shared_ptr<DropTableAST> ParseDropTableAST()
 std::shared_ptr<DropIndexAST> ParseDropIndexAST()
 {
 	consumeit({ tok_INDEX }, "expect INDEX \n");
-	std::vector<std::shared_ptr<IdAST>> table_list;
-	table_list.push_back(ParseIdAST());
+	std::vector<std::shared_ptr<IdAST>> index_list;
+	index_list.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
 	{
 		consumeit({ comma_mark }, "expect ','\n");
-		table_list.push_back(ParseIdAST());
+		index_list.push_back(ParseIdAST());
 	}
-	return std::make_shared<DropIndexAST>(std::move(table_list));
+	if (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == tok_ON)
+	{
+		consumeit({ tok_ON }, "expect `ON` \n");
+		auto id = ParseIdAST();
+	}
+	return std::make_shared<DropIndexAST>(std::move(index_list));
 }
 
 std::shared_ptr<InsertAST> ParseInsertAST()
@@ -1216,6 +1220,9 @@ std::shared_ptr<SimpleExprAST> noteq_SE(std::shared_ptr<SimpleExprAST> lhs, std:
 std::shared_ptr<SimpleExprAST> not_SE(std::shared_ptr<SimpleExprAST> se);
 std::shared_ptr<SimpleExprAST> and_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
 std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
+
+
+
 
 
 /*

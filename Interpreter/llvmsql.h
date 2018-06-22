@@ -904,7 +904,7 @@ class unicAST;
 class ForeignAST;
 class SetAST;
 
-void init_cata();
+
 
 std::shared_ptr<ExprAST> ParseExprAST();
 std::shared_ptr<ExpAST> ParseExpAST();
@@ -983,6 +983,9 @@ std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::sh
 token gettok();
 void init_scanner();
 void init_parser();
+void init_cata();
+void skip_exp();
+
 
 
 class ExprAST
