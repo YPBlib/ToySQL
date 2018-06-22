@@ -4,18 +4,22 @@
 
 #include <iostream>
 #include <map>
-#include <vector>
-#include <cstring>
-#include <windows.h>
-#include <string>
-#include <exception>
-#include <algorithm>
-
-
+#include"../catalog/catalog.h"
 
 using std::vector;
 using std::string;
 
+namespace RecordManager
+{
+
+class record
+{
+	string tbname;
+	unsigned int bytesize;
+	unsigned char* data = nullptr;
+};
+
+}
 
 
 
