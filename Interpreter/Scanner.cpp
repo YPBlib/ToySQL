@@ -68,7 +68,7 @@ std::vector<std::string> reserved_dict
 "OPTION","OPTIONALLY","OPTIONS","OR","ORDER","OUT","OUTER","OUTFILE","OWNER","PACK_KEYS",
 "PAGE","PARSER","PARSE_GCOL_EXPR","PARTIAL","PARTITION","PARTITIONING","PARTITIONS","PASSWORD","PHASE","PLUGIN",
 "PLUGINS","PLUGIN_DIR","POINT","POLYGON","PORT","PRECEDES","PRECISION","PREPARE","PRESERVE","PREV",
-"PRIMARY","PRIVILEGES","PROCEDURE","PROCESSLIST","PROFILE","PROFILES","PROXY","PURGE","QUARTER","QUERY",
+"PRIMARY","PRIVILEGES","PROCEDURE","PROCESSLIST","PROFILE","PROFILES","PROXY","PURGE","QUARTER","QUERY","QUIT",
 "QUICK","RANGE","READ","READS","READ_ONLY","READ_WRITE","REAL","REBUILD","RECOVER","REDOFILE",
 "REDO_BUFFER_SIZE","REDUNDANT","REFERENCES","REGEXP","RELAY","RELAYLOG","RELAY_LOG_FILE","RELAY_LOG_POS","RELAY_THREAD","RELEASE",
 "RELOAD","REMOVE","RENAME","REORGANIZE","REPAIR","REPEAT","REPEATABLE","REPLACE","REPLICATE_DO_DB","REPLICATE_DO_TABLE",
@@ -437,6 +437,7 @@ void init_scanner()
 	reserved_map.insert(std::map<std::string, int>::value_type("MULTIPOLYGON", -339));
 	reserved_map.insert(std::map<std::string, int>::value_type("MUTEX", -340));
 	reserved_map.insert(std::map<std::string, int>::value_type("MYSQL_ERRNO", -341));
+	reserved_map.insert(std::map<std::string, int>::value_type("QUIT", -342));
 	//reserved_map.insert(std::map<std::string, int>::value_type("NAME", -342));
 	//reserved_map.insert(std::map<std::string, int>::value_type("NAMES", -343));
 	reserved_map.insert(std::map<std::string, int>::value_type("NATIONAL", -344));
@@ -1456,7 +1457,6 @@ void skip_exp()
 			return t;
 		}
 
-		// �������������
 		IdentifierStr.clear();
 		do
 		{

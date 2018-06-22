@@ -411,6 +411,7 @@ enum reserved_token_value
 	tok_MULTIPOLYGON = -339,
 	tok_MUTEX = -340,
 	tok_MYSQL_ERRNO = -341,
+	tok_QUIT=-342,
 	//tok_NAME = -342,
 	//tok_NAMES = -343,
 	tok_NATIONAL = -344,
@@ -986,8 +987,6 @@ void init_parser();
 void init_cata();
 void skip_exp();
 
-
-
 class ExprAST
 {
 public:
@@ -1109,9 +1108,6 @@ public:
 	std::shared_ptr<SimpleExprAST> traitValue();
 };
 
-
-
-
 class IdAST final
 {
 public:
@@ -1167,9 +1163,6 @@ public:
 	std::shared_ptr<SimpleExprAST>traitValue();
 	
 };
-
-
-
 
 class IntLiteralAST
 {
@@ -1336,7 +1329,6 @@ public:
 	}
 };
 
-
 class OnJoinCondAST
 {
 public:
@@ -1389,8 +1381,6 @@ public:
 	TRNLROJAST(std::shared_ptr<TableRefAST> ref, std::shared_ptr<TableFactorAST> factor, int lr) :
 		ref(std::move(ref)), factor(std::move(factor)), lr(lr) {}
 };
-
-
 
 class StatementAST
 {

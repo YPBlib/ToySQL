@@ -993,7 +993,8 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_SET ||
 		currtoken.token_value.symbol_mark == tok_INSERT || currtoken.token_value.symbol_mark == tok_SELECT ||
 		currtoken.token_value.symbol_mark == tok_CREATE || currtoken.token_value.symbol_mark == tok_DROP ||
-		currtoken.token_value.symbol_mark == tok_DELETE || currtoken.token_value.symbol_mark == semicolon_mark))
+		currtoken.token_value.symbol_mark == tok_DELETE || currtoken.token_value.symbol_mark == semicolon_mark||
+		currtoken.token_value.symbol_mark==tok_QUIT))
 	{
 		if (currtoken.token_value.symbol_mark == tok_SET)
 		{
@@ -1024,6 +1025,12 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		{
 			dele = ParseDeleteAST();
 		}
+		else if (currtoken.token_value.symbol_mark == tok_QUIT)
+		{
+			consumeit({ tok_QUIT }, "expect `QUIT` \n");
+			consumeit({ delimiter }, "expect delimiter\n");
+			return nullptr;
+		}
 		else if (currtoken.token_value.symbol_mark == semicolon_mark)
 		{
 			;
@@ -1032,7 +1039,7 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 	}
 	else
 	{
-		throw std::runtime_error("statement sentence can only begin with SET/INSERT/SELECT/CREATE/DROP/INSERT/DELETE/; \n");
+		throw std::runtime_error("statement sentence can only begin with SET/INSERT/SELECT/CREATE/DROP/INSERT/DELETE/QUIT/; \n");
 		return nullptr;
 	}
 	return std::make_shared<StatementAST>(std::move(create), std::move(select),

@@ -13,6 +13,8 @@ int main()
 		{
 			auto z = ParseStatementAST();
 			qwexqy++;
+			if (z == nullptr)
+				return 0;
 		}
 		catch (std::runtime_error& s)
 		{

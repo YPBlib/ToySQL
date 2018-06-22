@@ -12,6 +12,7 @@ namespace catalog
 {
 	extern string cata_path;
 class SQLcol;
+
 class SQLtable
 {
 public:
@@ -38,12 +39,8 @@ public:
 };
 
 }
-
+void loadcata();
 void make_cata(shared_ptr<CreateTableSimpleAST> T);
 inline int getbyte(int n);
-
-
-
-
 
 #endif

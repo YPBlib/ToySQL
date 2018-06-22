@@ -1,14 +1,24 @@
 #include"catalog.h"
 using minisql::minisql_path;
 
+/*
+#include <boost/serialization/serialization.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+*/
+
 namespace catalog
 {
 	string cata_path;
+	vector<string> catadb;
 }
 
 void init_cata()
 {
 	catalog::cata_path = minisql_path + "catalog\\";
+	loadcata();
 }
 
 inline int getbyte(int n)
@@ -122,5 +132,21 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	{
 		w << i.name << "  " << i.coltype << "  " << (int)i.N
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
+	}
+	w.close();
+	string cata = catalog::cata_path + "cata.log";
+	std::fstream w2(cata);
+}
+
+void loadcata()
+{
+	string cata = catalog::cata_path + "cata.log";
+	FILE* w = fopen(cata.c_str(), "w+");
+	fclose(w);
+	string sss;
+	std::ifstream ifin(cata);
+	while (ifin>>sss)
+	{
+		catalog::catadb.push_back(sss);
 	}
 }
