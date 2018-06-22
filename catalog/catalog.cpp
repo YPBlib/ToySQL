@@ -108,8 +108,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 		}
 	}
 	// write to file
-	string cata_file = catalog::cata_path + tbname + ".log";
-	//FILE* w=fopen(cata_file.c_str(), "wb");
+	string cata_file = catalog::cata_path + tbname + ".log";	
 	std::ofstream w(cata_file);
 	w << tbname << std::endl;
 	w << col_num << std::endl;
@@ -121,7 +120,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	w << bytes << std::endl;
 	for (auto i : cols)
 	{
-		w << i.name << "  " << i.coltype << "  " << i.N
+		w << i.name << "  " << i.coltype << "  " << (int)i.N
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
 	}
 }

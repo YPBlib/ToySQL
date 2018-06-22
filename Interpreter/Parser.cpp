@@ -1222,9 +1222,6 @@ std::shared_ptr<SimpleExprAST> and_SE(std::shared_ptr<SimpleExprAST> lhs, std::s
 std::shared_ptr<SimpleExprAST> or_SE(std::shared_ptr<SimpleExprAST> lhs, std::shared_ptr<SimpleExprAST> rhs);
 
 
-
-
-
 /*
 std::shared_ptr<SimpleExprAST> SimpleExprAST::traitValue()
 {
