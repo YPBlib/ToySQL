@@ -12,20 +12,20 @@ using std::vector;
 // examine whether no record is larger than a block
 // read write conflict
 
-
-// buffer <=> DB files
+// query <=> record <=> buffer <=> DB files
 class block
 {
 public:
 	string filepos;
 	unsigned int offset;
+	bool isdirty = false;
+	bool ispin = false;
 };
 
 
 // lru
 // mru
-// dirty
-// pin
+
 
 
 
