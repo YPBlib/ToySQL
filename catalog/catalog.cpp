@@ -6,7 +6,6 @@ namespace catalog
 	string cata_path;
 }
 
-
 void init_cata()
 {
 	catalog::cata_path = minisql_path + "catalog\\";
@@ -34,11 +33,12 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	vector<catalog::SQLcol> cols;
 	vector<string> uniccols;
 	vector<string> primcols;
-	int col_num = defs.size();
+	int col_num = 0;
 	for (auto i : defs)
 	{
 		if (i->colname)
 		{
+			col_num++;
 			string colname = *i->colname->id.get();
 			int dtype = i->coldef->dtype->dtype;
 			const unsigned char N = i->coldef->dtype->n;
@@ -95,15 +95,15 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 		{
 			throw std::runtime_error("col_name,prim,uni,forei,check of a createdefAST are all nullptr,cannot parse\n");
 		}
-		// attach primary attr to cols
-		for (auto j : primcols)
+	}
+	// attach primary attr to cols
+	for (auto j : primcols)
+	{
+		for (auto& k : cols)
 		{
-			for (auto& k : cols)
+			if (j == k.name)
 			{
-				if (j == k.name)
-				{
-					k.isprim = true;
-				}
+				k.isprim = true;
 			}
 		}
 	}
