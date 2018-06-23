@@ -2,10 +2,7 @@
 #ifndef llvmsql_catalog
 #define llvmsql_catalog
 #include"../Interpreter/llvmsql.h"
-#include"../env/envir.h"
-using std::string;
-using std::vector;
-using std::shared_ptr;
+
 
 
 namespace catalog 

@@ -2,10 +2,8 @@
 #ifndef LLVMSQL_BUFFER_H
 #define LLVMSQL_BUFFER_H
 #include"../Interpreter/llvmsql.h"
-#include"../env/envir.h"
-#define BUFFER_BLOCK_SIZE 8192
-using std::string;
-using std::vector;
+
+
 
 
 
@@ -16,10 +14,25 @@ using std::vector;
 class block
 {
 public:
-	string filepos;
-	unsigned int offset;
+	const string filename;
+	const unsigned int offset;
 	bool isdirty = false;
 	bool ispin = false;
+	shared_ptr<unsigned char[BUFFER_BLOCK_SIZE]> data = nullptr;
+	block(const string& filename,const unsigned int& offset) :filename(filename), offset(offset)
+	{
+		/*fstream fs(filename);
+		fs.seekp(offset);
+*/
+		FILE* r=fopen(filename.c_str(),"rb");
+		data = make_shared<unsigned char[BUFFER_BLOCK_SIZE]>();
+		std::fseek(r, offset, SEEK_SET);
+		fread(*data.get(), BUFFER_BLOCK_SIZE, sizeof(unsigned char), r);
+	}
+	void writeback()
+	{
+		;
+	}
 };
 
 

@@ -1,24 +1,80 @@
 #pragma once
-
 #ifndef llvmsql_h
 #define llvmsql_h
-
-
-#include <algorithm>
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include<exception>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-#include<exception>
-#include<fstream>
 #include"..\env\envir.h"
 #define LL_LRLen 6
+#define BUFFER_BLOCK_SIZE 8192
 using std::shared_ptr;
+using std::make_shared;
+using std::runtime_error;
+using std::vector;
+using std::fstream;
+using std::string;
+using std::ifstream;
+using std::ofstream;
 
+class block;
+class ExprAST;
+class ExpAST;
+class BooleanPrimaryAST;
+class PredicateAST;
+class BitExprAST;
+class BitExpAST;
+class BitExAST;
+class SimpleExprAST;
+class IdAST;
+class ColdefAST;
+class TablecolAST;
+class CallAST;
+class LiteralAST;
+class IntLiteralAST;
+class DoubleLiteralAST;
+class StringLiteralAST;
+class ParenExprAST;
+class SubqueryAST;
+class ExistsSubqueryAST;
+class SelectExprAST;
+class TableRefsAST;
+class TableRefAST;
+class TableFactorAST;
+class JoinCondAST;
+class TableNameAST;
+class TableQueryAST;
+class OnJoinCondAST;
+class UsingJoinCondAST;
+class TRIJAST;
+class TRLROJAST;
+class TRNLROJAST;
+class StatementAST;
+class CreateAST;
+class CreateTableAST;
+class CreateTableSimpleAST;
+class CreateTableSelectAST;
+class CreateTableLikeAST;
+class CreatedefAST;
+class CreateIndexAST;
+class DropAST;
+class DropTableAST;
+class DropIndexAST;
+class InsertAST;
+class DeleteAST;
+class SelectAST;
+class CreatedefAST;
+class RefdefAST;
+class DatatypeAST;
+class PrimaryAST;
+class unicAST;
+class ForeignAST;
+class SetAST;
+struct val;
+class value;
+class int_value;
+class double_value;
+class string_value;
+class reserved_value;
+class id_value;
+class eof_value;
+class token;
 
 enum reserved_token_value
 {
@@ -714,22 +770,47 @@ enum status
 	eof
 };
 
-struct val;
-class value;
-
-class int_value;
-
-class double_value;
-
-class string_value;
-
-class reserved_value;
-
-class id_value;
-
-class eof_value;
-
-class token;
+struct val
+{
+	std::string string_literal;
+	int int_literal = 0;
+	double double_literal = 0.;
+	int symbol_mark = 0;
+	std::string IdentifierStr;
+	char ch = ' ';
+	val() = default;
+	val(eof_value ev) :ch(EOF) {}
+	val& operator=(const string_value& s)
+	{
+		string_literal = s.s;
+		return *this;
+	}
+	val& operator=(const int_value& i)
+	{
+		int_literal = i.i;
+		return *this;
+	}
+	val& operator=(const double_value& d)
+	{
+		double_literal = d.d;
+		return *this;
+	}
+	val& operator=(const reserved_value& r)
+	{
+		symbol_mark = r.r;
+		return *this;
+	}
+	val& operator=(const id_value& i)
+	{
+		IdentifierStr = i.id;
+		return *this;
+	}
+	val& operator=(const blank_value& blank)
+	{
+		ch = blank.ch;
+		return *this;
+	}
+};
 
 class value
 {
@@ -791,48 +872,6 @@ class eof_value :public value
 	const int v = 0;
 };
 
-struct val
-{
-	std::string string_literal; 
-	int int_literal = 0; 
-	double double_literal = 0.;
-	int symbol_mark = 0;
-	std::string IdentifierStr;
-	char ch = ' ';
-	val() = default;
-	val(eof_value ev) :ch(EOF) {}
-	val& operator=(const string_value& s)
-	{
-		string_literal = s.s;
-		return *this;
-	}
-	val& operator=(const int_value& i)
-	{
-		int_literal = i.i;
-		return *this;
-	}
-	val& operator=(const double_value& d)
-	{
-		double_literal = d.d;
-		return *this;
-	}
-	val& operator=(const reserved_value& r)
-	{
-		symbol_mark = r.r;
-		return *this;
-	}
-	val& operator=(const id_value& i)
-	{
-		IdentifierStr = i.id;
-		return *this;
-	}
-	val& operator=(const blank_value& blank)
-	{
-		ch = blank.ch;
-		return *this;
-	}
-};
-
 class token
 {
 public:
@@ -849,63 +888,6 @@ public:
 	}
 
 };
-
-
-
-class ExprAST;
-class ExpAST;
-class BooleanPrimaryAST;
-class PredicateAST;
-class BitExprAST;
-class BitExpAST;
-class BitExAST;
-class SimpleExprAST;
-class IdAST;
-class ColdefAST;
-class TablecolAST;
-class CallAST;
-class LiteralAST;
-class IntLiteralAST;
-class DoubleLiteralAST;
-class StringLiteralAST;
-class ParenExprAST;
-class SubqueryAST;
-class ExistsSubqueryAST;
-class SelectExprAST;
-class TableRefsAST;
-class TableRefAST;
-class TableFactorAST;
-class JoinCondAST;
-class TableNameAST;
-class TableQueryAST;
-class OnJoinCondAST;
-class UsingJoinCondAST;
-class TRIJAST;
-class TRLROJAST;
-class TRNLROJAST;
-class StatementAST;
-class CreateAST;
-class CreateTableAST;
-class CreateTableSimpleAST;
-class CreateTableSelectAST;
-class CreateTableLikeAST;
-class CreatedefAST;
-class CreateIndexAST;
-class DropAST;
-class DropTableAST;
-class DropIndexAST;
-class InsertAST;
-class DeleteAST;
-class SelectAST;
-class CreatedefAST;
-class RefdefAST;
-class DatatypeAST;
-class PrimaryAST;
-class unicAST;
-class ForeignAST;
-class SetAST;
-
-
 
 std::shared_ptr<ExprAST> ParseExprAST();
 std::shared_ptr<ExpAST> ParseExpAST();
