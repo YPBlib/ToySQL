@@ -2,9 +2,10 @@
 #include<iostream>
 int main()
 {
+	init_cata(); 
 	init_scanner();
 	init_parser();
-	init_cata();
+	
 	int qwexqy = 0;
 	qwexqy++;
 	while (qwexqy)
@@ -14,7 +15,7 @@ int main()
 			auto z = ParseStatementAST();
 			qwexqy++;
 			if (z == nullptr)
-				return 0;
+				break;
 		}
 		catch (std::runtime_error& s)
 		{
@@ -23,5 +24,6 @@ int main()
 		}
 	}
 	int ty = qwexqy;
+	cata_wb();
 	return 0;
 }

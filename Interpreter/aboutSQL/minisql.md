@@ -1,10 +1,14 @@
 # catalog文件需要维护的信息
 1. 当前表的数量
-2. 每个表的表名，map数值，字段数，record大小，每个字段的(name,type,[N],prim,unic,null)
-
-# block 转 record 需要的信息
-
+2. 表名到数值的map
+2. 每个表的表名，字段数，record大小，每个字段的(name,type,[N],prim,unic,null)
+# block 从硬盘读取
+可能用到 app ate seekp seekg tellg 
 # block 写回到硬盘
+
+# block 转 queryable-record
+
+# queryable-record 转 block
 
 # 每个表名映射到1个数字(0000-FFFF)
 # 映射表写到catalog文件里

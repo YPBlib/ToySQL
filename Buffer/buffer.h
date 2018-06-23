@@ -6,7 +6,6 @@
 
 
 
-
 // examine whether no record is larger than a block
 // read write conflict
 
@@ -18,16 +17,16 @@ public:
 	const unsigned int offset;
 	bool isdirty = false;
 	bool ispin = false;
-	shared_ptr<unsigned char[BUFFER_BLOCK_SIZE]> data = nullptr;
+	shared_ptr<unsigned char[BLOCK_8k]> data = nullptr;
 	block(const string& filename,const unsigned int& offset) :filename(filename), offset(offset)
 	{
 		/*fstream fs(filename);
 		fs.seekp(offset);
 */
 		FILE* r=fopen(filename.c_str(),"rb");
-		data = make_shared<unsigned char[BUFFER_BLOCK_SIZE]>();
+		data = make_shared<unsigned char[BLOCK_8k]>();
 		std::fseek(r, offset, SEEK_SET);
-		fread(*data.get(), BUFFER_BLOCK_SIZE, sizeof(unsigned char), r);
+		fread(*data.get(), BLOCK_8k, sizeof(unsigned char), r);
 	}
 	void writeback()
 	{

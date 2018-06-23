@@ -9,10 +9,14 @@
 using std::vector;
 using std::string;
 
+/*
 namespace RecordManager
 {
 
-	vector<record> blk2record(const block& blk);
+	vector<record> blk2record(const block& blk)
+	{
+		;
+	}
 class recordtype
 {
 	virtual ~recordtype() = 0;
@@ -70,6 +74,6 @@ class queryable
 
 
 }
-
+*/
 
 #endif //RECORDMANAGER_RECORD_H

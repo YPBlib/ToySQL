@@ -3,7 +3,8 @@
 #define llvmsql_h
 #include"..\env\envir.h"
 #define LL_LRLen 6
-#define BUFFER_BLOCK_SIZE 8192
+#define BLOCK_8k 8192
+#define BLOCK_4k 4096
 using std::shared_ptr;
 using std::make_shared;
 using std::runtime_error;
@@ -14,6 +15,7 @@ using std::ifstream;
 using std::ofstream;
 
 class block;
+class record;
 class ExprAST;
 class ExpAST;
 class BooleanPrimaryAST;
@@ -770,47 +772,7 @@ enum status
 	eof
 };
 
-struct val
-{
-	std::string string_literal;
-	int int_literal = 0;
-	double double_literal = 0.;
-	int symbol_mark = 0;
-	std::string IdentifierStr;
-	char ch = ' ';
-	val() = default;
-	val(eof_value ev) :ch(EOF) {}
-	val& operator=(const string_value& s)
-	{
-		string_literal = s.s;
-		return *this;
-	}
-	val& operator=(const int_value& i)
-	{
-		int_literal = i.i;
-		return *this;
-	}
-	val& operator=(const double_value& d)
-	{
-		double_literal = d.d;
-		return *this;
-	}
-	val& operator=(const reserved_value& r)
-	{
-		symbol_mark = r.r;
-		return *this;
-	}
-	val& operator=(const id_value& i)
-	{
-		IdentifierStr = i.id;
-		return *this;
-	}
-	val& operator=(const blank_value& blank)
-	{
-		ch = blank.ch;
-		return *this;
-	}
-};
+
 
 class value
 {
@@ -870,6 +832,48 @@ public:
 class eof_value :public value
 {
 	const int v = 0;
+};
+
+struct val
+{
+	std::string string_literal;
+	int int_literal = 0;
+	double double_literal = 0.;
+	int symbol_mark = 0;
+	std::string IdentifierStr;
+	char ch = ' ';
+	val() = default;
+	val(eof_value ev) :ch(EOF) {}
+	val& operator=(const string_value& s)
+	{
+		string_literal = s.s;
+		return *this;
+	}
+	val& operator=(const int_value& i)
+	{
+		int_literal = i.i;
+		return *this;
+	}
+	val& operator=(const double_value& d)
+	{
+		double_literal = d.d;
+		return *this;
+	}
+	val& operator=(const reserved_value& r)
+	{
+		symbol_mark = r.r;
+		return *this;
+	}
+	val& operator=(const id_value& i)
+	{
+		IdentifierStr = i.id;
+		return *this;
+	}
+	val& operator=(const blank_value& blank)
+	{
+		ch = blank.ch;
+		return *this;
+	}
 };
 
 class token
@@ -968,6 +972,7 @@ void init_scanner();
 void init_parser();
 void init_cata();
 void skip_exp();
+void cata_wb();
 
 class ExprAST
 {

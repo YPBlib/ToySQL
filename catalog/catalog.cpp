@@ -1,5 +1,6 @@
 #include"catalog.h"
 using minisql::minisql_path;
+using std::endl;
 
 /*
 #include <boost/serialization/serialization.hpp>
@@ -12,7 +13,8 @@ using minisql::minisql_path;
 namespace catalog
 {
 	string cata_path;
-	vector<string> catadb;
+	std::map<string, unsigned int> catamap;
+	static unsigned int tablenum=0;
 }
 
 void init_cata()
@@ -117,8 +119,19 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 			}
 		}
 	}
-	// write to file
-	string cata_file = catalog::cata_path + tbname + ".log";	
+	// update catamap
+	catalog::tablenum++;
+	catalog::catamap.insert({ tbname, catalog::tablenum });
+	// write to map.log   // no need to update, catamap is updated when quiting
+	/*
+	string mAp = catalog::cata_path + "map.log";
+	ofstream fs(mAp, ofstream::app );
+	fs << tbname << "  " << cols.size() << std::endl;
+	fs.close();
+	*/
+	// write to tbname.log
+	unsigned int un = catalog::catamap[tbname];
+	string cata_file = catalog::cata_path +std::to_string(un) + ".log";	
 	std::ofstream w(cata_file);
 	w << tbname << std::endl;
 	w << col_num << std::endl;
@@ -134,19 +147,56 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
 	}
 	w.close();
-	string cata = catalog::cata_path + "cata.log";
-	std::fstream w2(cata);
 }
 
 void loadcata()
 {
-	string cata = catalog::cata_path + "cata.log";
-	FILE* w = fopen(cata.c_str(), "w+");
-	fclose(w);
-	string sss;
-	std::ifstream ifin(cata);
-	while (ifin>>sss)
+	string num = catalog::cata_path + "num.log";
+	FILE* r = fopen(num.c_str(), "r");
+	if (r == nullptr)
 	{
-		catalog::catadb.push_back(sss);
+		ofstream ofs(num);
+		ofs << 0;
+		ofs.close();
+	}
+	ifstream ifs(num);
+	ifs >> catalog::tablenum;
+	ifs.close(); 
+	
+	string sss;
+	unsigned int ui;
+	string mAp = catalog::cata_path + "map.log";
+	if (r=fopen(mAp.c_str(), "r"))
+	{
+		fclose(r);
+		std::ifstream mAP(mAp);
+		for (unsigned int i = 0u; i != catalog::tablenum; ++i)
+		{
+			mAP >> sss >> ui;
+			catalog::catamap.insert({ sss, ui });
+		}
+		mAP.close();
+	}
+	
+	
+	
+	if (catalog::catamap.size() != catalog::tablenum)
+		throw runtime_error("catalog::catamap.size()!=catalog::tablenum\n");
+
+}
+
+void cata_wb()
+{
+	// update num.log
+	string num = catalog::cata_path + "num.log";
+	ofstream wn(num);
+	wn << catalog::tablenum << endl;
+	wn.close();
+	// update map.log
+	string mAp = catalog::cata_path + "map.log";
+	ofstream ofs(mAp);
+	for (auto i : catalog::catamap)
+	{
+		ofs << i.first << "  " << i.second << std::endl;
 	}
 }
