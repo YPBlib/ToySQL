@@ -3,6 +3,7 @@
 int main()
 {
 	init_cata(); 
+	initbuff(buff);
 	init_scanner();
 	init_parser();
 	

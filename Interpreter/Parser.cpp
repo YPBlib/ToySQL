@@ -727,7 +727,7 @@ std::shared_ptr<TableQueryAST> ParseTableQueryAST()
 std::shared_ptr<DatatypeAST> ParseDatatypeAST()
 {
 	int dtype = 0;
-	int n = 0;
+	int n = 1;	//default length is 1 , not 0
 	if (currtoken.token_kind == symbol && (currtoken.token_value.symbol_mark == tok_INT ||
 		currtoken.token_value.symbol_mark == tok_FLOAT || currtoken.token_value.symbol_mark == tok_DOUBLE ||
 		currtoken.token_value.symbol_mark == tok_CHAR || currtoken.token_value.symbol_mark == tok_VARCHAR))

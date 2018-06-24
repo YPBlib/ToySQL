@@ -105,7 +105,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 		}
 		else
 		{
-			throw std::runtime_error("col_name,prim,uni,forei,check of a createdefAST are all nullptr,cannot parse\n");
+			throw std::runtime_error("col_name,prim,unic,forei,check of a createdefAST are all nullptr,cannot parse\n");
 		}
 	}
 	// attach primary attr to cols
@@ -151,7 +151,9 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 
 void loadcata()
 {
+	// load num
 	string num = catalog::cata_path + "num.log";
+	// 不能用rb，这里是在读文本文件
 	FILE* r = fopen(num.c_str(), "r");
 	if (r == nullptr)
 	{
@@ -162,10 +164,11 @@ void loadcata()
 	ifstream ifs(num);
 	ifs >> catalog::tablenum;
 	ifs.close(); 
-	
+	// load map
 	string sss;
 	unsigned int ui;
 	string mAp = catalog::cata_path + "map.log";
+	// 不能用rb，这里是在读文本文件
 	if (r=fopen(mAp.c_str(), "r"))
 	{
 		fclose(r);
@@ -177,11 +180,9 @@ void loadcata()
 		}
 		mAP.close();
 	}
-	
-	
-	
 	if (catalog::catamap.size() != catalog::tablenum)
 		throw runtime_error("catalog::catamap.size()!=catalog::tablenum\n");
+	//load table-info
 
 }
 

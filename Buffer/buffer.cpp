@@ -1,243 +1,84 @@
 #include"buffer.h"
-#include <windows.h>
-#include <algorithm>
+#include<numeric>
+#include<functional>
+unsigned char** buff;
 
-/**
-* Constructor
-* @param id The ID of the table.
-* @param attrSize The size of a slot.
 
-PageManager::PageManager(int id, int attrSize, int nullBitMapSize) {
-	this->id = id;
-	this->attrSize = attrSize;
-	this->nullBitMapSize = nullBitMapSize;
-	this->recordSize = attrSize + nullBitMapSize;
-	this->isQueryListLoad = false;
-	// Calculate the maximum number of records stored on a page (head or body). 
-	slotsHead = (BLOCK_SIZE - sizeof(int)) / recordSize;
-	slotsBody = (BLOCK_SIZE) / recordSize;
-	requestPage();
-	initGapList();
-}
 
-void PageManager::requestPage() {
-	int fileNum = 2;
-	for (int i = 0; i < fileNum; i++) {
+// 0表示这块block处于空闲
+vector<block<>> BufferManager;
 
-		string fileName = to_string(this->id) + "_" + to_string(i) + ".re";
-		HANDLE handle = CreateFile(
-			fileName.c_str(),
-			GENERIC_READ | GENERIC_WRITE,
-			0,
-			NULL,
-			OPEN_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL
-		);
-		if (handle == INVALID_HANDLE_VALUE) {
-			//TODO 错误处理
-		}
-		DWORD fileSize = GetFileSize(handle, NULL);
-
-		auto * buffer = (char *)calloc(BLOCK_8k, 1);
-		// Init room if file has not been created. 
-		DWORD writtenSize = 0;
-		if (fileSize == 0) {
-			if (i == 0) {
-				GET_INT(buffer) = 1;    //First slot
-				GET_INT(buffer + sizeof(int)) = EMPTY_FLAG;
-			}
-			this->pages.push_back(buffer);
-		}
-		else {
-			DWORD readSize = 0;
-			ReadFile(handle, buffer, BLOCK_8k, &readSize, NULL);
-			this->pages.push_back(buffer);
-		}
-		CloseHandle(handle);
+// 初始化整个缓冲区
+void initbuff(unsigned char** ptr)
+{
+	ptr = new unsigned char*[page_num];
+	for (int i = 0; i < page_num; ++i)
+	{
+		ptr[i] = new unsigned char[BLOCK_8k];
+		BufferManager.push_back(block<>(i, false));
 	}
 }
 
-//指定位置进行虚拟读取
-int PageManager::extract(int pageIndex, int offset) {
-	//FIXME 如果对页面未被加载，会发生段错误！
-	return GET_INT(pages.at(pageIndex) + offset);
-}
-
-void PageManager::locateSlot(int slotIndex, int* pageIndex, int* offset) {
-	if (slotIndex == 0) {
-		*pageIndex = 0;
-		*offset = 0;
-		return;
-	}
-	if (slotIndex <= slotsHead) {
-		slotIndex--;
-		*pageIndex = 0;
-		*offset = slotIndex * recordSize + sizeof(int);
-	}
-	else {
-		int index = ((slotIndex - 1 - slotsHead) / slotsBody) + 1;
-		*pageIndex = index;
-		*offset = (slotIndex - 1 - slotsHead - slotsBody*(index - 1)) * recordSize;
-	}
-}
-
-void PageManager::initGapList() {
-	//从空闲链表头部开始寻找
-	int pi = 0;    //表示页面序号
-	int oi = 0;    //表示偏移量
-	int slotIndex = extract(pi, oi);
-	//FIXME 这里如果发生死循环将非常危险
-	for (;;) {
-		gapList.push_back(slotIndex);
-		locateSlot(slotIndex, &pi, &oi);
-		slotIndex = extract(pi, oi);
-		if (slotIndex == EMPTY_FLAG)
-			break;
-	}
-}
-*/
-
-/**
-* 通过空闲列表获得当前所有记录的slot位置，即初始化查询列表。
-
-void PageManager::initQueryList() {
-	if (!queryList.empty()) {
-		queryList.clear();
-	}
-	int lastSlot = gapList.at(0);
-	bool ifAdd = true;
-	for (int i = 1; i < lastSlot; i++) {
-		ifAdd = true;
-		for (int j = 1; j < gapList.size(); j++) {
-			if (i == gapList.at(j)) {
-				ifAdd = false;
-				break;
-			}
-		}
-		if (ifAdd) {
-			queryList.push_back(i);
+void ReplacePage(int needy, bool(*f)(const block<>&,const block<>&))
+{
+	std::sort(BufferManager.begin(), BufferManager.end(), f);
+	int cnt = 0;
+	for (auto i = BufferManager.begin(); i != BufferManager.end(); ++i)
+	{
+		if (cnt != needy && !i->ispin)
+		{
+			i->writeback();
+			++cnt;
 		}
 	}
-	//当进行过插入和删除时，要置isQueryListLoad = false;
-	isQueryListLoad = true;
 }
-*/
 
-/**
-* Write all buffer pages to disk.
+// 获取1个表的全部数据的，字节数
+unsigned int counttablebyte(const string& file)
+{
+	ifstream ifs(file, std::ifstream::ate | std::ifstream::binary);
+	auto result = (unsigned int)ifs.tellg();
+	ifs.close();
+	return result;
+}
 
-void PageManager::flush() {
-	for (int i = 0; i < this->pages.size(); i++) {
-		string fileName = to_string(this->id) + "_" + to_string(i) + ".re";
-		HANDLE handle = CreateFile(
-			fileName.c_str(),
-			GENERIC_READ | GENERIC_WRITE,
-			0,
-			NULL,
-			OPEN_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL
-		);
-		if (handle == INVALID_HANDLE_VALUE) {
-			//TODO HANDLE EXCEPTION
-		}
-		DWORD writtenSize = 0;
-		WriteFile(handle, pages.at(i), BLOCK_8k, &writtenSize, NULL);
-		CloseHandle(handle);
+// 根据一个表名从文件写到block
+vector<int> blockgen(const string& tbname)
+{
+	string sss = catalog::cata_path + std::to_string(catalog::catamap[tbname]) + ".log";
+	auto tbsize = counttablebyte(sss);
+	auto blknum = tbsize / BLOCK_8k + (tbsize%BLOCK_8k ? 0 : 1);
+	if (blknum > page_num)
+	{
+		throw runtime_error("Error: <del>the table `"+tbname+"` is too large</del>\n");
 	}
-}
-*/
-/**
-* 插入一个记录，应该保证当前页面不够时自动产生新页面
-* @param buffer
-*/
-
-/*
-void PageManager::insert(DynamicMemory& buffer) {
-	//从空闲列表里找到最后一个元素并弹出
-	int slotIndex = gapList.back();
-	gapList.pop_back();
-	//TODO 超出容量
-	memcpy(getPosition(slotIndex), buffer.getPtr(), recordSize);
-	//维护空闲列表
-	int pi = 0;
-	int oi = 0;
-	if (gapList.empty()) {
-		slotIndex++;
-		gapList.push_back(slotIndex);
-		//setHead(slotIndex);
-		GET_INT(pages.at(pi) + oi) = slotIndex;
+	vector<unsigned int>tempi(page_num);
+	std::transform(BufferManager.cbegin(), BufferManager.cend(), tempi.begin(),
+		[](const block<>& blk)->unsigned int {return (blk.isdirty||blk.ispin) ? 0 : 1; });
+	auto sum = std::accumulate(tempi.cbegin(), tempi.cend(), 0);
+	if (sum < blknum)
+	{
+		ReplacePage(blknum - sum, [](const block<>& a, const block<>& b) {return a.getfreq() < b.getfreq(); });
 	}
-	else {
-		slotIndex = gapList.back();
+	// 恢复原顺序
+	std::sort(BufferManager.begin(), BufferManager.end(),
+		[](const block<>& a, const block<>& b) {return a.series < b.series; });
+	vector<int> result;
+	for (auto& i : BufferManager)
+	{
+		if ((!(i.isdirty||i.ispin)) && result.size() != blknum)
+			result.push_back(i.series);
 	}
-	locateSlot(slotIndex, &pi, &oi);
-	//setSlotEmpty(slotIndex);
-	GET_INT(pages.at(pi) + oi) = EMPTY_FLAG;
-}
-*/
-
-/**
-* 擦除指定位置的元素，会重置空闲列表和查询列表
-* @param slotIndex
-
-void PageManager::erase(int slotIndex) {
-	int preLastSlot = gapList.back();
-	int pi = 0;
-	int oi = 0;
-	locateSlot(preLastSlot, &pi, &oi);
-	GET_INT(pages.at(pi) + oi) = slotIndex;
-	locateSlot(slotIndex, &pi, &oi);
-	GET_INT(pages.at(pi) + oi) = EMPTY_FLAG;
-	gapList.push_back(slotIndex);
-	auto it = find(gapList.begin(), gapList.end(), slotIndex);
-	if (it != gapList.end()) {
-		gapList.erase(it);
+	FILE* r = fopen(sss.c_str(), "rb");
+	unsigned int dist = 0;
+	for (auto i : result)
+	{
+		BufferManager[i].filename = sss;
+		BufferManager[i].offset = dist;
+		dist += BLOCK_8k;
+		BufferManager[i].updatefreq();
+		fread(buff[i], sizeof(unsigned char), BLOCK_8k, r);
 	}
+	fclose(r);
+	return result;
 }
-*/
-
-/**
-* 通过插槽位获得对其操作的指针
-* @note 没有越界保护！
-* @param slotIndex
-* @return
-
-char *PageManager::getPosition(int slotIndex) {
-	int pi = 0;
-	int oi = 0;
-	locateSlot(slotIndex, &pi, &oi);
-	return (pages.at(pi) + oi);
-}
-
-
-* 得到所有记录的存放位置(slot)，会视情况重新初始化查询列表。<br>
-* Get the slot for all records. The query list may be re-initialized as appropriate.
-* @return queryList
-
-vector<int> &PageManager::getQueryList() {
-	if (!isQueryListLoad) {
-		initQueryList();
-	}
-	return queryList;
-}
-
-
-* 得到所有记录的首地址。<br>Get the first address of all records.
-* @return 一个记录首地址数组。<br>The vector of record first addresses.
-
-vector<char *> PageManager::getRePosAll() {
-	vector<char *> pos;
-	auto list = getQueryList();
-	for (auto &it : list) {
-		pos.push_back(getPosition(it));
-	}
-	return pos;
-}
-
-*/
-
-
-
-

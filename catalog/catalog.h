@@ -15,26 +15,27 @@ namespace catalog
 class SQLcol
 {
 public:
-	std::string name;
-	int coltype;
-	bool isprim = false;
-	bool isunic = false;
-	bool isnull = false;
+	const string name;
+	const unsigned int coltype;
 	const unsigned char N = 0;
-	SQLcol(string name, int coltype, const unsigned char N, bool isprim, bool isunic, bool isnull) :
+	bool isprim;
+	bool isunic;
+	bool isnull;
+	SQLcol(const string& name,const unsigned int& coltype, const unsigned char& N, bool isprim, bool isunic, bool isnull) :
 		name(name), coltype(coltype), N(N), isprim(isprim), isunic(isunic), isnull(isnull) {}
 };
 
 class SQLtable
 {
 public:
-	std::string name;
-	int col_num;
+	const string name;
+	const unsigned int col_num;
 	const unsigned int record_size;
 	vector<SQLcol> cols;
 	vector<string> uniccols;
 	vector<string> primcols;
-	SQLtable(const unsigned int record_size):record_size(record_size){}
+	SQLtable(const string& name,const unsigned int& col_num,const unsigned int& record_size):
+		name(name),col_num(col_num),record_size(record_size){}
 };
 
 }

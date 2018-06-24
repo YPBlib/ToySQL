@@ -5,6 +5,7 @@
 #define LL_LRLen 6
 #define BLOCK_8k 8192
 #define BLOCK_4k 4096
+#define page_num 128
 using std::shared_ptr;
 using std::make_shared;
 using std::runtime_error;
@@ -14,7 +15,7 @@ using std::string;
 using std::ifstream;
 using std::ofstream;
 
-class block;
+
 class record;
 class ExprAST;
 class ExpAST;
@@ -772,7 +773,7 @@ enum status
 	eof
 };
 
-
+extern unsigned char** buff;
 
 class value
 {
@@ -973,6 +974,11 @@ void init_parser();
 void init_cata();
 void skip_exp();
 void cata_wb();
+void initbuff(unsigned char** ptr);
+// 根据一个表名生成block
+vector<int> blockgen(const string& tbname);
+// 获取1个表的全部数据
+unsigned int counttablebyte(const string& file);
 
 class ExprAST
 {

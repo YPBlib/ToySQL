@@ -1,73 +1,45 @@
 #pragma once
 #ifndef LLVMSQL_BUFFER_H
 #define LLVMSQL_BUFFER_H
-#include"../Interpreter/llvmsql.h"
+#include"..\catalog\catalog.h"
 
+// queryable-record <=> buffer <=> DB files
 
-
-
-// examine whether no record is larger than a block
-// read write conflict
-
-// query <=> record <=> buffer <=> DB files
+template <typename T1 = unsigned int, typename T2 = bool>
 class block
 {
+	std::pair<T1, T2> data;
+	unsigned int freq = 0u;
 public:
-	const string filename;
-	const unsigned int offset;
-	bool isdirty = false;
+	const T1& series = data.first;  //series 指这一块是缓冲区的第几页
+	T2& isdirty = data.second;	// 根据record的反馈而变
+	string filename;
+	unsigned int offset = 0u;
 	bool ispin = false;
-	shared_ptr<unsigned char[BLOCK_8k]> data = nullptr;
-	block(const string& filename,const unsigned int& offset) :filename(filename), offset(offset)
-	{
-		/*fstream fs(filename);
-		fs.seekp(offset);
-*/
-		FILE* r=fopen(filename.c_str(),"rb");
-		data = make_shared<unsigned char[BLOCK_8k]>();
-		std::fseek(r, offset, SEEK_SET);
-		fread(*data.get(), BLOCK_8k, sizeof(unsigned char), r);
-	}
+	block(const T1& t1, const T2& t2) :data(t1, t2){}
 	void writeback()
 	{
-		;
+		if (filename.length() == 0)
+			throw runtime_error("filename.length()==0\n");
+		unsigned char* tempuc = buff[series];
+		FILE* wr = fopen(filename.c_str(), "rb+");
+		fseek(wr, offset*BLOCK_8k, SEEK_SET);
+		fwrite(tempuc, sizeof(unsigned char), BLOCK_8k, wr);
+		fclose(wr);
+		isdirty = false;
+	}
+	void updatefreq() { freq++; }
+	const unsigned int getfreq()const { return this->freq; }
+	block& operator=(block& a)
+	{
+		data.first = a.data.first;
+		data.second = a.data.second;
+		freq = a.freq;
+		filename = a.filename;
+		offset = a.offset;
+		ispin = a.ispin;
+		return *this;
 	}
 };
-
-
-// lru
-// mru
-
-
-
-
-/*
-class PageManager {
-public:
-	int id;    ///< 表ID
-	int attrSize;    ///< 定长数据的总大小
-	int nullBitMapSize;    ///< 空位图大小
-	int recordSize;    ///< 数据+空位图的总大小
-	int slotsHead;    ///< 头页能储存的最大记录数
-	int slotsBody;    ///< 普通页能储存的最大记录数
-	vector<char *> pages;    ///< 所有的页，默认初始化时全部写入缓冲区，调用flush后将全部写入磁盘
-	bool isQueryListLoad;    ///< 用于标记是否存在查询列表以实现复用
-	vector<int> queryList;    ///< 查询列表，即保存所有有效的记录的插槽位
-	vector<int> gapList;    ///< 空闲列表
-	void initGapList();    ///< 初始化空闲列表，在构造方法中调用
-	void requestPage();    ///< 向buffer manager申请内存页
-	int extract(int pageIndex, int offset);
-	void locateSlot(int slotIndex, int* pageIndex, int* offset);
-	PageManager(int id, int attrSize, int nullBitMapSize);
-	void insert(DynamicMemory& buffer);
-	void initQueryList();
-	void erase(int slotIndex);
-	void flush();
-	vector<int> &getQueryList();
-	char* getPosition(int slotIndex);
-	vector<char *> getRePosAll();
-};
-*/
-
 
 #endif // !LLVMSQL_BUFFER_H
