@@ -2,9 +2,7 @@
 #ifndef LLVMSQL_BUFFER_H
 #define LLVMSQL_BUFFER_H
 #include"..\catalog\catalog.h"
-
 // queryable-record <=> buffer <=> DB files
-
 template <typename T1 = unsigned int, typename T2 = bool>
 class block
 {
@@ -13,6 +11,7 @@ class block
 public:
 	const T1& series = data.first;  //series 指这一块是缓冲区的第几页
 	T2& isdirty = data.second;	// 根据record的反馈而变
+	// 是record文件夹下的db文件
 	string filename;
 	unsigned int offset = 0u;
 	bool ispin = false;
@@ -42,4 +41,5 @@ public:
 	}
 };
 
+extern vector<block<>> BufferManager;
 #endif // !LLVMSQL_BUFFER_H

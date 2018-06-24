@@ -759,7 +759,6 @@ void skip_exp()
 	init_parser();
 }
 
-
 	class scan_error :public std::runtime_error
 	{
 	public:
@@ -1484,4 +1483,3 @@ void skip_exp()
 		scanner_status = blank;
 		return t;
 	}
-

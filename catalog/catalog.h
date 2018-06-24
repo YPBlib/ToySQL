@@ -5,12 +5,13 @@
 
 void loadcata();
 void make_cata(shared_ptr<CreateTableSimpleAST> T);
-inline int getbyte(int n);
+int getbyte(int n);
 
 namespace catalog 
 {
 	extern string cata_path;
 	extern std::map<string, unsigned int> catamap;
+	extern vector<SQLtable> tablebase;
 
 class SQLcol
 {

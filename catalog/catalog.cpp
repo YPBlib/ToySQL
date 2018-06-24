@@ -14,6 +14,7 @@ namespace catalog
 {
 	string cata_path;
 	std::map<string, unsigned int> catamap;
+	vector<SQLtable> tablebase;
 	static unsigned int tablenum=0;
 }
 
@@ -23,7 +24,7 @@ void init_cata()
 	loadcata();
 }
 
-inline int getbyte(int n)
+int getbyte(int n)
 {
 	if (n == tok_INT)
 		return sizeof(int);
@@ -140,6 +141,8 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	{
 		bytes += getbyte(j.coltype)*j.N;
 	}
+	if (bytes > BLOCK_8k)
+		throw runtime_error("Error £¬ one single record > 8K\n");
 	w << bytes << std::endl;
 	for (auto i : cols)
 	{

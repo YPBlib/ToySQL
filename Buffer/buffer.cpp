@@ -2,9 +2,6 @@
 #include<numeric>
 #include<functional>
 unsigned char** buff;
-
-
-
 // 0表示这块block处于空闲
 vector<block<>> BufferManager;
 
@@ -33,21 +30,26 @@ void ReplacePage(int needy, bool(*f)(const block<>&,const block<>&))
 	}
 }
 
-// 获取1个表的全部数据的，字节数
-unsigned int counttablebyte(const string& file)
+// 获取1个表的全部数据字节数, 和单条record的字节数
+std::pair<unsigned int,unsigned int> counttablebyte(const string& tbname)
 {
-	ifstream ifs(file, std::ifstream::ate | std::ifstream::binary);
-	auto result = (unsigned int)ifs.tellg();
-	ifs.close();
-	return result;
+	string tb_db = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db"; 
+	string tb_log= catalog::cata_path + std::to_string(catalog::catamap[tbname]) + ".log";
+	ifstream ifs(tb_db, std::ifstream::ate | std::ifstream::binary);
+	auto tbsize = (unsigned int)ifs.tellg();
+	ifs.close(); string temp; unsigned int record_size;
+	ifstream ifs2(tb_log);
+	ifs2 >> temp >> record_size >> record_size;
+	return std::make_pair(tbsize, record_size);
 }
 
 // 根据一个表名从文件写到block
 vector<int> blockgen(const string& tbname)
 {
-	string sss = catalog::cata_path + std::to_string(catalog::catamap[tbname]) + ".log";
-	auto tbsize = counttablebyte(sss);
-	auto blknum = tbsize / BLOCK_8k + (tbsize%BLOCK_8k ? 0 : 1);
+	auto tbsizeinfo = counttablebyte(tbname);
+	auto recordnum = tbsizeinfo.first / tbsizeinfo.second;
+	auto records_pre_blk = BLOCK_8k / tbsizeinfo.second;
+	auto blknum = recordnum / records_pre_blk + (recordnum > recordnum / records_pre_blk*records_pre_blk) ? 1u : 0u;
 	if (blknum > page_num)
 	{
 		throw runtime_error("Error: <del>the table `"+tbname+"` is too large</del>\n");
@@ -69,11 +71,12 @@ vector<int> blockgen(const string& tbname)
 		if ((!(i.isdirty||i.ispin)) && result.size() != blknum)
 			result.push_back(i.series);
 	}
-	FILE* r = fopen(sss.c_str(), "rb");
+	string tb_db = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+	FILE* r = fopen(tb_db.c_str(), "rb");
 	unsigned int dist = 0;
 	for (auto i : result)
 	{
-		BufferManager[i].filename = sss;
+		BufferManager[i].filename = tb_db;
 		BufferManager[i].offset = dist;
 		dist += BLOCK_8k;
 		BufferManager[i].updatefreq();

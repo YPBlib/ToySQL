@@ -978,7 +978,7 @@ void initbuff(unsigned char** ptr);
 // 根据一个表名生成block
 vector<int> blockgen(const string& tbname);
 // 获取1个表的全部数据
-unsigned int counttablebyte(const string& file);
+std::pair<unsigned int, unsigned int> counttablebyte(const string& tbname);
 
 class ExprAST
 {
