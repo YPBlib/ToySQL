@@ -1,5 +1,6 @@
 #include"..\catalog\catalog.h"
-
+#include"..\RecordManager\record.h"
+#include<iostream>
 token currtoken;
 int delimiter = semicolon_mark;
 
@@ -822,7 +823,7 @@ std::shared_ptr<PrimaryAST> ParsePrimaryAST()
 std::shared_ptr<unicAST> ParseunicAST()
 {
 	std::vector<std::shared_ptr<IdAST>> cols;
-	consumeit({ tok_shared }, "expect keyword shared \n");
+	consumeit({ tok_UNIQUE }, "expect keyword shared \n");
 	consumeit({ left_bracket_mark }, "expect '(' \n");
 	cols.push_back(ParseIdAST());
 	while (currtoken.token_kind == symbol&&currtoken.token_value.symbol_mark == comma_mark)
@@ -870,7 +871,7 @@ std::shared_ptr<CreatedefAST> ParseCreatedefAST()
 		{
 			prim = ParsePrimaryAST();
 		}
-		else if (currtoken.token_value.symbol_mark == tok_shared)
+		else if (currtoken.token_value.symbol_mark == tok_UNIQUE)
 		{
 			uni = ParseunicAST();
 		}
@@ -904,7 +905,7 @@ std::shared_ptr<ColdefAST> ParseColdefAST()
 	std::shared_ptr<DatatypeAST> dtype;
 	bool null_flag = true;
 	std::shared_ptr<ExprAST> default_value;
-	bool shared_flag = false;
+	bool unic_flag = false;
 	bool primary_flag = false;
 	std::shared_ptr<RefdefAST> refdef;
 	dtype = ParseDatatypeAST();
@@ -926,10 +927,10 @@ std::shared_ptr<ColdefAST> ParseColdefAST()
 			consumeit({ tok_DEFAULT }, "expect DEFAULT \n");
 			default_value = ParseExprAST();
 		}
-		if (currtoken.token_value.symbol_mark == tok_shared)
+		if (currtoken.token_value.symbol_mark == tok_UNIQUE)
 		{
-			consumeit({ tok_shared }, "expect shared \n");
-			shared_flag = true;
+			consumeit({ tok_UNIQUE }, "expect shared \n");
+			unic_flag = true;
 			if (currtoken.token_value.symbol_mark == tok_KEY)
 			{
 				consumeit({ tok_KEY }, "expect KEY \n");
@@ -955,7 +956,7 @@ std::shared_ptr<ColdefAST> ParseColdefAST()
 		refdef = ParseRefdefAST();
 	}
 	return std::make_shared<ColdefAST>(std::move(dtype),
-		null_flag, std::move(default_value), shared_flag, primary_flag, std::move(refdef));
+		null_flag, std::move(default_value), unic_flag, primary_flag, std::move(refdef));
 }
 
 std::shared_ptr<CreateTableSimpleAST> ParseCreateTableSimpleAST()
@@ -1036,6 +1037,122 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 			;
 		}
 		consumeit({ delimiter }, "expect delimiter\n");
+		if (insert != nullptr)
+		{
+			// 装载表 
+			// 更新catalog::tabelbase  // 将blk兑换成 vctor<record>,最好可以跟上面压成1行，复合函数
+			vector<int> pgs = loadtable(*(insert->table_name->id.get()));
+			vector<record>tbrecord = blk2records(pgs);
+			// 插入前的检查: primary，unic
+			for (auto i : catalog::tablebase)
+			{
+				if (i.tbname == *(insert->table_name->id.get()))
+				{
+					// 先取出表的信息
+					auto tbinfo = i;
+					// 取出insert式子中各个列的值
+					vector<shared_ptr<DataValue>> vals;
+					auto exprs = insert->value_list;
+					auto dtypes = i.cols;
+					if (dtypes.size() != exprs.size())
+						throw runtime_error("dtypes.size()!=exprs.size() in  Parser.cpp,exec insert\n");
+					for (int j = 0; j != exprs.size(); ++j)
+					{
+						int dtype = dtypes[j].coltype;
+						if (dtype == tok_INT)
+						{
+							int v = *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->intvalue->value.get());
+							vals.push_back(make_shared<DataInt>(v));
+						}
+						else if (dtype == tok_FLOAT || dtype == tok_DOUBLE)
+						{
+							double v = *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->doublevalue->value.get());
+							vals.push_back(make_shared<DataDouble>(v));
+						}
+						else if (dtype == tok_CHAR)
+						{
+							string vs= *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->stringvalue->value.get());
+							char v[255]{ 0 };
+							for (int k = 0; k != vs.length(); ++k)
+							{
+								v[k] = vs[k];
+							}
+							vals.push_back(make_shared<DataString>(v));
+						}
+						else
+							throw runtime_error("...\n");	
+					}
+					// 插入前的检查: primary，unic
+					// check prim
+					if (!tbinfo.primcols.empty())
+					{
+						string prim_key = tbinfo.primcols[0];
+						//查这个prim是第几列
+						int iter1 = 0;
+						for (iter1 = 0; iter1 < vals.size(); ++iter1)
+						{
+							if (prim_key == tbinfo.cols[iter1].colname)
+								break;
+						}
+						// 查重 prim
+						// 拿到vals[iter1]
+						shared_ptr<DataValue> insert_prim = vals[iter1];
+						for (auto iter2 : tbrecord)
+						{
+							if (iter2.data[iter1]->getValue() == insert_prim->getValue())
+							{
+								std::cout << "duplicate primary key on`"
+									<< tbinfo.cols[iter1].colname << "` value" << insert_prim->getValue() << std::endl;
+								return std::make_shared<StatementAST>(std::move(create), std::move(select),
+									std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
+							}
+						}
+					}
+					// check unic
+					if (!tbinfo.uniccols.empty())
+					{
+						for(string uni_key:tbinfo.uniccols)
+						{
+							//查这个uni是第几列
+							int iter1 = 0;
+							for (iter1 = 0; iter1 < vals.size(); ++iter1)
+							{
+								if (uni_key == tbinfo.cols[iter1].colname)
+									break;
+							}
+							// 查重 uni
+							// 拿到vals[iter1]
+							shared_ptr<DataValue> insert_uni = vals[iter1];
+							for (auto iter2 : tbrecord)
+							{
+								if (iter2.data[iter1]->getValue() == insert_uni->getValue())
+								{
+									std::cout << "duplicate unique key on`"
+										<< tbinfo.cols[iter1].colname << "` value" << insert_uni->getValue() << std::endl;
+									return std::make_shared<StatementAST>(std::move(create), std::move(select),
+										std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
+								}
+							}
+						}
+						
+					}
+				}
+			}
+
+			// insert条件满足，更新catalog::tabelbase
+			string tbname = *(insert->table_name->id.get());
+			int tb_index = catalog::catamap[tbname];
+			catalog::tablebase[tb_index].isinmemory = true;
+			catalog::tablebase[tb_index].record_num++;
+			catalog::tablebase[tb_index].pages = pgs;
+			// 5. 写入delete record位置，记录脏页
+			// 6. 如果不够，像blk尾部写入，记录脏页
+		    // 7. 如果不够，开新页，记录脏页，更新catalog::tablebase
+		}
+		else
+		{
+			;
+		}
 	}
 	else
 	{

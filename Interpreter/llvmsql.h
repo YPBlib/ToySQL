@@ -15,8 +15,14 @@ using std::string;
 using std::ifstream;
 using std::ofstream;
 
-
+// record.h
+class DataValue;
+class DataInt;
+class DataDoble;
+class DataString;
 class record;
+
+// parser.cpp
 class ExprAST;
 class ExpAST;
 class BooleanPrimaryAST;
@@ -69,6 +75,8 @@ class PrimaryAST;
 class unicAST;
 class ForeignAST;
 class SetAST;
+
+// scanner.cpp
 struct val;
 class value;
 class int_value;
@@ -386,7 +394,7 @@ enum reserved_token_value
 	tok_KEYS = -255,
 	tok_KEY_BLOCK_SIZE = -256,
 	tok_KILL = -257,
-	tok_LANGUAGE = -258,
+	//tok_LANGUAGE = -258,
 	tok_LAST = -259,
 	tok_LEADING = -260,
 	tok_LEAVE = -261,
@@ -712,7 +720,7 @@ enum reserved_token_value
 	tok_UNICODE = -580,
 	tok_UNINSTALL = -581,
 	tok_UNION = -582,
-	tok_shared = -583,
+	tok_UNIQUE = -583,
 	tok_UNKNOWN = -584,
 	tok_UNLOCK = -585,
 	tok_UNSIGNED = -586,
@@ -974,7 +982,8 @@ void init_parser();
 void init_cata();
 void skip_exp();
 void cata_wb();
-void initbuff(unsigned char** ptr);
+void initbuff();
+vector<int> loadtable(string tbname);	// record.cpp
 // 根据一个表名生成block
 vector<int> blockgen(const string& tbname);
 // 获取1个表的全部数据

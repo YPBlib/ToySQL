@@ -53,7 +53,7 @@ std::vector<std::string> reserved_dict
 "INDEX","INDEXES","INFILE","INITIAL_SIZE","INNER","INNODB","INOUT","INSENSITIVE","INSERT","INSERT_METHOD",
 "INSTALL","INSTANCE","INT","INT1","INT2","INT3","INT4","INT8","INTEGER","INTERVAL",
 "INTO","INVOKER","IO","IO_AFTER_GTIDS","IO_BEFORE_GTIDS","IO_THREAD","IPC","IS","ISOLATION","ISSUER",
-"ITERATE","JOIN","JSON","KEY","KEYS","KEY_BLOCK_SIZE","KILL","LANGUAGE","LAST","LEADING",
+"ITERATE","JOIN","JSON","KEY","KEYS","KEY_BLOCK_SIZE","KILL","LAST","LEADING",
 "LEAVE","LEAVES","LEFT","LESS","LEVEL","LIKE","LIMIT","LINEAR","LINES","LINESTRING",
 "LIST","LOAD","LOCAL","LOCALTIME","LOCALTIMESTAMP","LOCK","LOCKS","LOGFILE","LOGS","LONG",
 "LONGBLOB","LONGTEXT","LOOP","LOW_PRIORITY","MASTER","MASTER_AUTO_POSITION","MASTER_BIND","MASTER_CONNECT_RETRY","MASTER_DELAY","MASTER_HEARTBEAT_PERIOD",
@@ -353,7 +353,7 @@ void init_scanner()
 	reserved_map.insert(std::map<std::string, int>::value_type("KEYS", -255));
 	reserved_map.insert(std::map<std::string, int>::value_type("KEY_BLOCK_SIZE", -256));
 	reserved_map.insert(std::map<std::string, int>::value_type("KILL", -257));
-	reserved_map.insert(std::map<std::string, int>::value_type("LANGUAGE", -258));
+	//reserved_map.insert(std::map<std::string, int>::value_type("LANGUAGE", -258));
 	reserved_map.insert(std::map<std::string, int>::value_type("LAST", -259));
 	reserved_map.insert(std::map<std::string, int>::value_type("LEADING", -260));
 	reserved_map.insert(std::map<std::string, int>::value_type("LEAVE", -261));

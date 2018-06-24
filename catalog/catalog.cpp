@@ -1,4 +1,5 @@
 #include"catalog.h"
+#include<iostream>
 using minisql::minisql_path;
 using std::endl;
 
@@ -12,10 +13,10 @@ using std::endl;
 
 namespace catalog
 {
+	class SQLtable;
 	string cata_path;
 	std::map<string, unsigned int> catamap;
 	vector<SQLtable> tablebase;
-	static unsigned int tablenum=0;
 }
 
 void init_cata()
@@ -42,6 +43,12 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 {
 	int prim_flag = 0;
 	string tbname = *T->table_name->id.get();
+	// 确认该表尚未创建
+	if (catalog::catamap.find(tbname) != catalog::catamap.end())
+	{
+		std::cout << "warning: the table `" << tbname << "` already exists. \n" << endl;
+		return;
+	}
 	auto defs = T->create_defs;
 	vector<catalog::SQLcol> cols;
 	vector<string> uniccols;
@@ -57,6 +64,8 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 			const unsigned char N = i->coldef->dtype->n;
 			bool isnull = i->coldef->null_flag;
 			bool isunic = i->coldef->unic_flag;
+			// attach unic attr to cols
+			if (isunic)uniccols.push_back(colname);
 			bool isprim = false;
 			bool temp_isprim = i->coldef->primary_flag;
 			if (temp_isprim)
@@ -114,42 +123,59 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	{
 		for (auto& k : cols)
 		{
-			if (j == k.name)
+			if (j == k.colname)
 			{
 				k.isprim = true;
 			}
 		}
 	}
+	
+	int bytes = 0;
+	for (auto j : cols)
+	{
+		bytes += getbyte(j.coltype)*(int)j.N;
+	}
+	// +1byte 来表示该条record是否已被删除
+	bytes++;
+	if (bytes > BLOCK_8k)
+		throw runtime_error("Error ， one single record > 8K\n");
 	// update catamap
-	catalog::tablenum++;
-	catalog::catamap.insert({ tbname, catalog::tablenum });
-	// write to map.log   // no need to update, catamap is updated when quiting
-	/*
-	string mAp = catalog::cata_path + "map.log";
-	ofstream fs(mAp, ofstream::app );
-	fs << tbname << "  " << cols.size() << std::endl;
-	fs.close();
-	*/
-	// write to tbname.log
-	unsigned int un = catalog::catamap[tbname];
+	int x = catalog::catamap.size() + 1;
+	catalog::catamap.insert({ tbname, x });
+	// update tablebase
+	catalog::SQLtable sqltb = catalog::SQLtable(tbname, col_num, bytes);
+	sqltb.cols = cols;
+	sqltb.primcols = primcols;
+	sqltb.uniccols = uniccols;
+	catalog::tablebase.push_back(sqltb);
+	// 创建 #.log
+	int un = catalog::catamap[tbname];
 	string cata_file = catalog::cata_path +std::to_string(un) + ".log";	
 	std::ofstream w(cata_file);
 	w << tbname << std::endl;
 	w << col_num << std::endl;
-	int bytes = 0;
-	for (auto j : cols)
-	{
-		bytes += getbyte(j.coltype)*j.N;
-	}
-	if (bytes > BLOCK_8k)
-		throw runtime_error("Error ， one single record > 8K\n");
 	w << bytes << std::endl;
 	for (auto i : cols)
 	{
-		w << i.name << "  " << i.coltype << "  " << (int)i.N
+		int strange_bug_n = (int)i.N;
+		w << i.colname << "  " << i.coltype << "  " << (strange_bug_n)
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
 	}
 	w.close();
+	// 写回 map.log
+	string maplog = catalog::cata_path + "map.log";
+	ofstream fsmap(maplog, ofstream::app );
+	fsmap << tbname << "  " << catalog::catamap.size() << std::endl;
+	fsmap.close();
+	// 写回 num.log
+	string numlog = catalog::cata_path + "num.log";
+	ofstream fsnum(numlog);
+	fsnum << catalog::catamap.size() << endl;
+	fsnum.close();
+	// 创建一个新的 #.db	(用"wb"打开关闭即可)
+	string dbfile=minisql::record_path+ std::to_string(un) + ".db";
+	FILE* www = fopen(dbfile.c_str(), "wb");
+	fclose(www);
 }
 
 void loadcata()
@@ -164,8 +190,9 @@ void loadcata()
 		ofs << 0;
 		ofs.close();
 	}
+	int x = 0;
 	ifstream ifs(num);
-	ifs >> catalog::tablenum;
+	ifs >> x;
 	ifs.close(); 
 	// load map
 	string sss;
@@ -176,17 +203,35 @@ void loadcata()
 	{
 		fclose(r);
 		std::ifstream mAP(mAp);
-		for (unsigned int i = 0u; i != catalog::tablenum; ++i)
+		for (unsigned int i = 0u; i != x; ++i)
 		{
 			mAP >> sss >> ui;
 			catalog::catamap.insert({ sss, ui });
 		}
 		mAP.close();
 	}
-	if (catalog::catamap.size() != catalog::tablenum)
+	if (catalog::catamap.size() != x)
 		throw runtime_error("catalog::catamap.size()!=catalog::tablenum\n");
-	//load table-info
-
+	//load tablebase
+	for (auto i : catalog::catamap)
+	{
+		string tblog = catalog::cata_path + std::to_string(i.second) + ".log";
+		ifstream ifs(tblog);
+		string tbname; int colnum; int bytes; string colname; int ty; int N; int Isprim, Isunic, Isnull;
+		ifs >> tbname >> colnum >> bytes;
+		auto temptb = catalog::SQLtable(tbname, colnum, bytes);
+		for (int j = 0; j < colnum; ++j)
+		{
+			ifs >> colname >> ty >> N >> Isprim >> Isunic >> Isnull;
+			temptb.cols.push_back(catalog::SQLcol(colname, ty, N, Isprim, Isunic, Isnull));
+			if (Isprim)
+				temptb.primcols.push_back(colname);
+			if (Isunic)
+				temptb.uniccols.push_back(colname);
+		}
+		catalog::tablebase.push_back(temptb);
+		ifs.close();
+	}
 }
 
 void cata_wb()
@@ -194,7 +239,7 @@ void cata_wb()
 	// update num.log
 	string num = catalog::cata_path + "num.log";
 	ofstream wn(num);
-	wn << catalog::tablenum << endl;
+	wn << catalog::catamap.size() << endl;
 	wn.close();
 	// update map.log
 	string mAp = catalog::cata_path + "map.log";

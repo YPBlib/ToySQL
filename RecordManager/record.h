@@ -4,7 +4,7 @@
 
 #include"../Buffer/buffer.h"
 
-class tablerecord;
+//class tablerecord;
 class record;
 
 class DataValue
@@ -76,62 +76,21 @@ public:
 
 class record
 {
-	using seg = std::pair<unsigned int, unsigned int>;
 public:
 	//  blk的坐标
 	int pos = 0;
-	//  在blk上的范围
-	seg range;
+	//  是这页上的第几条,从0开始
+	int series = -1;
+	// record 大小
+	int size = -1;
 	bool isdeleted = false;
-	const tablerecord& tb;
 	vector<shared_ptr<DataValue>> data;
-	record(const int& pos, const seg& range, const tablerecord& tb, vector<shared_ptr<DataValue>> data) :
-		pos(pos), range(range), tb(tb), data(std::move(data)) {}
+	record(const int& pos, const int & series,const int& size, vector<shared_ptr<DataValue>> data) :
+		pos(pos), series(series), size(size), data(std::move(data)) {}
 };
 
 
-// block to record
-shared_ptr<DataValue> trans2record(int t, int n,unsigned int& curch,unsigned char* ptr)
-{
-	if(t==tok_INT)
-	{
-		int val = *reinterpret_cast<int*>(ptr+curch);
-		curch += sizeof(int) / sizeof(unsigned char);
-		return std::move(std::make_shared<DataInt>(val));
-	}
-	if (t == tok_CHAR)
-	{
-		char tpc[256]{ 0 };
-		for (int i = 0; i < n; ++i)
-		{
-			tpc[i] = (char)*(ptr + curch + i);
-		}
-		curch += n;
-		return std::move(std::make_shared<DataString>(tpc));
-	}
-	if (t == tok_DOUBLE || t == tok_FLOAT)
-	{
-		double val = *reinterpret_cast<double*>(ptr+curch);
-		curch += sizeof(double) / sizeof(unsigned char);
-		return std::move(std::make_shared<DataDouble>(val));
-	}
-	else
-		throw runtime_error("wrong t in trans2record\n");
-}
 
-// record to block
-void trans2block(unsigned char* dest, const vector<shared_ptr<DataValue>>& data, int bytes)
-{
-	int cnt=0;
-	for (auto i : data)
-	{
-		auto vc = i->emit_char();
-		for (auto c : vc)
-		{
-			dest[cnt++] = (unsigned char)c;
-		}
-	}
-}
 
 
 // 如何调度每个block中的可用空间(主要是删除产生的空洞，由于缓冲区较大，比替换算法更实用)
@@ -151,24 +110,18 @@ namespace recordspace
 	extern vector<tbFreeList> freelist;
 }
 
-
+/*
 class tablerecord
 {
-	using info = std::pair<int, string>;
-	//using seg = std::tuple<unsigned int, unsigned int, unsigned int,unsigned int>;
 	using seg = std::pair<std::pair<unsigned int, unsigned int>, std::pair< unsigned int, unsigned int>>;
 public:
-	catalog::SQLtable tbinfo;
-	bool isdeleted = false;
-	//  表中所有数据的位置加和
-	vector<seg> range;
+
 	vector<record> data;
-	
-	unsigned int cur = 0u;
+
 	void initdata()
 	{
 		auto colinfo = tbinfo.cols;
-		auto list = blockgen(tbinfo.name);
+		auto list = blockgen(tbinfo.tbname);
 		unsigned int curch = 0u;
 		for (auto i : list)
 		{
@@ -204,25 +157,8 @@ public:
 			trans2block(buff[i.pos]+i.range.first, i.data, i.tb.tbinfo.record_size);
 	}
 
-	// mark dirty, mark pin, 
-	info select()
-	{
-		return info(0, "");
-	}
-	
-	// mark dirty, mark pin, 
-	info insert()
-	{
-		return info(0, "");
-	}
-
-
-
-	// mark dirty, mark pin, mark delete
-	info dele()
-	{
-		return info(0, "");
-	}
 };
+*/
 
+vector<record> blk2records(vector<int> vi);
 #endif //RECORDMANAGER_RECORD_H

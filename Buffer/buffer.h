@@ -12,8 +12,14 @@ public:
 	const T1& series = data.first;  //series 指这一块是缓冲区的第几页
 	T2& isdirty = data.second;	// 根据record的反馈而变
 	// 是record文件夹下的db文件
+	string tbname;
 	string filename;
-	unsigned int offset = 0u;
+	// 表示这一页上有多少record
+	int recordnum = -1;
+	// 表示这一页上每条record的大小
+	int bytes = 0;
+	// 表示距离文件头的距离
+	int offset = 0;
 	bool ispin = false;
 	block(const T1& t1, const T2& t2) :data(t1, t2){}
 	void writeback()

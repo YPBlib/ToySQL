@@ -6,12 +6,12 @@ unsigned char** buff;
 vector<block<>> BufferManager;
 
 // 初始化整个缓冲区
-void initbuff(unsigned char** ptr)
+void initbuff()
 {
-	ptr = new unsigned char*[page_num];
+	buff = new unsigned char*[page_num];
 	for (int i = 0; i < page_num; ++i)
 	{
-		ptr[i] = new unsigned char[BLOCK_8k];
+		buff[i] = new unsigned char[BLOCK_8k];
 		BufferManager.push_back(block<>(i, false));
 	}
 }
@@ -47,9 +47,9 @@ std::pair<unsigned int,unsigned int> counttablebyte(const string& tbname)
 vector<int> blockgen(const string& tbname)
 {
 	auto tbsizeinfo = counttablebyte(tbname);
-	auto recordnum = tbsizeinfo.first / tbsizeinfo.second;
-	auto records_pre_blk = BLOCK_8k / tbsizeinfo.second;
-	auto blknum = recordnum / records_pre_blk + (recordnum > recordnum / records_pre_blk*records_pre_blk) ? 1u : 0u;
+	unsigned int recordnum = tbsizeinfo.first / tbsizeinfo.second;
+	unsigned int records_pre_blk = BLOCK_8k / tbsizeinfo.second;
+	unsigned int blknum = recordnum / records_pre_blk + (recordnum > recordnum / records_pre_blk*records_pre_blk) ? 1u : 0u;
 	if (blknum > page_num)
 	{
 		throw runtime_error("Error: <del>the table `"+tbname+"` is too large</del>\n");
@@ -73,14 +73,22 @@ vector<int> blockgen(const string& tbname)
 	}
 	string tb_db = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 	FILE* r = fopen(tb_db.c_str(), "rb");
-	unsigned int dist = 0;
+	
+	int dist = 0;
 	for (auto i : result)
 	{
-		BufferManager[i].filename = tb_db;
+		BufferManager[i].tbname = tbname;
+		BufferManager[i].filename = tb_db; 
+		if (recordnum > records_pre_blk)
+			BufferManager[i].recordnum = records_pre_blk;
+		else BufferManager[i].recordnum = recordnum;
+		BufferManager[i].bytes = tbsizeinfo.second;
 		BufferManager[i].offset = dist;
-		dist += BLOCK_8k;
+		dist += BufferManager[i].recordnum*BufferManager[i].bytes;
+		recordnum -= records_pre_blk;
 		BufferManager[i].updatefreq();
-		fread(buff[i], sizeof(unsigned char), BLOCK_8k, r);
+		// 这一步很可能不够8k
+		fread(buff[i], sizeof(unsigned char), dist, r);
 	}
 	fclose(r);
 	return result;

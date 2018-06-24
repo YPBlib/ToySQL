@@ -3,7 +3,7 @@
 int main()
 {
 	init_cata(); 
-	initbuff(buff);
+	initbuff();
 	init_scanner();
 	init_parser();
 	
@@ -25,6 +25,5 @@ int main()
 		}
 	}
 	int ty = qwexqy;
-	cata_wb();
 	return 0;
 }
