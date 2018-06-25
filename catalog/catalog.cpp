@@ -3,13 +3,6 @@
 using minisql::minisql_path;
 using std::endl;
 
-/*
-#include <boost/serialization/serialization.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-*/
 
 namespace catalog
 {
@@ -135,12 +128,10 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	{
 		bytes += getbyte(j.coltype)*(int)j.N;
 	}
-	// +1byte 来表示该条record是否已被删除
-	bytes++;
 	if (bytes > BLOCK_8k)
 		throw runtime_error("Error ， one single record > 8K\n");
 	// update catamap
-	int x = catalog::catamap.size() + 1;
+	int x = catalog::catamap.size() ;
 	catalog::catamap.insert({ tbname, x });
 	// update tablebase
 	catalog::SQLtable sqltb = catalog::SQLtable(tbname, col_num, bytes);

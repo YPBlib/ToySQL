@@ -781,7 +781,7 @@ enum status
 	eof
 };
 
-extern unsigned char** buff;
+extern char** buff;
 
 class value
 {
@@ -986,9 +986,10 @@ void initbuff();
 vector<int> loadtable(string tbname);	// record.cpp
 // 根据一个表名生成block
 vector<int> blockgen(const string& tbname);
+void trans2block(char* dest, const vector<shared_ptr<DataValue>>& data, bool isdirty);	//record.cpp
+vector<shared_ptr<DataValue>> trans2record(vector<int> cstype, const int& bytes, int curch, char* ptr);  //record.cpp
 // 获取1个表的全部数据
-std::pair<unsigned int, unsigned int> counttablebyte(const string& tbname);
-
+std::pair<int, int> counttablebyte(const string& tbname);
 class ExprAST
 {
 public:

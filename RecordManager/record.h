@@ -24,12 +24,13 @@ public:
 	~DataInt() = default;
 	vector<char> emit_char()
 	{
-		unsigned int k = (unsigned int)value;
+		int k = value;
+		int* pk = &k;
+		char* pc = reinterpret_cast<char*>(pk);
 		vector<char> result;
 		for (int i = 0; i != 4; ++i)
 		{
-			result.push_back(k | 0xff);
-			k >>= 8;
+			result.push_back(pc[i]);
 		}
 		return result;
 	}
@@ -50,7 +51,7 @@ public:
 		char* pc = reinterpret_cast<char*>(ptrd);
 		for (int i = 0; i < 8; ++i)
 		{
-			result.push_back(*(pc + i));
+			result.push_back(pc[i]);
 		}
 		return result;
 	}
@@ -60,7 +61,8 @@ class DataString :public DataValue
 {
 public:
 	string value;
-	DataString(char* value):value(value){}
+	DataString(string value) :value(value) {}
+	//DataString(char* value):value(value){}
 	const void *getValue() { return (string*)&value; }
 	~DataString() = default;
 	vector<char> emit_char()
@@ -88,10 +90,6 @@ public:
 	record(const int& pos, const int & series,const int& size, vector<shared_ptr<DataValue>> data) :
 		pos(pos), series(series), size(size), data(std::move(data)) {}
 };
-
-
-
-
 
 // 如何调度每个block中的可用空间(主要是删除产生的空洞，由于缓冲区较大，比替换算法更实用)
 namespace recordspace

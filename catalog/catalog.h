@@ -44,6 +44,7 @@ public:
 	int beginpos;	//blk 下标
 	int endpos;	//blk 下标
 	//构造函数
+	SQLtable() = default;
 	SQLtable(const string& tbname,const unsigned int& col_num,const unsigned int& record_size):
 		tbname(tbname),col_num(col_num),record_size(record_size){}
 };

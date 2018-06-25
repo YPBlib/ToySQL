@@ -1,17 +1,17 @@
 #include"buffer.h"
 #include<numeric>
 #include<functional>
-unsigned char** buff;
+char** buff;
 // 0表示这块block处于空闲
 vector<block<>> BufferManager;
 
 // 初始化整个缓冲区
 void initbuff()
 {
-	buff = new unsigned char*[page_num];
+	buff = new char*[page_num];
 	for (int i = 0; i < page_num; ++i)
 	{
-		buff[i] = new unsigned char[BLOCK_8k];
+		buff[i] = new char[BLOCK_8k];
 		BufferManager.push_back(block<>(i, false));
 	}
 }
@@ -31,19 +31,19 @@ void ReplacePage(int needy, bool(*f)(const block<>&,const block<>&))
 }
 
 // 获取1个表的全部数据字节数, 和单条record的字节数
-std::pair<unsigned int,unsigned int> counttablebyte(const string& tbname)
+std::pair<int,int> counttablebyte(const string& tbname)
 {
-	string tb_db = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db"; 
 	string tb_log= catalog::cata_path + std::to_string(catalog::catamap[tbname]) + ".log";
-	ifstream ifs(tb_db, std::ifstream::ate | std::ifstream::binary);
-	auto tbsize = (unsigned int)ifs.tellg();
-	ifs.close(); string temp; unsigned int record_size;
+	unsigned int ui;string temp; unsigned int record_size;
 	ifstream ifs2(tb_log);
-	ifs2 >> temp >> record_size >> record_size;
-	return std::make_pair(tbsize, record_size);
+	ifs2 >> temp >> ui >> record_size;
+	////
+	int tb_index = catalog::catamap[tbname];
+	int record_num = catalog::tablebase[tb_index].record_num;
+	return std::make_pair(record_num*record_size, record_size);
 }
 
-// 根据一个表名从文件写到block
+// 根据一个表名从文件写到block  // 注意脏位
 vector<int> blockgen(const string& tbname)
 {
 	auto tbsizeinfo = counttablebyte(tbname);

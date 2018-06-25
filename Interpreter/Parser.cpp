@@ -3,7 +3,7 @@
 #include<iostream>
 token currtoken;
 int delimiter = semicolon_mark;
-
+int selecttimes;
 using LR = std::vector<std::shared_ptr<ExprAST>>;
 using LL = std::vector<std::shared_ptr<ExprAST>>;
 void consumeit(std::vector<int> v, std::string s);
@@ -1039,115 +1039,225 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		consumeit({ delimiter }, "expect delimiter\n");
 		if (insert != nullptr)
 		{
-			// 装载表 
 			// 更新catalog::tabelbase  // 将blk兑换成 vctor<record>,最好可以跟上面压成1行，复合函数
-			vector<int> pgs = loadtable(*(insert->table_name->id.get()));
-			vector<record>tbrecord = blk2records(pgs);
-			// 插入前的检查: primary，unic
-			for (auto i : catalog::tablebase)
+			string tbname = *(insert->table_name->id.get());
+			string db_flie = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+			ifstream rsx(db_flie, ifstream::ate|ifstream::binary);
+			int dbsize = rsx.tellg();
+			rsx.close();
+			vector<int> pgs;
+			vector<record> tbrecoxd;
+			vector<record>tbrecord;
+			vector<shared_ptr<DataValue>> vals;
+			catalog::SQLtable tbinfo;
+			// 先取出表的信息  // 取出insert式子中各个列的值
+			auto exprs = insert->value_list;
+			for (auto e : exprs)
 			{
-				if (i.tbname == *(insert->table_name->id.get()))
+				auto lite = e->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit;
+				if (lite->doublevalue)
 				{
-					// 先取出表的信息
-					auto tbinfo = i;
-					// 取出insert式子中各个列的值
-					vector<shared_ptr<DataValue>> vals;
-					auto exprs = insert->value_list;
-					auto dtypes = i.cols;
-					if (dtypes.size() != exprs.size())
-						throw runtime_error("dtypes.size()!=exprs.size() in  Parser.cpp,exec insert\n");
-					for (int j = 0; j != exprs.size(); ++j)
+					vals.push_back(std::make_shared<DataDouble>(*(lite->doublevalue->value.get())));
+				}
+				if (lite->intvalue)
+				{
+					vals.push_back(std::make_shared<DataInt>(*(lite->intvalue->value.get())));
+				}
+				if (lite->stringvalue)
+				{
+					vals.push_back(std::make_shared<DataString>(*(lite->stringvalue->value.get())));
+				}
+			}
+			// 插入前的检查: primary，unic
+			// check prim
+			if (!tbinfo.primcols.empty())
+			{
+				string prim_key = tbinfo.primcols[0];
+				//查这个prim是第几列
+				int iter1 = 0;
+				for (iter1 = 0; iter1 < vals.size(); ++iter1)
+				{
+					if (prim_key == tbinfo.cols[iter1].colname)
+						break;
+				}
+				// 查重 prim
+				// 拿到vals[iter1]
+				shared_ptr<DataValue> insert_prim = vals[iter1];
+				for (auto iter2 : tbrecord)
+				{
+					if (iter2.data[iter1]->getValue() == insert_prim->getValue())
 					{
-						int dtype = dtypes[j].coltype;
-						if (dtype == tok_INT)
-						{
-							int v = *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->intvalue->value.get());
-							vals.push_back(make_shared<DataInt>(v));
-						}
-						else if (dtype == tok_FLOAT || dtype == tok_DOUBLE)
-						{
-							double v = *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->doublevalue->value.get());
-							vals.push_back(make_shared<DataDouble>(v));
-						}
-						else if (dtype == tok_CHAR)
-						{
-							string vs= *(exprs[j]->lhs->bp->p->bitexpr->bitexp->bitex->SE->lit->stringvalue->value.get());
-							char v[255]{ 0 };
-							for (int k = 0; k != vs.length(); ++k)
-							{
-								v[k] = vs[k];
-							}
-							vals.push_back(make_shared<DataString>(v));
-						}
-						else
-							throw runtime_error("...\n");	
-					}
-					// 插入前的检查: primary，unic
-					// check prim
-					if (!tbinfo.primcols.empty())
-					{
-						string prim_key = tbinfo.primcols[0];
-						//查这个prim是第几列
-						int iter1 = 0;
-						for (iter1 = 0; iter1 < vals.size(); ++iter1)
-						{
-							if (prim_key == tbinfo.cols[iter1].colname)
-								break;
-						}
-						// 查重 prim
-						// 拿到vals[iter1]
-						shared_ptr<DataValue> insert_prim = vals[iter1];
-						for (auto iter2 : tbrecord)
-						{
-							if (iter2.data[iter1]->getValue() == insert_prim->getValue())
-							{
-								std::cout << "duplicate primary key on`"
-									<< tbinfo.cols[iter1].colname << "` value" << insert_prim->getValue() << std::endl;
-								return std::make_shared<StatementAST>(std::move(create), std::move(select),
-									std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
-							}
-						}
-					}
-					// check unic
-					if (!tbinfo.uniccols.empty())
-					{
-						for(string uni_key:tbinfo.uniccols)
-						{
-							//查这个uni是第几列
-							int iter1 = 0;
-							for (iter1 = 0; iter1 < vals.size(); ++iter1)
-							{
-								if (uni_key == tbinfo.cols[iter1].colname)
-									break;
-							}
-							// 查重 uni
-							// 拿到vals[iter1]
-							shared_ptr<DataValue> insert_uni = vals[iter1];
-							for (auto iter2 : tbrecord)
-							{
-								if (iter2.data[iter1]->getValue() == insert_uni->getValue())
-								{
-									std::cout << "duplicate unique key on`"
-										<< tbinfo.cols[iter1].colname << "` value" << insert_uni->getValue() << std::endl;
-									return std::make_shared<StatementAST>(std::move(create), std::move(select),
-										std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
-								}
-							}
-						}
-						
+						std::cout << "duplicate primary key on`"
+							<< tbinfo.cols[iter1].colname << "` value" << insert_prim->getValue() << std::endl;
+						return std::make_shared<StatementAST>(std::move(create), std::move(select),
+							std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
 					}
 				}
 			}
 
+			// check unic
+			if (!tbinfo.uniccols.empty())
+			{
+				for (string uni_key : tbinfo.uniccols)
+				{
+					//查这个uni是第几列
+					int iter1 = 0;
+					for (iter1 = 0; iter1 < vals.size(); ++iter1)
+					{
+						if (uni_key == tbinfo.cols[iter1].colname)
+							break;
+					}
+					// 查重 uni
+					// 拿到vals[iter1]
+					shared_ptr<DataValue> insert_uni = vals[iter1];
+					for (auto iter2 : tbrecord)
+					{
+						if (iter2.data[iter1]->getValue() == insert_uni->getValue())
+						{
+							std::cout << "duplicate unique key on`"
+								<< tbinfo.cols[iter1].colname << "` value" << insert_uni->getValue() << std::endl;
+							return std::make_shared<StatementAST>(std::move(create), std::move(select),
+								std::move(drop), std::move(insert), std::move(dele), std::move(setvar));
+						}
+					}
+				}
+
+			}
+
 			// insert条件满足，更新catalog::tabelbase
-			string tbname = *(insert->table_name->id.get());
 			int tb_index = catalog::catamap[tbname];
 			catalog::tablebase[tb_index].isinmemory = true;
-			catalog::tablebase[tb_index].record_num++;
 			catalog::tablebase[tb_index].pages = pgs;
+			// 先找位置
 			// 5. 写入delete record位置，记录脏页
-			// 6. 如果不够，像blk尾部写入，记录脏页
-		    // 7. 如果不够，开新页，记录脏页，更新catalog::tablebase
+			bool find_dirty = false;
+			for (auto& r : tbrecoxd)
+			{
+				if (r.isdeleted)
+				{
+					find_dirty = true;
+					// 在此处插入
+					r = record(r.pos, r.series,tbinfo.record_size, vals);
+					catalog::tablebase[tb_index].record_num++;
+					catalog::tablebase[tb_index].isinmemory = true;
+				}
+			}
+			// 6. 如果没找到，向blk尾部写入，记录脏页
+			std::sort(pgs.begin(), pgs.end());
+			int mo = -1;
+			bool find_bottom = false;
+			if (find_dirty)
+			{
+				mo = *(pgs.end() - 1);
+				 
+				// 尾部是否可用？
+				find_bottom = (BLOCK_8k - BufferManager[mo].bytes*BufferManager[mo].recordnum) > BufferManager[mo].bytes;
+				if (find_bottom)
+				{
+					// 在此处插入
+					BufferManager[mo].isdirty = true;
+					BufferManager[mo].recordnum++;
+					catalog::tablebase[tb_index].record_num++;
+					catalog::tablebase[tb_index].isinmemory = true;
+					// record 换成 blk
+					trans2block(nullptr,vals,true);
+				}
+			}
+		    // 7. 如果又没找到，开新页，记录脏页，更新catalog::tablebase
+			if (!find_dirty)
+			{
+				catalog::tablebase[catalog::catamap[tbname]].record_num++;
+				char t8[8192]{0};
+				trans2block(t8,vals, true);
+				ofstream ofs(db_flie, ofstream::binary | ofstream::app);
+				int k = catalog::tablebase[catalog::catamap[tbname]].record_size;
+				for (int i = 0; i != k; ++i)
+					ofs << t8[i];
+				ofs.close();
+			}
+			// 8. 根据AST的内容生成record // 已经在上面的if中被截下来，完成
+		}
+		else if(drop&&drop->droptb)
+		{
+			string tbname = *(drop->droptb->table_list[0]->id.get());
+			// num.log
+			int n = 0;
+			string nlog= catalog::cata_path + "num.log";
+			ifstream numlog(nlog);
+			numlog >> n;
+			numlog.close();
+			// map.log
+			vector<string> tn(n); vector<int> in(n);
+			string mlog = catalog::cata_path + "map.log";
+			ifstream maplog(mlog);
+			for (int i = 0; i != n; ++i)
+			{
+				maplog >> tn[i] >> in[i];
+			}
+			int findi = 0;
+			for (int i = 0; i != n; ++i)
+			{
+				if (tn[i] == tbname)
+					findi = i;
+			}
+			maplog.close();
+			ofstream omaplog(mlog);
+			for (int i = 0; i < findi; ++i)
+			{
+				omaplog << tn[i] << "\t" << in[i];
+			}
+			for (int i = findi+1; i < n; ++i)
+			{
+				omaplog << tn[i] << "\t" << in[i];
+			}
+			omaplog.close();
+			// #.log
+			string signlog = catalog::cata_path + std::to_string(n) + ".log";
+			FILE* w1 = fopen(signlog.c_str(), "wb");
+			fclose(w1);
+			// #.db
+			string signdb = minisql::record_path + std::to_string(n) + ".db";
+			FILE* w2 = fopen(signdb.c_str(), "wb");
+			fclose(w2);
+		}
+		else if(select)
+		{
+			string outfile = minisql::select_path + std::to_string(selecttimes++) + ".output";
+			int n = select->subquery->exprs.size();
+			string tbname = *(select->subquery->tbrefs->refs[0]->tbfactor->tbname->tbname->id.get());
+			string infile = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+			int recordsize = catalog::tablebase[catalog::catamap[tbname]].record_size;
+			int recordnum = catalog::tablebase[catalog::catamap[tbname]].record_num;
+			ofstream ofs(outfile);
+			vector<string> colnames; 
+			for (int i = 0; i != catalog::tablebase[catalog::catamap[tbname]].col_num; ++i)
+			{
+				colnames.push_back(catalog::tablebase[catalog::catamap[tbname]].cols[i].colname);
+				ofs << colnames[i] << "\t\t";
+			}
+			
+			
+			int col_num = catalog::tablebase[catalog::catamap[tbname]].col_num;
+			auto cs = catalog::tablebase[catalog::catamap[tbname]].cols;
+			int bytes = catalog::tablebase[catalog::catamap[tbname]].record_size;
+			vector<int> cstype;
+			for (auto col : cs)
+			{
+				cstype.push_back(col.coltype);
+			}
+			vector<record> result;
+			FILE* ifs = fopen(infile.c_str(), "rb");
+			for (int i = 0; i != recordnum; ++i)
+			{
+				char t8[8192]{ 0 };
+				fread(t8, sizeof(char), bytes, ifs);
+//  vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, int curch, char* ptr)				
+				auto dv = trans2record(cstype, bytes, 0, buff[i]);
+				for (auto item : dv)
+					ofs << item << "\t";
+				ofs << std::endl;
+			}
+			
 		}
 		else
 		{

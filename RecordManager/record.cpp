@@ -7,6 +7,12 @@ namespace recordspace
 
 vector<int> loadtable(string tbname)
 {
+	// BufferManager 所有脏页写回
+	for (int i = 0; i != page_num; ++i)
+	{
+		if (BufferManager[i].isdirty && BufferManager[i].tbname == tbname)
+			BufferManager[i].writeback();
+	}
 	// 装载表 
 	auto vi = blockgen(tbname);
 	// 更新catalog::tabelbase
@@ -15,14 +21,13 @@ vector<int> loadtable(string tbname)
 		if (i.tbname == tbname)
 		{
 			i.pages = vi;
-			i.isinmemory = true;
 		}
 	}
 	return vi;
 }
 //string tbfile = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 // block to record
-vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, int curch, unsigned char* ptr)
+vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, int curch, char* ptr)
 {
 	vector<shared_ptr<DataValue>> result;
 	for (auto d : cstype)
@@ -33,7 +38,7 @@ vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, 
 			curch += sizeof(int) / sizeof(unsigned char);
 			result.push_back(std::move(std::make_shared<DataInt>(val)));
 		}
-		if (d == tok_CHAR)
+		else if (d == tok_CHAR)
 		{
 			char tpc[256]{ 0 };
 			for (int i = 0; i < bytes; ++i)
@@ -43,7 +48,7 @@ vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, 
 			curch += bytes;
 			result.push_back(std::move(std::make_shared<DataString>(tpc)));
 		}
-		if (d == tok_DOUBLE || d == tok_FLOAT)
+		else if (d == tok_DOUBLE || d == tok_FLOAT)
 		{
 			double val = *reinterpret_cast<double*>(ptr + curch);
 			curch += sizeof(double) / sizeof(unsigned char);
@@ -78,7 +83,7 @@ vector<record> blk2records(vector<int> vi)
 }
 
 // record to block
-void trans2block(unsigned char* dest, const vector<shared_ptr<DataValue>>& data, int bytes)
+void trans2block(char* dest, const vector<shared_ptr<DataValue>>& data,bool isdirty)
 {
 	int cnt = 0;
 	for (auto i : data)
@@ -86,7 +91,7 @@ void trans2block(unsigned char* dest, const vector<shared_ptr<DataValue>>& data,
 		auto vc = i->emit_char();
 		for (auto c : vc)
 		{
-			dest[cnt++] = (unsigned char)c;
+			dest[cnt++] = c;
 		}
 	}
 }
