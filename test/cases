@@ -1,0 +1,36 @@
+class Statement
+{
+public:
+    int whichtype;   //  1 <= type <= 9 according below
+    virtual ~Statement()=default;
+};
+
+9 subclasses:
+
+1. create table
+$1: string tablename
+$2: vector<string colname,int[2] datatype,bool unique,bool primary>
+2. create index
+$1: string tablename
+$2: string colname
+$3: string indexname
+3. select
+$1: vector<string tablename, string colname>
+$2: vector<string> tablesets
+$3: unique_ptr<ExprAST> wherecond>
+4. insert
+$1: string tablename
+$2: vector<int[2]> values
+5. delete
+$1: string tablename
+$2: ExprAST wherecond
+6. drop index
+$1: string tablename
+$2: string colname
+$3: string indexname
+7. drop table
+$1: string tablename
+8. quit;
+9. exec filename;
+
+unique_ptr<Statement> APIParse(unique_ptr<StatementAST> s);

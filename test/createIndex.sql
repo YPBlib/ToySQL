@@ -1,0 +1,1 @@
+create index tb1_c1 on tb1(c1);
