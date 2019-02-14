@@ -19,6 +19,11 @@ CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
 
 all: $(examples)
 
+target:
+	$(CXX_COMPILE) -o toySQL \
+	Buffer/buffer.cpp Catalog/catalog.cpp Recorder/recorder.cpp Interpreter/common.cpp \
+	Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
+
 toySQL: cata buffer recorder
 	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) $(BUFFER) $(RECORDER)
 	Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
