@@ -9,16 +9,16 @@ class block
 	std::pair<T1, T2> zata;
 	unsigned int freq = 0u;
 public:
-	int series;  //series Ö¸ÕâÒ»¿éÊÇ»º³åÇøµÄµÚ¼¸Ò³
-	bool isdirty = false;	// ¸ù¾İrecordµÄ·´À¡¶ø±ä
-	// ÊÇrecordÎÄ¼ş¼ĞÏÂµÄdbÎÄ¼ş
+	int series;  //series æŒ‡è¿™ä¸€å—æ˜¯ç¼“å†²åŒºçš„ç¬¬å‡ é¡µ
+	bool isdirty = false;	// æ ¹æ®recordçš„åé¦ˆè€Œå˜
+	// æ˜¯recordæ–‡ä»¶å¤¹ä¸‹çš„dbæ–‡ä»¶
 	string tbname;
 	string filename;
-	// ±íÊ¾ÕâÒ»Ò³ÉÏÓĞ¶àÉÙrecord
+	// è¡¨ç¤ºè¿™ä¸€é¡µä¸Šæœ‰å¤šå°‘record
 	int recordnum = -1;
-	// ±íÊ¾ÕâÒ»Ò³ÉÏÃ¿ÌõrecordµÄ´óĞ¡
+	// è¡¨ç¤ºè¿™ä¸€é¡µä¸Šæ¯æ¡recordçš„å¤§å°
 	int bytes = 0;
-	// ±íÊ¾¾àÀëÎÄ¼şÍ·µÄ¾àÀë
+	// è¡¨ç¤ºè·ç¦»æ–‡ä»¶å¤´çš„è·ç¦»
 	int offset = 0;
 	bool ispin = false;
 	block(int t1, bool t2) :series(t1),isdirty(t2){}

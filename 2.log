@@ -1,33 +1,11 @@
-In file included from catalog/catalog.cpp:1:0:
-catalog/catalog.h:13:9: error: ‘map’ in namespace ‘std’ does not name a type
-  extern std::map<string, unsigned int> catamap;
-         ^
 catalog/catalog.cpp:3:7: error: ‘minisql’ has not been declared
  using minisql::minisql_path;
        ^
-catalog/catalog.cpp:11:2: error: ‘map’ in namespace ‘std’ does not name a type
-  std::map<string, unsigned int> catamap;
-  ^
 catalog/catalog.cpp: In function ‘void init_cata()’:
 catalog/catalog.cpp:17:23: error: ‘minisql_path’ was not declared in this scope
   catalog::cata_path = minisql_path + "catalog\\";
                        ^
 catalog/catalog.cpp: In function ‘void make_cata(std::shared_ptr<CreateTableSimpleAST>)’:
-catalog/catalog.cpp:40:6: error: ‘catamap’ is not a member of ‘catalog’
-  if (catalog::catamap.find(tbname) != catalog::catamap.end())
-      ^
-catalog/catalog.cpp:40:39: error: ‘catamap’ is not a member of ‘catalog’
-  if (catalog::catamap.find(tbname) != catalog::catamap.end())
-                                       ^
-catalog/catalog.cpp:134:10: error: ‘catamap’ is not a member of ‘catalog’
-  int x = catalog::catamap.size() ;
-          ^
-catalog/catalog.cpp:135:2: error: ‘catamap’ is not a member of ‘catalog’
-  catalog::catamap.insert({ tbname, x });
-  ^
-catalog/catalog.cpp:143:11: error: ‘catamap’ is not a member of ‘catalog’
-  int un = catalog::catamap[tbname];
-           ^
 catalog/catalog.cpp:145:27: error: variable ‘std::ofstream w’ has initializer but incomplete type
   std::ofstream w(cata_file);
                            ^
@@ -37,15 +15,9 @@ catalog/catalog.cpp:158:17: error: variable ‘std::ofstream fsmap’ has initia
 catalog/catalog.cpp:158:25: error: incomplete type ‘std::ofstream {aka std::basic_ofstream<char>}’ used in nested name specifier
   ofstream fsmap(maplog, ofstream::app );
                          ^
-catalog/catalog.cpp:159:29: error: ‘catamap’ is not a member of ‘catalog’
-  fsmap << tbname << "  " << catalog::catamap.size() << std::endl;
-                             ^
 catalog/catalog.cpp:163:23: error: variable ‘std::ofstream fsnum’ has initializer but incomplete type
   ofstream fsnum(numlog);
                        ^
-catalog/catalog.cpp:164:11: error: ‘catamap’ is not a member of ‘catalog’
-  fsnum << catalog::catamap.size() << endl;
-           ^
 catalog/catalog.cpp:167:16: error: ‘minisql’ has not been declared
   string dbfile=minisql::record_path+ std::to_string(un) + ".db";
                 ^
@@ -59,15 +31,6 @@ catalog/catalog.cpp:185:18: error: variable ‘std::ifstream ifs’ has initiali
 catalog/catalog.cpp:196:24: error: variable ‘std::ifstream mAP’ has initializer but incomplete type
    std::ifstream mAP(mAp);
                         ^
-catalog/catalog.cpp:200:4: error: ‘catamap’ is not a member of ‘catalog’
-    catalog::catamap.insert({ sss, ui });
-    ^
-catalog/catalog.cpp:204:6: error: ‘catamap’ is not a member of ‘catalog’
-  if (catalog::catamap.size() != x)
-      ^
-catalog/catalog.cpp:207:16: error: ‘catamap’ is not a member of ‘catalog’
-  for (auto i : catalog::catamap)
-                ^
 catalog/catalog.cpp:210:21: error: variable ‘std::ifstream ifs’ has initializer but incomplete type
    ifstream ifs(tblog);
                      ^
@@ -75,13 +38,7 @@ catalog/catalog.cpp: In function ‘void cata_wb()’:
 catalog/catalog.cpp:232:17: error: variable ‘std::ofstream wn’ has initializer but incomplete type
   ofstream wn(num);
                  ^
-catalog/catalog.cpp:233:8: error: ‘catamap’ is not a member of ‘catalog’
-  wn << catalog::catamap.size() << endl;
-        ^
 catalog/catalog.cpp:237:18: error: variable ‘std::ofstream ofs’ has initializer but incomplete type
   ofstream ofs(mAp);
                   ^
-catalog/catalog.cpp:238:16: error: ‘catamap’ is not a member of ‘catalog’
-  for (auto i : catalog::catamap)
-                ^
 make: *** [cata] Error 1
