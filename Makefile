@@ -12,6 +12,7 @@ RECORDER = recorder.o
 
 
 examples = toySQL
+dep = cata buffer recorder
 
 CC_COMPILE = $(CC) $(CFLAGS) $(INCLUDES)
 CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
@@ -26,7 +27,7 @@ cata:
 buffer:
 	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) Buffer/buffer.cpp
 recorder:
-	$(CXX_COMPILE)  -c -o $(BUFFER) $(CXXFLAGS) Recorder/record.cpp
+	$(CXX_COMPILE)  -c -o $(RECORDER) $(CXXFLAGS) Recorder/recorder.cpp
 
 clean:
-	-rm -f $(examples).o $(examples)
+	-rm -f $(dep).o
