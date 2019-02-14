@@ -7,9 +7,9 @@ using std::endl;
 namespace catalog
 {
 	class SQLtable;
-	string cata_path;
-	std::map<string, unsigned int> catamap;
-	vector<SQLtable> tablebase;
+	std::string cata_path;
+	std::map<std::string, unsigned int> catamap;
+	std::vector<SQLtable> tablebase;
 }
 
 void init_cata()
@@ -32,7 +32,7 @@ int getbyte(int n)
 	}
 }
 
-void make_cata(shared_ptr<CreateTableSimpleAST> T)
+void make_cata(std::shared_ptr<CreateTableSimpleAST> T)
 {
 	int prim_flag = 0;
 	string tbname = *T->table_name->id.get();
