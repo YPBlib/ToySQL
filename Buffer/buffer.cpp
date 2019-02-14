@@ -1,6 +1,5 @@
 #include"buffer.h"
-#include<numeric>
-#include<functional>
+
 char** buff;
 
 vector<block<>> BufferManager;
@@ -71,7 +70,7 @@ vector<int> blockgen(const string& tbname)
 		if ((!(i.isdirty||i.ispin)) && result.size() != blknum)
 			result.push_back(i.series);
 	}
-	string tb_db = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+	string tb_db = toysql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 	FILE* r = fopen(tb_db.c_str(), "rb");
 	
 	int dist = 0;

@@ -25,7 +25,7 @@ vector<int> loadtable(string tbname)
 	}
 	return vi;
 }
-//string tbfile = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+//string tbfile = toysql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 // block to record
 vector<shared_ptr<DataValue>> trans2record(vector<int> cstype,const int& bytes, int curch, char* ptr)
 {

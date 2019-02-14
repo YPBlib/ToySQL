@@ -1,6 +1,6 @@
-#include"..\catalog\catalog.h"
-#include"..\RecordManager\record.h"
-#include<iostream>
+#include"../catalog/catalog.h"
+#include"../RecordManager/record.h"
+
 token currtoken;
 int delimiter = semicolon_mark;
 int selecttimes;
@@ -1039,9 +1039,9 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		consumeit({ delimiter }, "expect delimiter\n");
 		if (insert != nullptr)
 		{
-			// ¸üÐÂcatalog::tabelbase  // ½«blk¶Ò»»³É vctor<record>,×îºÃ¿ÉÒÔ¸úÉÏÃæÑ¹³É1ÐÐ£¬¸´ºÏº¯Êý
+			// ï¿½ï¿½ï¿½ï¿½catalog::tabelbase  // ï¿½ï¿½blkï¿½Ò»ï¿½ï¿½ï¿½ vctor<record>,ï¿½ï¿½Ã¿ï¿½ï¿½Ô¸ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½1ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ïºï¿½ï¿½ï¿½
 			string tbname = *(insert->table_name->id.get());
-			string db_flie = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+			string db_flie = toysql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 			ifstream rsx(db_flie, ifstream::ate|ifstream::binary);
 			int dbsize = rsx.tellg();
 			rsx.close();
@@ -1050,7 +1050,7 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 			vector<record>tbrecord;
 			vector<shared_ptr<DataValue>> vals;
 			catalog::SQLtable tbinfo;
-			// ÏÈÈ¡³ö±íµÄÐÅÏ¢  // È¡³öinsertÊ½×ÓÖÐ¸÷¸öÁÐµÄÖµ
+			// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢  // È¡ï¿½ï¿½insertÊ½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½Ðµï¿½Öµ
 			auto exprs = insert->value_list;
 			for (auto e : exprs)
 			{
@@ -1068,20 +1068,20 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 					vals.push_back(std::make_shared<DataString>(*(lite->stringvalue->value.get())));
 				}
 			}
-			// ²åÈëÇ°µÄ¼ì²é: primary£¬unic
+			// ï¿½ï¿½ï¿½ï¿½Ç°ï¿½Ä¼ï¿½ï¿½: primaryï¿½ï¿½unic
 			// check prim
 			if (!tbinfo.primcols.empty())
 			{
 				string prim_key = tbinfo.primcols[0];
-				//²éÕâ¸öprimÊÇµÚ¼¸ÁÐ
+				//ï¿½ï¿½ï¿½ï¿½ï¿½primï¿½ÇµÚ¼ï¿½ï¿½ï¿½
 				int iter1 = 0;
 				for (iter1 = 0; iter1 < vals.size(); ++iter1)
 				{
 					if (prim_key == tbinfo.cols[iter1].colname)
 						break;
 				}
-				// ²éÖØ prim
-				// ÄÃµ½vals[iter1]
+				// ï¿½ï¿½ï¿½ï¿½ prim
+				// ï¿½Ãµï¿½vals[iter1]
 				shared_ptr<DataValue> insert_prim = vals[iter1];
 				for (auto iter2 : tbrecord)
 				{
@@ -1100,15 +1100,15 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 			{
 				for (string uni_key : tbinfo.uniccols)
 				{
-					//²éÕâ¸öuniÊÇµÚ¼¸ÁÐ
+					//ï¿½ï¿½ï¿½ï¿½ï¿½uniï¿½ÇµÚ¼ï¿½ï¿½ï¿½
 					int iter1 = 0;
 					for (iter1 = 0; iter1 < vals.size(); ++iter1)
 					{
 						if (uni_key == tbinfo.cols[iter1].colname)
 							break;
 					}
-					// ²éÖØ uni
-					// ÄÃµ½vals[iter1]
+					// ï¿½ï¿½ï¿½ï¿½ uni
+					// ï¿½Ãµï¿½vals[iter1]
 					shared_ptr<DataValue> insert_uni = vals[iter1];
 					for (auto iter2 : tbrecord)
 					{
@@ -1124,25 +1124,25 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 
 			}
 
-			// insertÌõ¼þÂú×ã£¬¸üÐÂcatalog::tabelbase
+			// insertï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½catalog::tabelbase
 			int tb_index = catalog::catamap[tbname];
 			catalog::tablebase[tb_index].isinmemory = true;
 			catalog::tablebase[tb_index].pages = pgs;
-			// ÏÈÕÒÎ»ÖÃ
-			// 5. Ð´Èëdelete recordÎ»ÖÃ£¬¼ÇÂ¼ÔàÒ³
+			// ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+			// 5. Ð´ï¿½ï¿½delete recordÎ»ï¿½Ã£ï¿½ï¿½ï¿½Â¼ï¿½ï¿½Ò³
 			bool find_dirty = false;
 			for (auto& r : tbrecoxd)
 			{
 				if (r.isdeleted)
 				{
 					find_dirty = true;
-					// ÔÚ´Ë´¦²åÈë
+					// ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½
 					r = record(r.pos, r.series,tbinfo.record_size, vals);
 					catalog::tablebase[tb_index].record_num++;
 					catalog::tablebase[tb_index].isinmemory = true;
 				}
 			}
-			// 6. Èç¹ûÃ»ÕÒµ½£¬ÏòblkÎ²²¿Ð´Èë£¬¼ÇÂ¼ÔàÒ³
+			// 6. ï¿½ï¿½ï¿½Ã»ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½blkÎ²ï¿½ï¿½Ð´ï¿½ë£¬ï¿½ï¿½Â¼ï¿½ï¿½Ò³
 			std::sort(pgs.begin(), pgs.end());
 			int mo = -1;
 			bool find_bottom = false;
@@ -1150,20 +1150,20 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 			{
 				mo = *(pgs.end() - 1);
 				 
-				// Î²²¿ÊÇ·ñ¿ÉÓÃ£¿
+				// Î²ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Ã£ï¿½
 				find_bottom = (BLOCK_8k - BufferManager[mo].bytes*BufferManager[mo].recordnum) > BufferManager[mo].bytes;
 				if (find_bottom)
 				{
-					// ÔÚ´Ë´¦²åÈë
+					// ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½
 					BufferManager[mo].isdirty = true;
 					BufferManager[mo].recordnum++;
 					catalog::tablebase[tb_index].record_num++;
 					catalog::tablebase[tb_index].isinmemory = true;
-					// record »»³É blk
+					// record ï¿½ï¿½ï¿½ï¿½ blk
 					trans2block(nullptr,vals,true);
 				}
 			}
-		    // 7. Èç¹ûÓÖÃ»ÕÒµ½£¬¿ªÐÂÒ³£¬¼ÇÂ¼ÔàÒ³£¬¸üÐÂcatalog::tablebase
+		    // 7. ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½catalog::tablebase
 			if (!find_dirty)
 			{
 				catalog::tablebase[catalog::catamap[tbname]].record_num++;
@@ -1175,7 +1175,7 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 					ofs << t8[i];
 				ofs.close();
 			}
-			// 8. ¸ù¾ÝASTµÄÄÚÈÝÉú³Érecord // ÒÑ¾­ÔÚÉÏÃæµÄifÖÐ±»½ØÏÂÀ´£¬Íê³É
+			// 8. ï¿½ï¿½ï¿½ï¿½ASTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½record // ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ifï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
 		else if(drop&&drop->droptb)
 		{
@@ -1216,16 +1216,16 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 			FILE* w1 = fopen(signlog.c_str(), "wb");
 			fclose(w1);
 			// #.db
-			string signdb = minisql::record_path + std::to_string(n) + ".db";
+			string signdb = toysql::record_path + std::to_string(n) + ".db";
 			FILE* w2 = fopen(signdb.c_str(), "wb");
 			fclose(w2);
 		}
 		else if(select)
 		{
-			string outfile = minisql::select_path + std::to_string(selecttimes++) + ".output";
+			string outfile = toysql::select_path + std::to_string(selecttimes++) + ".output";
 			int n = select->subquery->exprs.size();
 			string tbname = *(select->subquery->tbrefs->refs[0]->tbfactor->tbname->tbname->id.get());
-			string infile = minisql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
+			string infile = toysql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";
 			int recordsize = catalog::tablebase[catalog::catamap[tbname]].record_size;
 			int recordnum = catalog::tablebase[catalog::catamap[tbname]].record_num;
 			ofstream ofs(outfile);
