@@ -16,8 +16,6 @@ dep = cata buffer recorder
 CC_COMPILE = $(CC) $(CFLAGS) $(INCLUDES)
 CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
 
-
-
 target:
 	$(CXX_COMPILE) -o toySQL   $(CXXFLAGS) \
 	Buffer/buffer.cpp Catalog/catalog.cpp Recorder/recorder.cpp Interpreter/common.cpp \
