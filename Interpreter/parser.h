@@ -983,12 +983,12 @@ void init_cata();
 void skip_exp();
 void cata_wb();
 void initbuff();
-vector<int> loadtable(string tbname);	// record.cpp
-// ����һ����������block
-vector<int> blockgen(const string& tbname);
+std::vector<int> loadtable(string tbname);	// record.cpp
+
+std::vector<int> blockgen(const string& tbname);
 void trans2block(char* dest, const vector<shared_ptr<DataValue>>& data, bool isdirty);	//record.cpp
 vector<shared_ptr<DataValue>> trans2record(vector<int> cstype, const int& bytes, int curch, char* ptr);  //record.cpp
-// ��ȡ1������ȫ������
+
 std::pair<int, int> counttablebyte(const string& tbname);
 class ExprAST
 {
