@@ -1,7 +1,7 @@
 #pragma once
 #ifndef LLVMSQL_BUFFER_H
 #define LLVMSQL_BUFFER_H
-#include "../catalog/catalog.h"
+#include "../Catalog/catalog.h"
 #include <numeric>
 #include <functional>
 // queryable-record <=> buffer <=> DB files
