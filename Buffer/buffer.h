@@ -1,7 +1,7 @@
 #pragma once
 #ifndef LLVMSQL_BUFFER_H
 #define LLVMSQL_BUFFER_H
-#include"..\catalog\catalog.h"
+#include"../catalog/catalog.h"
 // queryable-record <=> buffer <=> DB files
 template <typename T1 = unsigned int, typename T2 = bool>
 class block
@@ -39,4 +39,5 @@ public:
 };
 
 extern vector<block<>> BufferManager;
+
 #endif // !LLVMSQL_BUFFER_H
