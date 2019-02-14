@@ -1,5 +1,5 @@
-#include"../catalog/catalog.h"
-#include"../RecordManager/record.h"
+#include"../Catalog/catalog.h"
+#include"../Recorder/recorder.h"
 
 token currtoken;
 int delimiter = semicolon_mark;
