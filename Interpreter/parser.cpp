@@ -1222,7 +1222,7 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		}
 		else if(select)
 		{
-			string outfile = toysql::select_path + std::to_string(selecttimes++) + ".output";
+			string outfile =  std::to_string(selecttimes++) + ".output";
 			int n = select->subquery->exprs.size();
 			string tbname = *(select->subquery->tbrefs->refs[0]->tbfactor->tbname->tbname->id.get());
 			string infile = toysql::record_path + std::to_string(catalog::catamap[tbname]) + ".db";

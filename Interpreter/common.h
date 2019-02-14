@@ -18,9 +18,7 @@
 
 namespace toysql
 {
-    std::string path;
-    std::string record_path;
-    std::string select_path;
+    extern std::string record_path;
 }
 
 #endif

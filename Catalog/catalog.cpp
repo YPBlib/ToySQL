@@ -1,6 +1,5 @@
 #include "catalog.h"
 #include <iostream>
-using toysql::path;
 using std::endl;
 
 
@@ -14,6 +13,7 @@ namespace catalog
 
 void init_cata()
 {
+	string path;
 	catalog::cata_path = path + "catalog/";
 	loadcata();
 }
