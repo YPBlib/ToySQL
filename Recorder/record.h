@@ -2,7 +2,7 @@
 #ifndef RECORDMANAGER_RECORD_H
 #define RECORDMANAGER_RECORD_H
 
-#include"../Buffer/buffer.h"
+#include "../Buffer/buffer.h"
 
 //class tablerecord;
 class record;
@@ -79,11 +79,11 @@ public:
 class record
 {
 public:
-	//  blk的坐标
+	//  blk锟斤拷锟斤拷锟斤拷
 	int pos = 0;
-	//  是这页上的第几条,从0开始
+	//  锟斤拷锟斤拷页锟较的第硷拷锟斤拷,锟斤拷0锟斤拷始
 	int series = -1;
-	// record 大小
+	// record 锟斤拷小
 	int size = -1;
 	bool isdeleted = false;
 	vector<shared_ptr<DataValue>> data;
@@ -91,7 +91,7 @@ public:
 		pos(pos), series(series), size(size), data(std::move(data)) {}
 };
 
-// 如何调度每个block中的可用空间(主要是删除产生的空洞，由于缓冲区较大，比替换算法更实用)
+// 锟斤拷蔚锟斤拷锟矫匡拷锟絙lock锟叫的匡拷锟矫空硷拷(锟斤拷要锟斤拷删锟斤拷锟斤拷锟斤拷锟侥空讹拷锟斤拷锟斤拷锟节伙拷锟斤拷锟斤拷锟较大，憋拷锟芥换锟姐法锟斤拷实锟斤拷)
 namespace recordspace
 {
 	struct singleFree
@@ -139,10 +139,10 @@ public:
 		;
 	}
 
-	// 先清零
+	// 锟斤拷锟斤拷锟斤拷
 	void back_to_block()
 	{
-		// 统计 blk 下标
+		// 统锟斤拷 blk 锟铰憋拷
 		vector<int> blk_index;
 		for (auto i : data)
 			blk_index.push_back(i.pos);
