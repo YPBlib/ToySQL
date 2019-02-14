@@ -1,6 +1,6 @@
 #include"catalog.h"
 #include<iostream>
-using minisql::minisql_path;
+using toysql::path;
 using std::endl;
 
 
@@ -14,7 +14,7 @@ namespace catalog
 
 void init_cata()
 {
-	catalog::cata_path = minisql_path + "catalog\\";
+	catalog::cata_path = path + "catalog/";
 	loadcata();
 }
 
@@ -36,7 +36,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 {
 	int prim_flag = 0;
 	string tbname = *T->table_name->id.get();
-	// 确认该表尚未创建
+
 	if (catalog::catamap.find(tbname) != catalog::catamap.end())
 	{
 		std::cout << "warning: the table `" << tbname << "` already exists. \n" << endl;
@@ -129,7 +129,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 		bytes += getbyte(j.coltype)*(int)j.N;
 	}
 	if (bytes > BLOCK_8k)
-		throw runtime_error("Error ， one single record > 8K\n");
+		throw runtime_error("Error 锟斤拷 one single record > 8K\n");
 	// update catamap
 	int x = catalog::catamap.size() ;
 	catalog::catamap.insert({ tbname, x });
@@ -139,7 +139,7 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 	sqltb.primcols = primcols;
 	sqltb.uniccols = uniccols;
 	catalog::tablebase.push_back(sqltb);
-	// 创建 #.log
+	// 锟斤拷锟斤拷 #.log
 	int un = catalog::catamap[tbname];
 	string cata_file = catalog::cata_path +std::to_string(un) + ".log";	
 	std::ofstream w(cata_file);
@@ -153,17 +153,17 @@ void make_cata(shared_ptr<CreateTableSimpleAST> T)
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
 	}
 	w.close();
-	// 写回 map.log
+	// 写锟斤拷 map.log
 	string maplog = catalog::cata_path + "map.log";
 	ofstream fsmap(maplog, ofstream::app );
 	fsmap << tbname << "  " << catalog::catamap.size() << std::endl;
 	fsmap.close();
-	// 写回 num.log
+	// 写锟斤拷 num.log
 	string numlog = catalog::cata_path + "num.log";
 	ofstream fsnum(numlog);
 	fsnum << catalog::catamap.size() << endl;
 	fsnum.close();
-	// 创建一个新的 #.db	(用"wb"打开关闭即可)
+	// 锟斤拷锟斤拷一锟斤拷锟铰碉拷 #.db	(锟斤拷"wb"锟津开关闭硷拷锟斤拷)
 	string dbfile=minisql::record_path+ std::to_string(un) + ".db";
 	FILE* www = fopen(dbfile.c_str(), "wb");
 	fclose(www);
@@ -173,7 +173,7 @@ void loadcata()
 {
 	// load num
 	string num = catalog::cata_path + "num.log";
-	// 不能用rb，这里是在读文本文件
+
 	FILE* r = fopen(num.c_str(), "r");
 	if (r == nullptr)
 	{
@@ -189,7 +189,7 @@ void loadcata()
 	string sss;
 	unsigned int ui;
 	string mAp = catalog::cata_path + "map.log";
-	// 不能用rb，这里是在读文本文件
+	// 
 	if (r=fopen(mAp.c_str(), "r"))
 	{
 		fclose(r);

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef llvmsql_catalog
-#define llvmsql_catalog
+#ifndef toysql_catalog
+#define toysql_catalog
 #include "../Interpreter/common.h"
 
 void loadcata();

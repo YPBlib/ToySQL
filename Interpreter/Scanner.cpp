@@ -1,13 +1,4 @@
-#include<cstdio>
-#include<cstdlib>
-#include<string>
-#include<algorithm>
-#include<map>
-#include<iostream>
-#include<vector>
-#include<exception>
-#include<regex>
-#include"llvmsql.h"
+#include "parser.h"
 
 #define LookAheadLen 6
 int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
@@ -803,7 +794,6 @@ void skip_exp()
 		{
 			scroll_Char(LookAhead);
 		}
-		// # style comment
 		if (LookAhead[0] == '#')
 		{
 			scanner_status = comment;
@@ -813,7 +803,6 @@ void skip_exp()
 			scanner_status = blank;
 		}
 
-		//-- style comment
 		if (LookAhead[0] == '-'&& LookAhead[1] == '-')
 		{
 			scanner_status = comment;
@@ -823,7 +812,6 @@ void skip_exp()
 			scanner_status = blank;
 		}
 
-		// /* */ style comment ע�� /*/ ���ǺϷ���ע��
 		if (LookAhead[0] == '/'&& LookAhead[1] == '*')
 		{
 			scanner_status = comment;
@@ -839,9 +827,6 @@ void skip_exp()
 			scanner_status = blank;
 		}
 
-		// �ַ��������� �ʳ�ֵ��ע�� \��ת��
-		// ����������'' �� "" �ɺϲ�Ϊ1��
-		// �����������ַ�����ճ���������� parser ����
 		if (LookAhead[0] == '"' || LookAhead[0] == '\'')
 		{
 			scanner_status = literal_string;
@@ -944,7 +929,6 @@ void skip_exp()
 			}
 		}
 
-		// �����չ�һ�� true  false ��������������ؼ��ֵ�������
 		if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
 			tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
 		{
@@ -975,28 +959,6 @@ void skip_exp()
 			scroll_Char(LookAhead);
 			return t;
 		}
-
-		// ֻ����[0-9]��С����. ���������parser����
-		// ֻ����10���ƣ������� 0x 0b ��������
-		// 011����ʮ����11������8����
-		// ��ֵ�������ļ���ģʽ
-		// int���� [0-9]+
-		// ����С����. ��ָ��e ��Ϊdouble
-		// ����ΪһЩ����
-		// 0256 2048
-		// 0.36
-		// .345
-		// 5e6
-		// .2e-2
-		//23.6
-		//3.25e5
-		//.3e4
-		//65e-8
-		//3.
-		//0
-		//23.36e-9
-		//6.e9
-
 
 		if (isdigit(LookAhead[0]) || (LookAhead[0] == '.'&& isdigit(LookAhead[1])))
 		{
@@ -1035,9 +997,6 @@ void skip_exp()
 			}
 		}
 
-		// �����
-		// ������жϳ������������<=>
-		// ���ж϶̵����������<=
 		if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
 		{
 			scanner_status = symbol;
