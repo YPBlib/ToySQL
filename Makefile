@@ -16,7 +16,7 @@ dep = cata buffer recorder
 CC_COMPILE = $(CC) $(CFLAGS) $(INCLUDES)
 CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
 
-all: $(examples)
+
 
 target:
 	$(CXX_COMPILE) -o toySQL   $(CXXFLAGS) \
