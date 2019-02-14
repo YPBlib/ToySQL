@@ -6,7 +6,7 @@ CXX      = g++
 CC       = gcc
 
 SRCDIR = $HOME/opt/ToySQL
-CATA= catalog/cata.o
+CATA= cata.o
 
 
 examples = toySQL
