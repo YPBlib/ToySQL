@@ -6,7 +6,8 @@ CXX      = g++
 CC       = gcc
 
 SRCDIR = $HOME/opt/ToySQL
-CATA= cata.o
+CATA = cata.o
+BUFFER = buffer.o
 
 
 examples = toySQL
@@ -16,10 +17,12 @@ CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
 
 all: $(examples)
 
-toySQL: cata
-	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) Interpreter/main.cpp
+toySQL: cata buffer
+	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
 cata:
-	$(CXX_COMPILE) -c -o cata.o $(CXXFLAGS) catalog/catalog.cpp
+	$(CXX_COMPILE) -c -o $(CATA) $(CXXFLAGS) catalog/catalog.cpp
+buffer:
+	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) buffer/buffer.cpp
 
 clean:
 	-rm -f $(examples).o $(examples)
