@@ -23,11 +23,11 @@ toySQL: cata buffer recorder
 	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) $(BUFFER) $(RECORDER)
 	Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
 cata:
-	$(CXX_COMPILE) -c -o $(CATA) $(CXXFLAGS) Catalog/catalog.cpp Interpreter/common.cpp
+	$(CXX_COMPILE)  -o $(CATA)  $(CXXFLAGS) Catalog/catalog.cpp Interpreter/common.cpp
 buffer:
-	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) Buffer/buffer.cpp Interpreter/common.cpp
+	$(CXX_COMPILE) -o $(BUFFER)  $(CXXFLAGS) Buffer/buffer.cpp Interpreter/common.cpp
 recorder:
-	$(CXX_COMPILE)  -c -o $(RECORDER) $(CXXFLAGS) Recorder/recorder.cpp Interpreter/common.cpp
+	$(CXX_COMPILE)   -o $(RECORDER)  $(CXXFLAGS) Recorder/recorder.cpp Interpreter/common.cpp
 
 clean:
 	-rm -f $(dep).o
