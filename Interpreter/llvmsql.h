@@ -1,7 +1,7 @@
 #pragma once
 #ifndef llvmsql_h
 #define llvmsql_h
-#include"..\env\envir.h"
+#include"common.h"
 #define LL_LRLen 6
 #define BLOCK_8k 8192
 #define BLOCK_4k 4096
