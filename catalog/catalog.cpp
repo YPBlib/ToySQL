@@ -1,5 +1,4 @@
 #include "catalog.h"
-#include "parser.h"
 #include <iostream>
 using toysql::path;
 using std::endl;
