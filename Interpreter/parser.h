@@ -1,6 +1,6 @@
 #pragma once
-#ifndef toysql_h
-#define toysql_h
+#ifndef toysql_parser
+#define toysql_parser
 #include "common.h"
 #define LL_LRLen 6
 #define BLOCK_8k 8192

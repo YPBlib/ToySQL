@@ -2,8 +2,6 @@
 #ifndef toysql_catalog
 #define toysql_catalog
 #include "../Interpreter/parser.h"
-#include <fstream>
-using std::vector;
 
 void loadcata();
 void make_cata(std::shared_ptr<CreateTableSimpleAST> T);
