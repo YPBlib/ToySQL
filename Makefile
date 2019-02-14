@@ -10,7 +10,6 @@ CATA = cata.o
 BUFFER = buffer.o
 RECORDER = recorder.o
 
-
 examples = toySQL
 dep = cata buffer recorder
 
