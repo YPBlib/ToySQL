@@ -2,10 +2,10 @@
 #include<numeric>
 #include<functional>
 char** buff;
-// 0表示这块block处于空闲
+
 vector<block<>> BufferManager;
 
-// 初始化整个缓冲区
+
 void initbuff()
 {
 	buff = new char*[page_num];
@@ -30,7 +30,7 @@ void ReplacePage(int needy, bool(*f)(const block<>&,const block<>&))
 	}
 }
 
-// 获取1个表的全部数据字节数, 和单条record的字节数
+
 std::pair<int,int> counttablebyte(const string& tbname)
 {
 	string tb_log= catalog::cata_path + std::to_string(catalog::catamap[tbname]) + ".log";
@@ -43,7 +43,7 @@ std::pair<int,int> counttablebyte(const string& tbname)
 	return std::make_pair(record_num*record_size, record_size);
 }
 
-// 根据一个表名从文件写到block  // 注意脏位
+// 锟斤拷锟斤拷一锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷写锟斤拷block  // 注锟斤拷锟斤拷位
 vector<int> blockgen(const string& tbname)
 {
 	auto tbsizeinfo = counttablebyte(tbname);
@@ -62,7 +62,7 @@ vector<int> blockgen(const string& tbname)
 	{
 		ReplacePage(blknum - sum, [](const block<>& a, const block<>& b) {return a.getfreq() < b.getfreq(); });
 	}
-	// 恢复原顺序
+	// 锟街革拷原顺锟斤拷
 	std::sort(BufferManager.begin(), BufferManager.end(),
 		[](const block<>& a, const block<>& b) {return a.series < b.series; });
 	vector<int> result;
@@ -87,7 +87,7 @@ vector<int> blockgen(const string& tbname)
 		dist += BufferManager[i].recordnum*BufferManager[i].bytes;
 		recordnum -= records_pre_blk;
 		BufferManager[i].updatefreq();
-		// 这一步很可能不够8k
+		// 锟斤拷一锟斤拷锟杰匡拷锟杰诧拷锟斤拷8k
 		fread(buff[i], sizeof(unsigned char), dist, r);
 	}
 	fclose(r);
