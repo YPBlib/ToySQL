@@ -2,6 +2,7 @@
 #ifndef toysql_catalog
 #define toysql_catalog
 #include "../Interpreter/common.h"
+#include "../Interpreter/parser.h"
 using std::vector;
 
 void loadcata();
