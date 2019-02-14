@@ -129,7 +129,7 @@ void make_cata(std::shared_ptr<CreateTableSimpleAST> T)
 		bytes += getbyte(j.coltype)*(int)j.N;
 	}
 	if (bytes > BLOCK_8k)
-		throw runtime_error("Error �� one single record > 8K\n");
+		throw runtime_error("Error one single record > 8K\n");
 	// update catamap
 	int x = catalog::catamap.size() ;
 	catalog::catamap.insert({ tbname, x });
@@ -139,9 +139,9 @@ void make_cata(std::shared_ptr<CreateTableSimpleAST> T)
 	sqltb.primcols = primcols;
 	sqltb.uniccols = uniccols;
 	catalog::tablebase.push_back(sqltb);
-	// ���� #.log
+	//  #.log
 	int un = catalog::catamap[tbname];
-	string cata_file = catalog::cata_path +std::to_string(un) + ".log";	
+	std::string cata_file = catalog::cata_path +std::to_string(un) + ".log";	
 	std::ofstream w(cata_file);
 	w << tbname << std::endl;
 	w << col_num << std::endl;
@@ -153,18 +153,18 @@ void make_cata(std::shared_ptr<CreateTableSimpleAST> T)
 			<< "  " << (i.isprim ? 1 : 0) << "  " << (i.isunic ? 1 : 0) << "  " << (i.isnull ? 1 : 0) << std::endl;
 	}
 	w.close();
-	// д�� map.log
+	// map.log
 	string maplog = catalog::cata_path + "map.log";
 	ofstream fsmap(maplog, ofstream::app );
 	fsmap << tbname << "  " << catalog::catamap.size() << std::endl;
 	fsmap.close();
-	// д�� num.log
+	// num.log
 	string numlog = catalog::cata_path + "num.log";
 	ofstream fsnum(numlog);
 	fsnum << catalog::catamap.size() << endl;
 	fsnum.close();
-	// ����һ���µ� #.db	(��"wb"�򿪹رռ���)
-	string dbfile=minisql::record_path+ std::to_string(un) + ".db";
+	// #.db	"wb"
+	string dbfile=toysql::record_path+ std::to_string(un) + ".db";
 	FILE* www = fopen(dbfile.c_str(), "wb");
 	fclose(www);
 }

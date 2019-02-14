@@ -1,8 +1,8 @@
 #pragma once
 #ifndef toysql_catalog
 #define toysql_catalog
-#include "../Interpreter/common.h"
 #include "../Interpreter/parser.h"
+#include <fstream>
 using std::vector;
 
 void loadcata();

@@ -1,3 +1,7 @@
+#pragma once
+#ifndef toysql_catalog
+#define toysql_catalog
+
 #include <utility>
 #include <memory>
 #include <vector>
@@ -15,3 +19,5 @@ namespace toysql
 {
     std::string path;
 }
+
+#endif
