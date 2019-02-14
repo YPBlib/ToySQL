@@ -20,7 +20,7 @@ all: $(examples)
 toySQL: cata buffer
 	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
 cata:
-	$(CXX_COMPILE) -c -o $(CATA) $(CXXFLAGS) catalog/catalog.cpp
+	$(CXX_COMPILE) -c -o $(CATA) $(CXXFLAGS) Catalog/catalog.cpp
 buffer:
 	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) Buffer/buffer.cpp
 
