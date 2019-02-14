@@ -22,7 +22,7 @@ toySQL: cata buffer
 cata:
 	$(CXX_COMPILE) -c -o $(CATA) $(CXXFLAGS) catalog/catalog.cpp
 buffer:
-	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) buffer/buffer.cpp
+	$(CXX_COMPILE) -c -o $(BUFFER) $(CXXFLAGS) Buffer/buffer.cpp
 
 clean:
 	-rm -f $(examples).o $(examples)
