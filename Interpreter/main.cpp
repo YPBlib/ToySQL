@@ -1,5 +1,4 @@
 #include "parser.h"
-#include<iostream>
 int main()
 {
 	init_cata(); 
@@ -7,14 +6,12 @@ int main()
 	init_scanner();
 	init_parser();
 	
-	int qwexqy = 0;
-	qwexqy++;
-	while (qwexqy)
+
+	while (1)
 	{
 		try
 		{
 			auto z = ParseStatementAST();
-			qwexqy++;
 			if (z == nullptr)
 				break;
 		}
@@ -24,6 +21,5 @@ int main()
 			skip_exp();
 		}
 	}
-	int ty = qwexqy;
 	return 0;
 }

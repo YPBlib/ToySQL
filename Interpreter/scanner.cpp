@@ -777,7 +777,7 @@ void skip_exp()
 	{
 		if (scanner_status != blank)
 		{
-			fprintf(stderr, "scanner_status is not blank��but you simply call gettok() \n");
+			fprintf(stderr, "scanner_status is not blank but you simply call gettok() \n");
 		}
 
 		// handle EOF case
