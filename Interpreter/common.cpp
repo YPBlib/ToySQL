@@ -7,7 +7,8 @@ namespace toysql
 
 namespace toysql
 {
-    void exec(std::shared_ptr<StatementAST> ast)
+    template <typename T>
+    void exec(T ast)
     {
         cout<<"pass"<<endl;
     }
