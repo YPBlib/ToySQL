@@ -1,21 +1,22 @@
 #include "parser.h"
 int main()
 {
+	setvbuf(stdout,NULL,_IONBF,0);
+
 	init_cata(); 
 	initbuff();
-	//init_scanner();
-	//init_parser();
-	
-	setvbuf(stdout,NULL,_IONBF,0);
+	init_scanner();
+	init_parser();
 
 	while (1)
 	{
 		try
 		{
 			auto z = ParseStatementAST();
-			toysql::exec<decltype(z)>(z);
 			if (z == nullptr)
 				break;
+			else toysql::exec<decltype(z)>(z);
+			
 		}
 		catch (std::runtime_error& s)
 		{

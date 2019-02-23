@@ -8,10 +8,6 @@ namespace toysql
 
 namespace toysql
 {
-    template <typename T>
-    void exec(T ast)
-    {
-        std::cout<<"pass"<<std::endl;
-    }
+    ;
     
 } // toysql

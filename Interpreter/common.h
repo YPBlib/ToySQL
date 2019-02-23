@@ -19,8 +19,12 @@
 namespace toysql
 {
     extern std::string record_path;
+    
     template <typename T>
-    void exec(T ast);
+    void exec(T ast)
+    {
+        std::cout<<"pass"<<std::endl;
+    }
 }
 
 #endif

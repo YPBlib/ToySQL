@@ -16,10 +16,11 @@ dep = cata buffer recorder
 CC_COMPILE = $(CC) $(CFLAGS) $(INCLUDES)
 CXX_COMPILE = $(CXX) $(CFLAGS) $(INCLUDES)
 
-target:
+target: 
 	$(CXX_COMPILE) -o toySQL   $(CXXFLAGS) \
 	Buffer/buffer.cpp Catalog/catalog.cpp Recorder/recorder.cpp Interpreter/common.cpp \
 	Interpreter/scanner.cpp Interpreter/parser.cpp Interpreter/main.cpp
+
 
 toySQL: cata buffer recorder
 	$(CXX_COMPILE) -o toySQL  $(CXXFLAGS) $(CATA) $(BUFFER) $(RECORDER)
