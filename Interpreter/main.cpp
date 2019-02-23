@@ -3,15 +3,17 @@ int main()
 {
 	init_cata(); 
 	initbuff();
-	init_scanner();
-	init_parser();
+	//init_scanner();
+	//init_parser();
 	
+	setvbuf(stdout,NULL,_IONBF,0);
 
 	while (1)
 	{
 		try
 		{
 			auto z = ParseStatementAST();
+			toysql::exec(z);
 			if (z == nullptr)
 				break;
 		}

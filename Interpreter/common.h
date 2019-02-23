@@ -2,7 +2,7 @@
 #ifndef toysql_common
 #define toysql_common
 
-
+#include <unistd.h>
 #include <cstdlib>
 #include <algorithm>
 #include <map>
@@ -19,6 +19,7 @@
 namespace toysql
 {
     extern std::string record_path;
+    void exec(std::shared_ptr<StatementAST> ast);
 }
 
 #endif
