@@ -2,6 +2,7 @@
 
 #define LookAheadLen 6
 #define bufsize 4096;
+char* LookAhead;
 // singleton
 
 class Scanbuf
@@ -112,6 +113,7 @@ void init_scanner()
 {
     setvbuf(stdout,NULL,_IONBF,0);
     setvbuf(stdin,NULL,_IOLBF,0);
+	LookAhead=Scanbuf::getScanbuf().psptr;
 
     // below can be done at compile time
     reserved_map.insert(std::map<std::string, int>::value_type("ACCESSIBLE", -1));
@@ -765,10 +767,6 @@ void scroll_Char()
 		if(ptr==Scanbuf::getScanbuf().buf_1+8191)ptr-=8191;
 	    ptr++;
 	}
-	
-
-
-    
 }
 
 extern int delimiter;
