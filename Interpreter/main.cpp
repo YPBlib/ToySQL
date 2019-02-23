@@ -13,7 +13,7 @@ int main()
 		try
 		{
 			auto z = ParseStatementAST();
-			toysql::exec(z);
+			toysql::exec<decltype(z)>(z);
 			if (z == nullptr)
 				break;
 		}
