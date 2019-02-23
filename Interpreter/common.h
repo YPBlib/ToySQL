@@ -19,7 +19,8 @@
 namespace toysql
 {
     extern std::string record_path;
-    void exec(std::shared_ptr<StatementAST> ast);
+    template <typename T>
+    void exec(T ast);
 }
 
 #endif
