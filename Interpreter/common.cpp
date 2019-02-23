@@ -1,4 +1,5 @@
 #include "common.h"
+#include "parser.h"
 
 namespace toysql
 {
