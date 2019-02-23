@@ -11,7 +11,7 @@ namespace toysql
     template <typename T>
     void exec(T ast)
     {
-        cout<<"pass"<<endl;
+        std::cout<<"pass"<<std::endl;
     }
     
 } // toysql
