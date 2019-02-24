@@ -1,7 +1,7 @@
 #include "parser.h"
 
 #define LookAheadLen 6
-#define BUFSIZE 4096;
+#define BUFSIZE 4096
 char* LookAhead;
 // singleton
 
@@ -10,7 +10,7 @@ class Scanbuf
     Scanbuf()=default;
 	Scanbuf(const Scanbuf&)=delete;
 	const Scanbuf& operator=(const Scanbuf&)=delete;
-    ~Scanbuf()=default；
+    ~Scanbuf()=default;
 public:
     char buf_1[BUFSIZE]={0};
 	char* buf_2=buf_1+4096;
@@ -781,8 +781,8 @@ void scroll_Char()
 	}
 	else
 	{
-		if(ptr==Scanbuf::getScanbuf().buf_1+8191)ptr-=8191;
-	    else ptr++;
+		if(psptr==Scanbuf::getScanbuf().buf_1+8191)psptr-=8191;
+	    else psptr++;
 	}
 }
 

@@ -14,6 +14,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <cstdio>
 
 namespace toysql
