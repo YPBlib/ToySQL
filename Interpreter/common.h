@@ -2,7 +2,9 @@
 #ifndef toysql_common
 #define toysql_common
 
+#ifdef __linux__
 #include <unistd.h>
+#endif
 #include <cstdlib>
 #include <algorithm>
 #include <map>
