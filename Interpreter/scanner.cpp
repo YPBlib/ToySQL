@@ -1,7 +1,7 @@
 #include "parser.h"
 
 #define LookAheadLen 6
-#define bufsize 4096;
+#define BUFSIZE 4096;
 char* LookAhead;
 // singleton
 
@@ -12,7 +12,7 @@ class Scanbuf
 	const Scanbuf& operator=(const Scanbuf&)=delete;
     ~Scanbuf()=default；
 public:
-    char buf_1[bufsize]={0};
+    char buf_1[BUFSIZE]={0};
 	char* buf_2=buf_1+4096;
 	char* rdptr;
 	char* psptr;
@@ -24,6 +24,8 @@ Scanbuf& Scanbuf::getScanbuf()
 	static Scanbuf instance;
 	return instance;
 }
+
+
 
 std::string string_literal;
 int int_literal = 0;
@@ -747,6 +749,17 @@ void init_scanner()
     reserved_map.insert(std::map<std::string, int>::value_type("ZEROFILL", -628));
 }
 
+/*
+    toySQL charset only supports
+    ascii 0x0('\0'),0x9('\t'),0xa('\n'),0xd('\r') and 0x20~0x7e(printable)
+    and EOF
+*/
+
+bool IsCharset(char c)
+{
+    return c==EOF || c==0 || c=='\t' || c=='\n' || c=='\r' || (c>=0x20 && c<= 0x7e);
+}
+
 bool isidchar(int c)
 {
     return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
@@ -758,14 +771,18 @@ void scroll_Char()
 	auto& rdptr=Scanbuf::getScanbuf().rdptr;
 	if(*psptr==0)
 	{
-		if(psptr==rdptr)fgets(rdptr,4096,stdin);
-		else throw std::runtime_error("psptr[0]==0 while psptr!=rdptr");
+        memset(rdptr,0,sizeof(char)*BUFSIZE);
+		fgets(rdptr,4096,stdin);
+        if(fgets==nullptr)
+        {
+            throw std::runtime_error(std::to_string(__LINE__)+"line get EOF");
+        }
+        psptr=rdptr;
 	}
 	else
 	{
-		ptr[0]=0;
 		if(ptr==Scanbuf::getScanbuf().buf_1+8191)ptr-=8191;
-	    ptr++;
+	    else ptr++;
 	}
 }
 
@@ -781,8 +798,7 @@ int deli2char(int deli)
 void skip_exp()
 {
     memset(LookAhead,0,sizeof(LookAhead));
-    scroll_Char(LookAhead);
-    init_parser();
+    //
 }
 
 class scan_error :public std::runtime_error
@@ -827,13 +843,13 @@ token gettok()
     // Skip any whitespace.
     while (isspace(LookAhead[0]))
     {
-        scroll_Char(LookAhead);
+        scroll_Char();
     }
     if (LookAhead[0] == '#')
     {
         scanner_status = comment;
         do
-            scroll_Char(LookAhead);
+            scroll_Char();
         while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
         scanner_status = blank;
     }
@@ -842,7 +858,7 @@ token gettok()
     {
         scanner_status = comment;
         do
-            scroll_Char(LookAhead);
+            scroll_Char();
         while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
         scanner_status = blank;
     }
@@ -850,15 +866,15 @@ token gettok()
     if (LookAhead[0] == '/'&& LookAhead[1] == '*')
     {
         scanner_status = comment;
-        scroll_Char(LookAhead); scroll_Char(LookAhead);
+        scroll_Char(); scroll_Char();
         while (!(LookAhead[0] == '*' && LookAhead[1] == '/'))
         {
-            scroll_Char(LookAhead);
+            scroll_Char();
             if (LookAhead[0] == EOF)
                 throw comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
         }
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         scanner_status = blank;
     }
 
@@ -866,14 +882,14 @@ token gettok()
     {
         scanner_status = literal_string;
         auto match_char = LookAhead[0];
-        scroll_Char(LookAhead);
+        scroll_Char();
         string_literal.clear();
         while (1)
         {
             if (LookAhead[0] != match_char && LookAhead[0] != '\\')
             {
                 string_literal += static_cast<char>(LookAhead[0]);
-                scroll_Char(LookAhead);
+                scroll_Char();
                 continue;
             }
 
@@ -882,58 +898,58 @@ token gettok()
                 if (LookAhead[1] == '0')
                 {
                     string_literal += '\0';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == '\'')
                 {
                     string_literal += '\'';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == '"')
                 {
                     string_literal += '"';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == 'b')
                 {
                     string_literal += '\b';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == 'n')
                 {
                     string_literal += '\n';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == 'r')
                 {
                     string_literal += '\r';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
                 if (LookAhead[1] == 't')
                 {
                     string_literal += '\t';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
 
                 if (LookAhead[1] == '\\')
                 {
                     string_literal += '\\';
-                    scroll_Char(LookAhead);
-                    scroll_Char(LookAhead);
+                    scroll_Char();
+                    scroll_Char();
                     continue;
                 }
 
@@ -943,8 +959,8 @@ token gettok()
             if (LookAhead[0] == match_char&&LookAhead[1] == match_char)
             {
                 string_literal += (match_char == '"' ? '"' : '\'');
-                scroll_Char(LookAhead);
-                scroll_Char(LookAhead);
+                scroll_Char();
+                scroll_Char();
                 continue;
             }
 
@@ -954,7 +970,7 @@ token gettok()
                 auto t = token();
                 t.token_kind = literal_string;
                 t.token_value = string_value(string_literal);
-                scroll_Char(LookAhead);
+                scroll_Char();
                 scanner_status = blank;
                 return t;
             }
@@ -972,10 +988,10 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = int_value(1);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -987,11 +1003,11 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = int_value(0);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1001,7 +1017,7 @@ token gettok()
         std::string numeric_str;
         std::regex numeric_regex(R"zjulabregex((([0-9]*\.[0-9]+)|[0-9]+\.?)(e[+-]?[0-9]+)?)zjulabregex");
         numeric_str += static_cast<char>(LookAhead[0]);
-        scroll_Char(LookAhead);
+        scroll_Char();
         while (
             std::regex_match(numeric_str + static_cast<char>(LookAhead[0]), numeric_regex)||
             std::regex_match(numeric_str + static_cast<char>(LookAhead[0])+static_cast<char>(LookAhead[1]), numeric_regex)||
@@ -1009,7 +1025,7 @@ token gettok()
             )
         {
             numeric_str += static_cast<char>(LookAhead[0]);
-            scroll_Char(LookAhead);
+            scroll_Char();
         }
         if ((numeric_str.find('e') == std::string::npos) && (numeric_str.find('.') == std::string::npos));
         else scanner_status = literal_double;
@@ -1039,9 +1055,9 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(lteqgt_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1052,8 +1068,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(left_shift_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1064,8 +1080,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(right_shift_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1076,8 +1092,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(gteq_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1088,8 +1104,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(lteq_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1100,8 +1116,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(ltgt_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1112,8 +1128,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(noteq_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1124,8 +1140,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(andand_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1136,8 +1152,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(oror_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1148,8 +1164,8 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(assign_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
-        scroll_Char(LookAhead);
+        scroll_Char();
+        scroll_Char();
         return t;
     }
 
@@ -1160,7 +1176,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(not_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1171,7 +1187,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(minus_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1182,7 +1198,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(tilde_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1193,7 +1209,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(hat_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1204,7 +1220,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(mult_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1215,7 +1231,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(div_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1226,7 +1242,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(mod_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1237,7 +1253,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(plus_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1248,7 +1264,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(and_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1259,7 +1275,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(or_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1270,7 +1286,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(eq_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1281,7 +1297,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(gt_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1292,7 +1308,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(lt_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1303,7 +1319,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(number_sign_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1314,7 +1330,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(at_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1325,7 +1341,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(dollar_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1336,7 +1352,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(comma_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1347,7 +1363,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(left_bracket_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1358,7 +1374,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(right_bracket_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1369,7 +1385,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(left_square_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1380,7 +1396,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(right_square_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1391,7 +1407,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(left_curly_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1402,7 +1418,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(right_curly_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1413,7 +1429,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(dot_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1424,7 +1440,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(semicolon_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1435,7 +1451,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(qusetion_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1446,7 +1462,7 @@ token gettok()
         t.token_kind = scanner_status;
         t.token_value = reserved_value(backquote_mark);
         scanner_status = blank;
-        scroll_Char(LookAhead);
+        scroll_Char();
         return t;
     }
 
@@ -1454,7 +1470,7 @@ token gettok()
     do
     {
         IdentifierStr += LookAhead[0];
-        scroll_Char(LookAhead);
+        scroll_Char();
     } while (isidchar(LookAhead[0]));
     auto t = token();
     std::string idstr(IdentifierStr);
