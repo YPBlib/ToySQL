@@ -10,7 +10,7 @@
 #include"llvmsql.h"
 
 #define LookAheadLen 6
-int LookAhead[LookAheadLen] = { ' ',' ',' ',' ',' ',' ' };
+char* LookAhead;
 
 std::string string_literal; // ' ""
 int int_literal = 0;    // int
@@ -27,69 +27,71 @@ token curtoken;
 ///  scan_utils begin
 
 std::vector<std::string> reserved_dict
-{ "ACCESSIBLE","ACCOUNT","ACTION","ADD","AFTER","AGAINST","AGGREGATE","ALGORITHM","ALL","ALTER",
-"ALWAYS","ANALYSE","ANALYZE","AND","ANY","AS","ASC","ASCII","ASENSITIVE","AT",
-"AUTOEXTEND_SIZE","AUTO_INCREMENT","AVG","AVG_ROW_LENGTH","BACKUP","BDB","BEFORE","BEGIN","BERKELEYDB","BETWEEN",
-"BIGINT","BINARY","BINLOG","BIT","BLOB","BLOCK","BOOL","BOOLEAN","BOTH","BTREE",
-"BY","BYTE","CACHE","CALL","CASCADE","CASCADED","CASE","CATALOG_NAME","CHAIN","CHANGE",
-"CHANGED","CHANNEL","CHAR","CHARACTER","CHARSET","CHECK","CHECKSUM","CIPHER","CLASS_ORIGIN","CLIENT",
-"CLOSE","COALESCE","CODE","COLLATE","COLLATION","COLUMN","COLUMNS","COLUMN_FORMAT","COLUMN_NAME","COMMENT",
-"COMMIT","COMMITTED","COMPACT","COMPLETION","COMPRESSED","COMPRESSION","CONCURRENT","CONDITION","CONNECTION","CONSISTENT",
-"CONSTRAINT","CONSTRAINT_CATALOG","CONSTRAINT_NAME","CONSTRAINT_SCHEMA","CONTAINS","CONTEXT","CONTINUE","CONVERT","CPU","CREATE",
-"CROSS","CUBE","CURRENT","CURRENT_DATE","CURRENT_TIME","CURRENT_TIMESTAMP","CURRENT_USER","CURSOR","CURSOR_NAME","DATA",
-"DATABASE","DATABASES","DATAFILE","DATE","DATETIME","DAY","DAY_HOUR","DAY_MICROSECOND","DAY_MINUTE","DAY_SECOND",
-"DEALLOCATE","DEC","DECIMAL","DECLARE","DEFAULT","DEFAULT_AUTH","DEFINER","DELAYED","DELAY_KEY_WRITE","DELETE",
-"DESC","DESCRIBE","DES_KEY_FILE","DETERMINISTIC","DIAGNOSTICS","DIRECTORY","DISABLE","DISCARD","DISK","DISTINCT",
-"DISTINCTROW","DIV","DO","DOUBLE","DROP","DUAL","DUMPFILE","DUPLICATE","DYNAMIC","EACH",
-"ELSE","ELSEIF","ENABLE","ENCLOSED","ENCRYPTION","END","ENDS","ENGINE","ENGINES","ENUM",
-"ERROR","ERRORS","ESCAPE","ESCAPED","EVENT","EVENTS","EVERY","EXCHANGE","EXECUTE","EXISTS",
-"EXIT","EXPANSION","EXPIRE","EXPLAIN","EXPORT","EXTENDED","EXTENT_SIZE","FALSE","FAST","FAULTS",
-"FETCH","FIELDS","FILE","FILE_BLOCK_SIZE","FILTER","FIRST","FIXED","FLOAT","FLOAT4","FLOAT8",
-"FLUSH","FOLLOWS","FOR","FORCE","FOREIGN","FORMAT","FOUND","FRAC_SECOND","FROM","FULL",
-"FULLTEXT","FUNCTION","GENERAL","GENERATED","GEOMETRY","GEOMETRYCOLLECTION","GET","GET_FORMAT","GLOBAL","GRANT",
-"GRANTS","GROUP","GROUP_REPLICATION","HANDLER","HASH","HAVING","HELP","HIGH_PRIORITY","HOST","HOSTS",
-"HOUR","HOUR_MICROSECOND","HOUR_MINUTE","HOUR_SECOND","IDENTIFIED","IF","IGNORE","IGNORE_SERVER_IDS","IMPORT","IN",
-"INDEX","INDEXES","INFILE","INITIAL_SIZE","INNER","INNODB","INOUT","INSENSITIVE","INSERT","INSERT_METHOD",
-"INSTALL","INSTANCE","INT","INT1","INT2","INT3","INT4","INT8","INTEGER","INTERVAL",
-"INTO","INVOKER","IO","IO_AFTER_GTIDS","IO_BEFORE_GTIDS","IO_THREAD","IPC","IS","ISOLATION","ISSUER",
-"ITERATE","JOIN","JSON","KEY","KEYS","KEY_BLOCK_SIZE","KILL","LANGUAGE","LAST","LEADING",
-"LEAVE","LEAVES","LEFT","LESS","LEVEL","LIKE","LIMIT","LINEAR","LINES","LINESTRING",
-"LIST","LOAD","LOCAL","LOCALTIME","LOCALTIMESTAMP","LOCK","LOCKS","LOGFILE","LOGS","LONG",
-"LONGBLOB","LONGTEXT","LOOP","LOW_PRIORITY","MASTER","MASTER_AUTO_POSITION","MASTER_BIND","MASTER_CONNECT_RETRY","MASTER_DELAY","MASTER_HEARTBEAT_PERIOD",
-"MASTER_HOST","MASTER_LOG_FILE","MASTER_LOG_POS","MASTER_PASSWORD","MASTER_PORT","MASTER_RETRY_COUNT","MASTER_SERVER_ID","MASTER_SSL","MASTER_SSL_CA","MASTER_SSL_CAPATH",
-"MASTER_SSL_CERT","MASTER_SSL_CIPHER","MASTER_SSL_CRL","MASTER_SSL_CRLPATH","MASTER_SSL_KEY","MASTER_SSL_VERIFY_SERVER_CERT","MASTER_TLS_VERSION","MASTER_USER","MATCH","MAXVALUE",
-"MAX_CONNECTIONS_PER_HOUR","MAX_QUERIES_PER_HOUR","MAX_ROWS","MAX_SIZE","MAX_STATEMENT_TIME","MAX_UPDATES_PER_HOUR","MAX_USER_CONNECTIONS","MEDIUM","MEDIUMBLOB","MEDIUMINT",
-"MEDIUMTEXT","MEMORY","MERGE","MESSAGE_TEXT","MICROSECOND","MIDDLEINT","MIGRATE","MINUTE","MINUTE_MICROSECOND","MINUTE_SECOND",
-"MIN_ROWS","MOD","MODE","MODIFIES","MODIFY","MONTH","MULTILINESTRING","MULTIPOINT","MULTIPOLYGON","MUTEX",
-"MYSQL_ERRNO","NAME","NAMES","NATIONAL","NATURAL","NCHAR","NDB","NDBCLUSTER","NEVER","NEW",
-"NEXT","NO","NODEGROUP","NONBLOCKING","NONE","NOT","NO_WAIT","NO_WRITE_TO_BINLOG","NULL","NUMBER",
-"NUMERIC","NVARCHAR","OFFSET","OLD_PASSWORD","ON","ONE","ONLY","OPEN","OPTIMIZE","OPTIMIZER_COSTS",
-"OPTION","OPTIONALLY","OPTIONS","OR","ORDER","OUT","OUTER","OUTFILE","OWNER","PACK_KEYS",
-"PAGE","PARSER","PARSE_GCOL_EXPR","PARTIAL","PARTITION","PARTITIONING","PARTITIONS","PASSWORD","PHASE","PLUGIN",
-"PLUGINS","PLUGIN_DIR","POINT","POLYGON","PORT","PRECEDES","PRECISION","PREPARE","PRESERVE","PREV",
-"PRIMARY","PRIVILEGES","PROCEDURE","PROCESSLIST","PROFILE","PROFILES","PROXY","PURGE","QUARTER","QUERY",
-"QUICK","RANGE","READ","READS","READ_ONLY","READ_WRITE","REAL","REBUILD","RECOVER","REDOFILE",
-"REDO_BUFFER_SIZE","REDUNDANT","REFERENCES","REGEXP","RELAY","RELAYLOG","RELAY_LOG_FILE","RELAY_LOG_POS","RELAY_THREAD","RELEASE",
-"RELOAD","REMOVE","RENAME","REORGANIZE","REPAIR","REPEAT","REPEATABLE","REPLACE","REPLICATE_DO_DB","REPLICATE_DO_TABLE",
-"REPLICATE_IGNORE_DB","REPLICATE_IGNORE_TABLE","REPLICATE_REWRITE_DB","REPLICATE_WILD_DO_TABLE","REPLICATE_WILD_IGNORE_TABLE","REPLICATION","REQUIRE","RESET","RESIGNAL","RESTORE",
-"RESTRICT","RESUME","RETURN","RETURNED_SQLSTATE","RETURNS","REVERSE","REVOKE","RIGHT","RLIKE","ROLLBACK",
-"ROLLUP","ROTATE","ROUTINE","ROW","ROWS","ROW_COUNT","ROW_FORMAT","RTREE","SAVEPOINT","SCHEDULE",
-"SCHEMA","SCHEMAS","SCHEMA_NAME","SECOND","SECOND_MICROSECOND","SECURITY","SELECT","SENSITIVE","SEPARATOR","SERIAL",
-"SERIALIZABLE","SERVER","SESSION","SET","SHARE","SHOW","SHUTDOWN","SIGNAL","SIGNED","SIMPLE",
-"SLAVE","SLOW","SMALLINT","SNAPSHOT","SOCKET","SOME","SONAME","SOUNDS","SOURCE","SPATIAL",
-"SPECIFIC","SQL","SQLEXCEPTION","SQLSTATE","SQLWARNING","SQL_AFTER_GTIDS","SQL_AFTER_MTS_GAPS","SQL_BEFORE_GTIDS","SQL_BIG_RESULT","SQL_BUFFER_RESULT",
-"SQL_CACHE","SQL_CALC_FOUND_ROWS","SQL_NO_CACHE","SQL_SMALL_RESULT","SQL_THREAD","SQL_TSI_DAY","SQL_TSI_FRAC_SECOND","SQL_TSI_HOUR","SQL_TSI_MINUTE","SQL_TSI_MONTH",
-"SQL_TSI_QUARTER","SQL_TSI_SECOND","SQL_TSI_WEEK","SQL_TSI_YEAR","SSL","STACKED","START","STARTING","STARTS","STATS_AUTO_RECALC",
-"STATS_PERSISTENT","STATS_SAMPLE_PAGES","STATUS","STOP","STORAGE","STORED","STRAIGHT_JOIN","STRING","STRIPED","SUBCLASS_ORIGIN",
-"SUBJECT","SUBPARTITION","SUBPARTITIONS","SUPER","SUSPEND","SWAPS","SWITCHES","TABLE","TABLES","TABLESPACE",
-"TABLE_CHECKSUM","TABLE_NAME","TEMPORARY","TEMPTABLE","TERMINATED","TEXT","THAN","THEN","TIME","TIMESTAMP",
-"TIMESTAMPADD","TIMESTAMPDIFF","TINYBLOB","TINYINT","TINYTEXT","TO","TRAILING","TRANSACTION","TRIGGER","TRIGGERS",
-"TRUE","TRUNCATE","TYPE","TYPES","UNCOMMITTED","UNDEFINED","UNDO","UNDOFILE","UNDO_BUFFER_SIZE","UNICODE",
-"UNINSTALL","UNION","UNIQUE","UNKNOWN","UNLOCK","UNSIGNED","UNTIL","UPDATE","UPGRADE","USAGE",
-"USE","USER","USER_RESOURCES","USE_FRM","USING","UTC_DATE","UTC_TIME","UTC_TIMESTAMP","VALIDATION","VALUE",
-"VALUES","VARBINARY","VARCHAR","VARCHARACTER","VARIABLES","VARYING","VIEW","VIRTUAL","WAIT","WARNINGS",
-"WEEK","WEIGHT_STRING","WHEN","WHERE","WHILE","WITH","WITHOUT","WORK","WRAPPER","WRITE",
-"X509","XA","XID","XML","XOR","YEAR","YEAR_MONTH","ZEROFILL" };
+{ 
+	"ACCESSIBLE","ACCOUNT","ACTION","ADD","AFTER","AGAINST","AGGREGATE","ALGORITHM","ALL","ALTER",
+	"ALWAYS","ANALYSE","ANALYZE","AND","ANY","AS","ASC","ASCII","ASENSITIVE","AT",
+	"AUTOEXTEND_SIZE","AUTO_INCREMENT","AVG","AVG_ROW_LENGTH","BACKUP","BDB","BEFORE","BEGIN","BERKELEYDB","BETWEEN",
+	"BIGINT","BINARY","BINLOG","BIT","BLOB","BLOCK","BOOL","BOOLEAN","BOTH","BTREE",
+	"BY","BYTE","CACHE","CALL","CASCADE","CASCADED","CASE","CATALOG_NAME","CHAIN","CHANGE",
+	"CHANGED","CHANNEL","CHAR","CHARACTER","CHARSET","CHECK","CHECKSUM","CIPHER","CLASS_ORIGIN","CLIENT",
+	"CLOSE","COALESCE","CODE","COLLATE","COLLATION","COLUMN","COLUMNS","COLUMN_FORMAT","COLUMN_NAME","COMMENT",
+	"COMMIT","COMMITTED","COMPACT","COMPLETION","COMPRESSED","COMPRESSION","CONCURRENT","CONDITION","CONNECTION","CONSISTENT",
+	"CONSTRAINT","CONSTRAINT_CATALOG","CONSTRAINT_NAME","CONSTRAINT_SCHEMA","CONTAINS","CONTEXT","CONTINUE","CONVERT","CPU","CREATE",
+	"CROSS","CUBE","CURRENT","CURRENT_DATE","CURRENT_TIME","CURRENT_TIMESTAMP","CURRENT_USER","CURSOR","CURSOR_NAME","DATA",
+	"DATABASE","DATABASES","DATAFILE","DATE","DATETIME","DAY","DAY_HOUR","DAY_MICROSECOND","DAY_MINUTE","DAY_SECOND",
+	"DEALLOCATE","DEC","DECIMAL","DECLARE","DEFAULT","DEFAULT_AUTH","DEFINER","DELAYED","DELAY_KEY_WRITE","DELETE",
+	"DESC","DESCRIBE","DES_KEY_FILE","DETERMINISTIC","DIAGNOSTICS","DIRECTORY","DISABLE","DISCARD","DISK","DISTINCT",
+	"DISTINCTROW","DIV","DO","DOUBLE","DROP","DUAL","DUMPFILE","DUPLICATE","DYNAMIC","EACH",
+	"ELSE","ELSEIF","ENABLE","ENCLOSED","ENCRYPTION","END","ENDS","ENGINE","ENGINES","ENUM",
+	"ERROR","ERRORS","ESCAPE","ESCAPED","EVENT","EVENTS","EVERY","EXCHANGE","EXECUTE","EXISTS",
+	"EXIT","EXPANSION","EXPIRE","EXPLAIN","EXPORT","EXTENDED","EXTENT_SIZE","FALSE","FAST","FAULTS",
+	"FETCH","FIELDS","FILE","FILE_BLOCK_SIZE","FILTER","FIRST","FIXED","FLOAT","FLOAT4","FLOAT8",
+	"FLUSH","FOLLOWS","FOR","FORCE","FOREIGN","FORMAT","FOUND","FRAC_SECOND","FROM","FULL",
+	"FULLTEXT","FUNCTION","GENERAL","GENERATED","GEOMETRY","GEOMETRYCOLLECTION","GET","GET_FORMAT","GLOBAL","GRANT",
+	"GRANTS","GROUP","GROUP_REPLICATION","HANDLER","HASH","HAVING","HELP","HIGH_PRIORITY","HOST","HOSTS",
+	"HOUR","HOUR_MICROSECOND","HOUR_MINUTE","HOUR_SECOND","IDENTIFIED","IF","IGNORE","IGNORE_SERVER_IDS","IMPORT","IN",
+	"INDEX","INDEXES","INFILE","INITIAL_SIZE","INNER","INNODB","INOUT","INSENSITIVE","INSERT","INSERT_METHOD",
+	"INSTALL","INSTANCE","INT","INT1","INT2","INT3","INT4","INT8","INTEGER","INTERVAL",
+	"INTO","INVOKER","IO","IO_AFTER_GTIDS","IO_BEFORE_GTIDS","IO_THREAD","IPC","IS","ISOLATION","ISSUER",
+	"ITERATE","JOIN","JSON","KEY","KEYS","KEY_BLOCK_SIZE","KILL","LANGUAGE","LAST","LEADING",
+	"LEAVE","LEAVES","LEFT","LESS","LEVEL","LIKE","LIMIT","LINEAR","LINES","LINESTRING",
+	"LIST","LOAD","LOCAL","LOCALTIME","LOCALTIMESTAMP","LOCK","LOCKS","LOGFILE","LOGS","LONG",
+	"LONGBLOB","LONGTEXT","LOOP","LOW_PRIORITY","MASTER","MASTER_AUTO_POSITION","MASTER_BIND","MASTER_CONNECT_RETRY","MASTER_DELAY","MASTER_HEARTBEAT_PERIOD",
+	"MASTER_HOST","MASTER_LOG_FILE","MASTER_LOG_POS","MASTER_PASSWORD","MASTER_PORT","MASTER_RETRY_COUNT","MASTER_SERVER_ID","MASTER_SSL","MASTER_SSL_CA","MASTER_SSL_CAPATH",
+	"MASTER_SSL_CERT","MASTER_SSL_CIPHER","MASTER_SSL_CRL","MASTER_SSL_CRLPATH","MASTER_SSL_KEY","MASTER_SSL_VERIFY_SERVER_CERT","MASTER_TLS_VERSION","MASTER_USER","MATCH","MAXVALUE",
+	"MAX_CONNECTIONS_PER_HOUR","MAX_QUERIES_PER_HOUR","MAX_ROWS","MAX_SIZE","MAX_STATEMENT_TIME","MAX_UPDATES_PER_HOUR","MAX_USER_CONNECTIONS","MEDIUM","MEDIUMBLOB","MEDIUMINT",
+	"MEDIUMTEXT","MEMORY","MERGE","MESSAGE_TEXT","MICROSECOND","MIDDLEINT","MIGRATE","MINUTE","MINUTE_MICROSECOND","MINUTE_SECOND",
+	"MIN_ROWS","MOD","MODE","MODIFIES","MODIFY","MONTH","MULTILINESTRING","MULTIPOINT","MULTIPOLYGON","MUTEX",
+	"MYSQL_ERRNO","NAME","NAMES","NATIONAL","NATURAL","NCHAR","NDB","NDBCLUSTER","NEVER","NEW",
+	"NEXT","NO","NODEGROUP","NONBLOCKING","NONE","NOT","NO_WAIT","NO_WRITE_TO_BINLOG","NULL","NUMBER",
+	"NUMERIC","NVARCHAR","OFFSET","OLD_PASSWORD","ON","ONE","ONLY","OPEN","OPTIMIZE","OPTIMIZER_COSTS",
+	"OPTION","OPTIONALLY","OPTIONS","OR","ORDER","OUT","OUTER","OUTFILE","OWNER","PACK_KEYS",
+	"PAGE","PARSER","PARSE_GCOL_EXPR","PARTIAL","PARTITION","PARTITIONING","PARTITIONS","PASSWORD","PHASE","PLUGIN",
+	"PLUGINS","PLUGIN_DIR","POINT","POLYGON","PORT","PRECEDES","PRECISION","PREPARE","PRESERVE","PREV",
+	"PRIMARY","PRIVILEGES","PROCEDURE","PROCESSLIST","PROFILE","PROFILES","PROXY","PURGE","QUARTER","QUERY",
+	"QUICK","RANGE","READ","READS","READ_ONLY","READ_WRITE","REAL","REBUILD","RECOVER","REDOFILE",
+	"REDO_BUFFER_SIZE","REDUNDANT","REFERENCES","REGEXP","RELAY","RELAYLOG","RELAY_LOG_FILE","RELAY_LOG_POS","RELAY_THREAD","RELEASE",
+	"RELOAD","REMOVE","RENAME","REORGANIZE","REPAIR","REPEAT","REPEATABLE","REPLACE","REPLICATE_DO_DB","REPLICATE_DO_TABLE",
+	"REPLICATE_IGNORE_DB","REPLICATE_IGNORE_TABLE","REPLICATE_REWRITE_DB","REPLICATE_WILD_DO_TABLE","REPLICATE_WILD_IGNORE_TABLE","REPLICATION","REQUIRE","RESET","RESIGNAL","RESTORE",
+	"RESTRICT","RESUME","RETURN","RETURNED_SQLSTATE","RETURNS","REVERSE","REVOKE","RIGHT","RLIKE","ROLLBACK",
+	"ROLLUP","ROTATE","ROUTINE","ROW","ROWS","ROW_COUNT","ROW_FORMAT","RTREE","SAVEPOINT","SCHEDULE",
+	"SCHEMA","SCHEMAS","SCHEMA_NAME","SECOND","SECOND_MICROSECOND","SECURITY","SELECT","SENSITIVE","SEPARATOR","SERIAL",
+	"SERIALIZABLE","SERVER","SESSION","SET","SHARE","SHOW","SHUTDOWN","SIGNAL","SIGNED","SIMPLE",
+	"SLAVE","SLOW","SMALLINT","SNAPSHOT","SOCKET","SOME","SONAME","SOUNDS","SOURCE","SPATIAL",
+	"SPECIFIC","SQL","SQLEXCEPTION","SQLSTATE","SQLWARNING","SQL_AFTER_GTIDS","SQL_AFTER_MTS_GAPS","SQL_BEFORE_GTIDS","SQL_BIG_RESULT","SQL_BUFFER_RESULT",
+	"SQL_CACHE","SQL_CALC_FOUND_ROWS","SQL_NO_CACHE","SQL_SMALL_RESULT","SQL_THREAD","SQL_TSI_DAY","SQL_TSI_FRAC_SECOND","SQL_TSI_HOUR","SQL_TSI_MINUTE","SQL_TSI_MONTH",
+	"SQL_TSI_QUARTER","SQL_TSI_SECOND","SQL_TSI_WEEK","SQL_TSI_YEAR","SSL","STACKED","START","STARTING","STARTS","STATS_AUTO_RECALC",
+	"STATS_PERSISTENT","STATS_SAMPLE_PAGES","STATUS","STOP","STORAGE","STORED","STRAIGHT_JOIN","STRING","STRIPED","SUBCLASS_ORIGIN",
+	"SUBJECT","SUBPARTITION","SUBPARTITIONS","SUPER","SUSPEND","SWAPS","SWITCHES","TABLE","TABLES","TABLESPACE",
+	"TABLE_CHECKSUM","TABLE_NAME","TEMPORARY","TEMPTABLE","TERMINATED","TEXT","THAN","THEN","TIME","TIMESTAMP",
+	"TIMESTAMPADD","TIMESTAMPDIFF","TINYBLOB","TINYINT","TINYTEXT","TO","TRAILING","TRANSACTION","TRIGGER","TRIGGERS",
+	"TRUE","TRUNCATE","TYPE","TYPES","UNCOMMITTED","UNDEFINED","UNDO","UNDOFILE","UNDO_BUFFER_SIZE","UNICODE",
+	"UNINSTALL","UNION","UNIQUE","UNKNOWN","UNLOCK","UNSIGNED","UNTIL","UPDATE","UPGRADE","USAGE",
+	"USE","USER","USER_RESOURCES","USE_FRM","USING","UTC_DATE","UTC_TIME","UTC_TIMESTAMP","VALIDATION","VALUE",
+	"VALUES","VARBINARY","VARCHAR","VARCHARACTER","VARIABLES","VARYING","VIEW","VIRTUAL","WAIT","WARNINGS",
+	"WEEK","WEIGHT_STRING","WHEN","WHERE","WHILE","WITH","WITHOUT","WORK","WRAPPER","WRITE",
+	"X509","XA","XID","XML","XOR","YEAR","YEAR_MONTH","ZEROFILL" 
+};
 
 std::map<std::string, int> reserved_map;
 
@@ -740,729 +742,729 @@ void scroll_Char(int* ahead)
 		ahead[LookAheadLen - 1] = getchar();
 }
 
-	class scan_error :public std::runtime_error
+class scan_error :public std::runtime_error
+{
+public:
+	explicit scan_error(const std::string& s) :
+		std::runtime_error(s) {}
+};
+
+class comment_incomplete_error :public scan_error
+{
+public:
+	explicit comment_incomplete_error(const std::string& s) :
+		scan_error(s) {}
+};
+
+class string_error :public scan_error
+{
+public:
+	explicit string_error(const std::string& s):
+		scan_error(s){}
+};
+
+/// scan_utils end
+
+token gettok()
+{
+	if (scanner_status != blank)
 	{
-	public:
-		explicit scan_error(const std::string& s) :
-			std::runtime_error(s) {}
-	};
+		fprintf(stderr, "scanner_status is not blank��but you simply call gettok() \n");
+	}
 
-	class comment_incomplete_error :public scan_error
+	// handle EOF case
+	if (LookAhead[0] == EOF)
 	{
-	public:
-		explicit comment_incomplete_error(const std::string& s) :
-			scan_error(s) {}
-	};
+		token t;
+		t.token_kind = eof;
+		t.token_value = eof_value();
+		return t;
+	}
 
-	class string_error :public scan_error
+	// Skip any whitespace.
+	while (isspace(LookAhead[0]))
 	{
-	public:
-		explicit string_error(const std::string& s):
-			scan_error(s){}
-	};
-
-	/// scan_utils end
-
-	token gettok()
+		scroll_Char(LookAhead);
+	}
+	// # style comment
+	if (LookAhead[0] == '#')
 	{
-		if (scanner_status != blank)
-		{
-			fprintf(stderr, "scanner_status is not blank��but you simply call gettok() \n");
-		}
+		scanner_status = comment;
+		do
+			scroll_Char(LookAhead);
+		while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+		scanner_status = blank;
+	}
 
-		// handle EOF case
-		if (LookAhead[0] == EOF)
-		{
-			token t;
-			t.token_kind = eof;
-			t.token_value = eof_value();
-			return t;
-		}
+	//-- style comment
+	if (LookAhead[0] == '-'&& LookAhead[1] == '-')
+	{
+		scanner_status = comment;
+		do
+			scroll_Char(LookAhead);
+		while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
+		scanner_status = blank;
+	}
 
-		// Skip any whitespace.
-		while (isspace(LookAhead[0]))
+	// /* */ style comment ע�� /*/ ���ǺϷ���ע��
+	if (LookAhead[0] == '/'&& LookAhead[1] == '*')
+	{
+		scanner_status = comment;
+		scroll_Char(LookAhead); scroll_Char(LookAhead);
+		while (!(LookAhead[0] == '*' && LookAhead[1] == '/'))
 		{
 			scroll_Char(LookAhead);
+			if (LookAhead[0] == EOF)
+				throw comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
 		}
-		// # style comment
-		if (LookAhead[0] == '#')
-		{
-			scanner_status = comment;
-			do
-				scroll_Char(LookAhead);
-			while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
-			scanner_status = blank;
-		}
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scanner_status = blank;
+	}
 
-		//-- style comment
-		if (LookAhead[0] == '-'&& LookAhead[1] == '-')
+	// �ַ��������� �ʳ�ֵ��ע�� \��ת��
+	// ����������'' �� "" �ɺϲ�Ϊ1��
+	// �����������ַ�����ճ���������� parser ����
+	if (LookAhead[0] == '"' || LookAhead[0] == '\'')
+	{
+		scanner_status = literal_string;
+		auto match_char = LookAhead[0];
+		scroll_Char(LookAhead);
+		string_literal.clear();
+		while (1)
 		{
-			scanner_status = comment;
-			do
-				scroll_Char(LookAhead);
-			while (LookAhead[0] != EOF && LookAhead[0] != '\n' && LookAhead[0] != '\r');
-			scanner_status = blank;
-		}
-
-		// /* */ style comment ע�� /*/ ���ǺϷ���ע��
-		if (LookAhead[0] == '/'&& LookAhead[1] == '*')
-		{
-			scanner_status = comment;
-			scroll_Char(LookAhead); scroll_Char(LookAhead);
-			while (!(LookAhead[0] == '*' && LookAhead[1] == '/'))
+			if (LookAhead[0] != match_char && LookAhead[0] != '\\')
 			{
+				string_literal += static_cast<char>(LookAhead[0]);
 				scroll_Char(LookAhead);
-				if (LookAhead[0] == EOF)
-					throw comment_incomplete_error(R"zjulab("/*" mis-matches "*/" )zjulab");
+				continue;
 			}
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scanner_status = blank;
-		}
 
-		// �ַ��������� �ʳ�ֵ��ע�� \��ת��
-		// ����������'' �� "" �ɺϲ�Ϊ1��
-		// �����������ַ�����ճ���������� parser ����
-		if (LookAhead[0] == '"' || LookAhead[0] == '\'')
-		{
-			scanner_status = literal_string;
-			auto match_char = LookAhead[0];
-			scroll_Char(LookAhead);
-			string_literal.clear();
-			while (1)
+			if (LookAhead[0] == '\\')
 			{
-				if (LookAhead[0] != match_char && LookAhead[0] != '\\')
+				if (LookAhead[1] == '0')
 				{
-					string_literal += static_cast<char>(LookAhead[0]);
+					string_literal += '\0';
+					scroll_Char(LookAhead);
 					scroll_Char(LookAhead);
 					continue;
 				}
-
-				if (LookAhead[0] == '\\')
+				if (LookAhead[1] == '\'')
 				{
-					if (LookAhead[1] == '0')
-					{
-						string_literal += '\0';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == '\'')
-					{
-						string_literal += '\'';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == '"')
-					{
-						string_literal += '"';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == 'b')
-					{
-						string_literal += '\b';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == 'n')
-					{
-						string_literal += '\n';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == 'r')
-					{
-						string_literal += '\r';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-					if (LookAhead[1] == 't')
-					{
-						string_literal += '\t';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-
-					if (LookAhead[1] == '\\')
-					{
-						string_literal += '\\';
-						scroll_Char(LookAhead);
-						scroll_Char(LookAhead);
-						continue;
-					}
-
+					string_literal += '\'';
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
 					continue;
 				}
-
-				if (LookAhead[0] == match_char&&LookAhead[1] == match_char)
+				if (LookAhead[1] == '"')
 				{
-					string_literal += (match_char == '"' ? '"' : '\'');
+					string_literal += '"';
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
+					continue;
+				}
+				if (LookAhead[1] == 'b')
+				{
+					string_literal += '\b';
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
+					continue;
+				}
+				if (LookAhead[1] == 'n')
+				{
+					string_literal += '\n';
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
+					continue;
+				}
+				if (LookAhead[1] == 'r')
+				{
+					string_literal += '\r';
+					scroll_Char(LookAhead);
+					scroll_Char(LookAhead);
+					continue;
+				}
+				if (LookAhead[1] == 't')
+				{
+					string_literal += '\t';
 					scroll_Char(LookAhead);
 					scroll_Char(LookAhead);
 					continue;
 				}
 
-				if (LookAhead[0] == match_char)
-				//if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
+				if (LookAhead[1] == '\\')
 				{
-					auto t = token();
-					t.token_kind = literal_string;
-					t.token_value = string_value(string_literal);
+					string_literal += '\\';
 					scroll_Char(LookAhead);
-					scanner_status = blank;
-					return t;
+					scroll_Char(LookAhead);
+					continue;
 				}
 
-				if (LookAhead[0] == EOF)
-					throw string_error((std::string{ "" }+(match_char == '"' ? '"' : '\'')) + " in string literal dismatches");
+				continue;
 			}
+
+			if (LookAhead[0] == match_char&&LookAhead[1] == match_char)
+			{
+				string_literal += (match_char == '"' ? '"' : '\'');
+				scroll_Char(LookAhead);
+				scroll_Char(LookAhead);
+				continue;
+			}
+
+			if (LookAhead[0] == match_char)
+			//if (LookAhead[0] == match_char&&isspace(LookAhead[1]))
+			{
+				auto t = token();
+				t.token_kind = literal_string;
+				t.token_value = string_value(string_literal);
+				scroll_Char(LookAhead);
+				scanner_status = blank;
+				return t;
+			}
+
+			if (LookAhead[0] == EOF)
+				throw string_error((std::string{ "" }+(match_char == '"' ? '"' : '\'')) + " in string literal dismatches");
 		}
+	}
 
-		// �����չ�һ�� true  false ��������������ؼ��ֵ�������
-		if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
-			tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
+	// �����չ�һ�� true  false ��������������ؼ��ֵ�������
+	if (tolower(LookAhead[0]) == 't' && tolower(LookAhead[1]) == 'r' && \
+		tolower(LookAhead[2]) == 'u' && tolower(LookAhead[3]) == 'e')
+	{
+		scanner_status = literal_int;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = int_value(1);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (tolower(LookAhead[0]) == 'f' && tolower(LookAhead[1]) == 'a' && \
+		tolower(LookAhead[2]) == 'l' && tolower(LookAhead[3]) == 's' && tolower(LookAhead[4]) == 'e')
+	{
+		scanner_status = literal_int;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = int_value(0);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	// ֻ����[0-9]��С����. ����������parser������
+	// ֻ����10���ƣ������� 0x 0b ��������
+	// 011����ʮ����11������8����
+	// ��ֵ�������ļ���ģʽ
+	// int���� [0-9]+
+	// ����С����. ��ָ��e ��Ϊdouble
+	// ����ΪһЩ����
+	// 0256 2048
+	// 0.36
+	// .345
+	// 5e6
+	// .2e-2
+	//23.6
+	//3.25e5
+	//.3e4
+	//65e-8
+	//3.
+	//0
+	//23.36e-9
+	//6.e9
+
+
+	if (isdigit(LookAhead[0]) || (LookAhead[0] == '.'&& isdigit(LookAhead[1])))
+	{
+		scanner_status = literal_int;
+		std::string numeric_str;
+		std::regex numeric_regex(R"zjulabregex((([0-9]*\.[0-9]+)|[0-9]+\.?)(e[+-]?[0-9]+)?)zjulabregex");
+		numeric_str += static_cast<char>(LookAhead[0]);
+		scroll_Char(LookAhead);
+		while (
+			std::regex_match(numeric_str + static_cast<char>(LookAhead[0]), numeric_regex)||
+			std::regex_match(numeric_str + static_cast<char>(LookAhead[0])+static_cast<char>(LookAhead[1]), numeric_regex)||
+			std::regex_match(numeric_str + static_cast<char>(LookAhead[0]) + static_cast<char>(LookAhead[1]) + static_cast<char>(LookAhead[2]), numeric_regex)
+			)
 		{
-			scanner_status = literal_int;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = int_value(1);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (tolower(LookAhead[0]) == 'f' && tolower(LookAhead[1]) == 'a' && \
-			tolower(LookAhead[2]) == 'l' && tolower(LookAhead[3]) == 's' && tolower(LookAhead[4]) == 'e')
-		{
-			scanner_status = literal_int;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = int_value(0);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		// ֻ����[0-9]��С����. ����������parser������
-		// ֻ����10���ƣ������� 0x 0b ��������
-		// 011����ʮ����11������8����
-		// ��ֵ�������ļ���ģʽ
-		// int���� [0-9]+
-		// ����С����. ��ָ��e ��Ϊdouble
-		// ����ΪһЩ����
-		// 0256 2048
-		// 0.36
-		// .345
-		// 5e6
-		// .2e-2
-		//23.6
-		//3.25e5
-		//.3e4
-		//65e-8
-		//3.
-		//0
-		//23.36e-9
-		//6.e9
-
-
-		if (isdigit(LookAhead[0]) || (LookAhead[0] == '.'&& isdigit(LookAhead[1])))
-		{
-			scanner_status = literal_int;
-			std::string numeric_str;
-			std::regex numeric_regex(R"zjulabregex((([0-9]*\.[0-9]+)|[0-9]+\.?)(e[+-]?[0-9]+)?)zjulabregex");
 			numeric_str += static_cast<char>(LookAhead[0]);
 			scroll_Char(LookAhead);
-			while (
-				std::regex_match(numeric_str + static_cast<char>(LookAhead[0]), numeric_regex)||
-				std::regex_match(numeric_str + static_cast<char>(LookAhead[0])+static_cast<char>(LookAhead[1]), numeric_regex)||
-				std::regex_match(numeric_str + static_cast<char>(LookAhead[0]) + static_cast<char>(LookAhead[1]) + static_cast<char>(LookAhead[2]), numeric_regex)
-				)
-			{
-				numeric_str += static_cast<char>(LookAhead[0]);
-				scroll_Char(LookAhead);
-			}
-			if ((numeric_str.find('e') == std::string::npos) && (numeric_str.find('.') == std::string::npos));
-			else scanner_status = literal_double;
-
-			if (scanner_status == literal_int)
-			{
-				token t;
-				t.token_kind = scanner_status;
-				t.token_value = int_value(atoi(numeric_str.c_str()));
-				scanner_status = blank;
-				return t;
-			}
-			else
-			{
-				token t;
-				t.token_kind = scanner_status;
-				t.token_value = double_value(atof(numeric_str.c_str()));
-				scanner_status = blank;
-				return t;
-			}
 		}
+		if ((numeric_str.find('e') == std::string::npos) && (numeric_str.find('.') == std::string::npos));
+		else scanner_status = literal_double;
 
-		// �����
-		// ������жϳ������������<=>
-		// ���ж϶̵����������<=
-		if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
+		if (scanner_status == literal_int)
 		{
-			scanner_status = symbol;
-			auto t = token();
+			token t;
 			t.token_kind = scanner_status;
-			t.token_value = reserved_value(lteqgt_mark);
+			t.token_value = int_value(atoi(numeric_str.c_str()));
 			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
 			return t;
-		}
-
-		if (LookAhead[0] == '<' && LookAhead[1] == '<')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(left_shift_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '>' && LookAhead[1] == '>')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(right_shift_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '>' && LookAhead[1] == '=')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(gteq_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '<' && LookAhead[1] == '=')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(lteq_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '<' && LookAhead[1] == '>')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(ltgt_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '!' && LookAhead[1] == '=')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(noteq_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '&' && LookAhead[1] == '&')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(andand_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '|' && LookAhead[1] == '|')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(oror_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == ':' && LookAhead[1] == '=')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(assign_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '!')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(not_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '-')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(minus_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '~')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(tilde_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '^')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(hat_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '*')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(mult_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '/')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(div_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '%')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(mod_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '+')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(plus_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '&')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(and_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '|')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(or_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '=')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(eq_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '>')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(gt_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '<')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(lt_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '#')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(number_sign_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '@')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(at_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '$')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(dollar_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == ',')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(comma_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '(')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(left_bracket_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == ')')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(right_bracket_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '[')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(left_square_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == ']')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(right_square_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '{')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(left_curly_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '}')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(right_curly_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '.')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(dot_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == ';')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(semicolon_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '?')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(qusetion_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		if (LookAhead[0] == '`')
-		{
-			scanner_status = symbol;
-			auto t = token();
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(backquote_mark);
-			scanner_status = blank;
-			scroll_Char(LookAhead);
-			return t;
-		}
-
-		// �������������
-		IdentifierStr.clear();
-		do
-		{
-			IdentifierStr += LookAhead[0];
-			scroll_Char(LookAhead);
-		} while (isidchar(LookAhead[0]));
-		auto t = token();
-		std::string idstr(IdentifierStr);
-
-		std::transform(idstr.begin(), idstr.end(), idstr.begin(), toupper);
-
-		if (find(reserved_dict.cbegin(), reserved_dict.cend(), idstr) != reserved_dict.cend())
-		{
-			scanner_status = symbol;
-			t.token_kind = scanner_status;
-			t.token_value = reserved_value(reserved_map[idstr]);
 		}
 		else
 		{
-			scanner_status = id;
+			token t;
 			t.token_kind = scanner_status;
-			t.token_value = id_value(IdentifierStr);
+			t.token_value = double_value(atof(numeric_str.c_str()));
+			scanner_status = blank;
+			return t;
 		}
+	}
 
+	// �����
+	// ������жϳ������������<=>
+	// ���ж϶̵����������<=
+	if (LookAhead[0] == '<' && LookAhead[1] == '=' && LookAhead[2] == '>')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(lteqgt_mark);
 		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
 		return t;
 	}
+
+	if (LookAhead[0] == '<' && LookAhead[1] == '<')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(left_shift_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '>' && LookAhead[1] == '>')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(right_shift_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '>' && LookAhead[1] == '=')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(gteq_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '<' && LookAhead[1] == '=')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(lteq_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '<' && LookAhead[1] == '>')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(ltgt_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '!' && LookAhead[1] == '=')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(noteq_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '&' && LookAhead[1] == '&')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(andand_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '|' && LookAhead[1] == '|')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(oror_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == ':' && LookAhead[1] == '=')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(assign_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '!')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(not_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '-')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(minus_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '~')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(tilde_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '^')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(hat_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '*')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(mult_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '/')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(div_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '%')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(mod_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '+')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(plus_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '&')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(and_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '|')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(or_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '=')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(eq_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '>')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(gt_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '<')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(lt_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '#')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(number_sign_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '@')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(at_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '$')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(dollar_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == ',')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(comma_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '(')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(left_bracket_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == ')')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(right_bracket_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '[')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(left_square_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == ']')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(right_square_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '{')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(left_curly_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '}')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(right_curly_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '.')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(dot_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == ';')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(semicolon_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '?')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(qusetion_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	if (LookAhead[0] == '`')
+	{
+		scanner_status = symbol;
+		auto t = token();
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(backquote_mark);
+		scanner_status = blank;
+		scroll_Char(LookAhead);
+		return t;
+	}
+
+	// �������������
+	IdentifierStr.clear();
+	do
+	{
+		IdentifierStr += LookAhead[0];
+		scroll_Char(LookAhead);
+	} while (isidchar(LookAhead[0]));
+	auto t = token();
+	std::string idstr(IdentifierStr);
+
+	std::transform(idstr.begin(), idstr.end(), idstr.begin(), toupper);
+
+	if (find(reserved_dict.cbegin(), reserved_dict.cend(), idstr) != reserved_dict.cend())
+	{
+		scanner_status = symbol;
+		t.token_kind = scanner_status;
+		t.token_value = reserved_value(reserved_map[idstr]);
+	}
+	else
+	{
+		scanner_status = id;
+		t.token_kind = scanner_status;
+		t.token_value = id_value(IdentifierStr);
+	}
+
+	scanner_status = blank;
+	return t;
+}
 

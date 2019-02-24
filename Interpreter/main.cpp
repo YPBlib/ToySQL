@@ -1,11 +1,12 @@
 #include "parser.h"
 int main()
 {
+
+
 	init_cata(); 
 	initbuff();
 	init_scanner();
 	init_parser();
-	
 
 	while (1)
 	{
@@ -14,6 +15,8 @@ int main()
 			auto z = ParseStatementAST();
 			if (z == nullptr)
 				break;
+			else toysql::exec<decltype(z)>(z);
+			
 		}
 		catch (std::runtime_error& s)
 		{
