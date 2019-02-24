@@ -13,7 +13,7 @@ class Scanbuf
     ~Scanbuf()=default;
 public:
     char buf_1[BUFSIZE]={0};
-	const char* const rdptr=buf_1;
+	char* const rdptr=buf_1;
 	char* psptr;
     static Scanbuf& getScanbuf();
 };
@@ -780,7 +780,7 @@ void scroll_Char()
 	}
 	else
 	{
-		if(psptr==rdptr[4095])psptr-=4095;
+		if(psptr-rdptr==4095])psptr=rdptr;
 	    else psptr++;
 	}
 }
