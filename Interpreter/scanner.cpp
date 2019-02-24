@@ -780,7 +780,7 @@ void scroll_Char()
 	}
 	else
 	{
-		if(psptr-rdptr==4095])psptr=rdptr;
+		if(psptr-rdptr==4095)psptr=rdptr;
 	    else psptr++;
 	}
 }
