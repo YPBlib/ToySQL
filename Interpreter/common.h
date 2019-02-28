@@ -15,6 +15,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
+#include <deque>
 #include <string>
 #include <cstring>
 #include <cstdio>
