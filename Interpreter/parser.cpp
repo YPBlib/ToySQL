@@ -6,20 +6,31 @@ int delimiter = semicolon_mark;
 int selecttimes;
 using LR = std::vector<std::shared_ptr<ExprAST>>;
 using LL = std::vector<std::shared_ptr<ExprAST>>;
-void consumeit(std::vector<int> v, std::string s);
+void consumeit(std::deque<int>&& v, std::string s);
 
-void consumeit(std::vector<int> v, std::string s)
+void consumeit(std::deque<int>&& v, std::string s)
 {
-	if (currtoken.token_kind == symbol)
+	int& m = currtoken.token_value.symbol_mark;
+	if (v.size() == 2 && v[0] == tok_QUIT && v[1] == delimiter)
 	{
-		int m = currtoken.token_value.symbol_mark;
-		if (std::find(v.cbegin(), v.cend(), m) != v.cend())
+		if (currtoken.token_kind == symbol && m == tok_QUIT)
 		{
 			currtoken = gettok();
-			return;
+			if (currtoken.token_kind == symbol && m == delimiter)return;
+			else throw std::runtime_error(s);
 		}
+		else throw std::runtime_error(s);
 	}
-	throw std::runtime_error(s);
+
+	while (v.size())
+	{
+		if (currtoken.token_kind == symbol&& v[0] == m)
+		{
+			v.pop_front();
+			currtoken = gettok();
+		}
+		else throw std::runtime_error(s);
+	}
 }
 
 void init_parser()
@@ -1028,8 +1039,7 @@ std::shared_ptr<StatementAST> ParseStatementAST()
 		}
 		else if (currtoken.token_value.symbol_mark == tok_QUIT)
 		{
-			consumeit({ tok_QUIT }, "expect `QUIT` \n");
-			consumeit({ delimiter }, "expect delimiter\n");
+			consumeit({ tok_QUIT,delimiter }, "expect `QUIT;` \n");
 			return nullptr;
 		}
 		else if (currtoken.token_value.symbol_mark == semicolon_mark)

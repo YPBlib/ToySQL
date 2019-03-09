@@ -1,9 +1,7 @@
 #include "parser.h"
 int main()
 {
-
-
-	init_cata(); 
+	init_cata();
 	initbuff();
 	init_scanner();
 	init_parser();
@@ -16,7 +14,6 @@ int main()
 			if (z == nullptr)
 				break;
 			else toysql::exec<decltype(z)>(z);
-			
 		}
 		catch (std::runtime_error& s)
 		{
